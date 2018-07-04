@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml
+QT       += core gui xml network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,7 +28,7 @@ INCLUDEPATH += $${PWD}/golddict/maclibs/include
 LIBS += -L$${PWD}/golddict/maclibs/lib -liconv -llzo2 -lbz2 -lz
 
 # copy libs
-QMAKE_POST_LINK = mkdir -p Repeat.app/Contents/Frameworks & \
+QMAKE_POST_LINK = -mkdir -p Repeat.app/Contents/Frameworks & \
                       cp -nR $${PWD}/golddict/maclibs/lib/ Repeat.app/Contents/Frameworks/
 
 SOURCES += \
@@ -64,7 +64,8 @@ SOURCES += \
     golddict/wildcard.cc \
     golddict/wstring.cc \
     golddict/wstring_qt.cc \
-    golddict/zipfile.cc
+    golddict/zipfile.cc \
+    loadmdx.cpp
 
 HEADERS += \
         mainwindow.h \

@@ -16,6 +16,8 @@ vector< sptr< Dictionary::Class > > makeDictionaries( vector< string > const & f
                                                       string const & indicesDir,
                                                       Dictionary::Initializing & ) THROW_SPEC( std::exception );
 
+sptr< Dictionary::Class > makeDictionary( string const & fileName) THROW_SPEC( std::exception );
+
 }
 
 #endif // __MDX_HH_INCLUDED__

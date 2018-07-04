@@ -1616,4 +1616,199 @@ vector< sptr< Dictionary::Class > > makeDictionaries( vector< string > const & f
   return dictionaries;
 }
 
+sptr< Dictionary::Class > makeDictionary( string const & fileName) THROW_SPEC( std::exception )
+{
+    // Skip files with the extensions different to .mdx to speed up the
+    // scanning
+    if ( fileName.size() < 4 || strcasecmp( fileName.c_str() + ( fileName.size() - 4 ), ".mdx" ) != 0 )
+      return 0;
+
+    vector< string > dictFiles( 1, fileName );
+    findResourceFiles( fileName, dictFiles );
+
+    string indicesDir = "DIC";
+    string dictId = Dictionary::makeDictionaryId( dictFiles );
+    string indexFile = indicesDir + dictId;
+
+    if ( Dictionary::needToRebuildIndex( dictFiles, indexFile ) ||
+         indexIsOldOrBad( dictFiles, indexFile ) )
+    {
+      // Building the index
+
+      gdDebug( "MDict: Building the index for dictionary: %s\n", fileName.c_str() );
+
+      MdictParser parser;
+      list< sptr< MdictParser > > mddParsers;
+
+      if ( !parser.open( fileName.c_str() ) )
+        return 0; //continue;
+
+      string title = string( parser.title().toUtf8().constData() );
+      //initializing.indexingDictionary( title );
+
+      for ( vector< string >::const_iterator mddIter = dictFiles.begin() + 1;
+            mddIter != dictFiles.end(); mddIter++ )
+      {
+        if ( File::exists( *mddIter ) )
+        {
+          sptr< MdictParser > mddParser = new MdictParser();
+          if ( !mddParser->open( mddIter->c_str() ) )
+          {
+            gdWarning( "Broken mdd (resource) file: %s\n", mddIter->c_str() );
+            continue;
+          }
+          mddParsers.push_back( mddParser );
+        }
+      }
+
+      File::Class idx( indexFile, "wb" );
+      IdxHeader idxHeader;
+      memset( &idxHeader, 0, sizeof( idxHeader ) );
+      // We write a dummy header first. At the end of the process the header
+      // will be rewritten with the right values.
+      idx.write( idxHeader );
+
+      // Write the title first
+      idx.write< uint32_t >( title.size() );
+      idx.write( title.data(), title.size() );
+
+      // then the encoding
+      {
+        string encoding = string( parser.encoding().toUtf8().constData() );
+        idx.write< uint32_t >( encoding.size() );
+        idx.write( encoding.data(), encoding.size() );
+      }
+
+      // This is our index data that we accumulate during the loading process.
+      // For each new word encountered, we emit the article's body to the file
+      // immediately, inserting the word itself and its offset in this map.
+      // This map maps folded words to the original words and the corresponding
+      // articles' offsets.
+      IndexedWords indexedWords;
+      ChunkedStorage::Writer chunks( idx );
+
+      idxHeader.isRightToLeft = parser.isRightToLeft();
+
+      // Save dictionary description if there's one
+      {
+        string description = string( parser.description().toUtf8().constData() );
+        idxHeader.descriptionAddress = chunks.startNewBlock();
+        chunks.addToBlock( description.c_str(), description.size() + 1 );
+        idxHeader.descriptionSize = description.size() + 1;
+      }
+
+      ArticleHandler articleHandler( chunks, indexedWords );
+      MdictParser::HeadWordIndex headWordIndex;
+
+      // enumerating word and its definition
+      while ( parser.readNextHeadWordIndex( headWordIndex ) )
+      {
+        parser.readRecordBlock( headWordIndex, articleHandler );
+      }
+
+      // enumerating resources if there's any
+      vector< sptr< IndexedWords > > mddIndices;
+      vector< string > mddFileNames;
+      while ( !mddParsers.empty() )
+      {
+        sptr< MdictParser > mddParser = mddParsers.front();
+        sptr< IndexedWords > mddIndexedWords = new IndexedWords();
+        MdictParser::HeadWordIndex resourcesIndex;
+        ResourceHandler resourceHandler( chunks, *mddIndexedWords );
+
+        while ( mddParser->readNextHeadWordIndex( headWordIndex ) )
+        {
+          resourcesIndex.insert( resourcesIndex.end(), headWordIndex.begin(), headWordIndex.end() );
+        }
+        mddParser->readRecordBlock( resourcesIndex, resourceHandler );
+
+        mddIndices.push_back( mddIndexedWords );
+        // Save filename for .mdd files only
+        QFileInfo fi( mddParser->filename() );
+        mddFileNames.push_back( string( fi.fileName().toUtf8().constData() ) );
+        mddParsers.pop_front();
+      }
+
+      // Finish with the chunks
+      idxHeader.chunksOffset = chunks.finish();
+
+      GD_DPRINTF( "Writing index...\n" );
+
+      // Good. Now build the index
+      IndexInfo idxInfo = BtreeIndexing::buildIndex( indexedWords, idx );
+      idxHeader.indexBtreeMaxElements = idxInfo.btreeMaxElements;
+      idxHeader.indexRootOffset = idxInfo.rootOffset;
+
+      // Save dictionary stylesheets
+      {
+        MdictParser::StyleSheets const & styleSheets = parser.styleSheets();
+        idxHeader.styleSheetAddress = idx.tell();
+        idxHeader.styleSheetCount = styleSheets.size();
+
+        for ( MdictParser::StyleSheets::const_iterator iter = styleSheets.begin();
+              iter != styleSheets.end(); iter++ )
+        {
+          string styleBegin( iter->second.first.toUtf8().constData() );
+          string styleEnd( iter->second.second.toUtf8().constData() );
+
+          // key
+          idx.write<qint32>( iter->first );
+          // styleBegin
+          idx.write<quint32>( ( quint32 )styleBegin.size() + 1 );
+          idx.write( styleBegin.c_str(), styleBegin.size() + 1 );
+          // styleEnd
+          idx.write<quint32>( ( quint32 )styleEnd.size() + 1 );
+          idx.write( styleEnd.c_str(), styleEnd.size() + 1 );
+        }
+      }
+
+      // read languages
+      QPair<quint32, quint32> langs = LangCoder::findIdsForFilename( QString::fromStdString( fileName ) );
+
+      // if no languages found, try dictionary's name
+      if ( langs.first == 0 || langs.second == 0 )
+      {
+        langs = LangCoder::findIdsForFilename( parser.title() );
+      }
+
+      idxHeader.langFrom = langs.first;
+      idxHeader.langTo = langs.second;
+
+      // Build index info for each mdd file
+      vector< IndexInfo > mddIndexInfos;
+      for ( vector< sptr< IndexedWords > >::const_iterator mddIndexIter = mddIndices.begin();
+            mddIndexIter != mddIndices.end(); mddIndexIter++ )
+      {
+        IndexInfo resourceIdxInfo = BtreeIndexing::buildIndex( *( *mddIndexIter ), idx );
+        mddIndexInfos.push_back( resourceIdxInfo );
+      }
+
+      // Save address of IndexInfos for resource files
+      idxHeader.mddIndexInfosOffset = idx.tell();
+      idxHeader.mddIndexInfosCount = mddIndexInfos.size();
+      for ( uint32_t mi = 0; mi < mddIndexInfos.size(); mi++ )
+      {
+        const string & mddfile = mddFileNames[ mi ];
+
+        idx.write<quint32>( ( quint32 )mddfile.size() + 1 );
+        idx.write( mddfile.c_str(), mddfile.size() + 1 );
+        idx.write<uint32_t>( mddIndexInfos[ mi ].btreeMaxElements );
+        idx.write<uint32_t>( mddIndexInfos[ mi ].rootOffset );
+      }
+
+      // That concludes it. Update the header.
+      idxHeader.signature = kSignature;
+      idxHeader.formatVersion = kCurrentFormatVersion;
+      idxHeader.parserVersion = MdictParser::kParserVersion;
+      idxHeader.foldingVersion = Folding::Version;
+      idxHeader.articleCount = parser.wordCount();
+      idxHeader.wordCount = parser.wordCount();
+
+      idx.rewind();
+      idx.write( &idxHeader, sizeof( idxHeader ) );
+    }
+
+    return new MdxDictionary( dictId, indexFile, dictFiles ) ;
+  }
+
 }

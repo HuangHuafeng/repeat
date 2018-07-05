@@ -27,6 +27,15 @@ void MainWindow::on_actionOpen_triggered()
     sptr< Dictionary::Class > mdx = Mdx::makeDictionary(fileName.toStdString());
     if (mdx) {
         ui->textEdit->append(QString::fromStdString(mdx->getName()));
+        //ui->textEdit->append((mdx->getDescription()));
+
+        std::wstring wordToSearch = L"buld";
+        sptr <Dictionary::WordSearchRequest> pResult = mdx->prefixMatch(wordToSearch, 5);
+        if (pResult) {
+            ui->textEdit->append("haha, find you!");
+        } else {
+            ui->textEdit->append("cannot find the word!");
+        }
     } else {
         ui->textEdit->append("failed!");
     }

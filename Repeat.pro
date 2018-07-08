@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml
+QT       += core gui xml network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -65,9 +65,10 @@ SOURCES += \
     golddict/wstring.cc \
     golddict/wstring_qt.cc \
     golddict/zipfile.cc \
-    loadmdx.cpp \
     golddict/article_maker.cc \
-    golddict/wordfinder.cc
+    golddict/wordfinder.cc \
+    golddict/article_netmgr.cc \
+    mdxdict.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -103,7 +104,12 @@ HEADERS += \
     golddict/wstring_qt.hh \
     golddict/zipfile.hh \
     golddict/article_maker.hh \
-    golddict/wordfinder.hh
+    golddict/wordfinder.hh \
+    golddict/article_netmgr.hh \
+    mdxdict.h
 
 FORMS += \
         mainwindow.ui
+
+RESOURCES += \
+    res.qrc

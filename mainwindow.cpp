@@ -41,34 +41,24 @@ void MainWindow::on_actionOpen_triggered()
     //sptr< Dictionary::DataRequest > r = articleNetMgr.getResource( blankPage,
     //                                                                 contentType );
 
-    QString req("gdlookup://localhost?word=all&dictionaries=");
+    QString req("gdlookup://localhost?word=residual&dictionaries=");
     QString dic(dictionaries[0]->getId().c_str());
     QUrl testWordPage( req+dic );
     sptr< Dictionary::DataRequest > r = articleNetMgr.getResource( testWordPage,
                                                                      contentType );
 
-    QThread::sleep(5);
+    QEventLoop localLoop;
+
+    QObject::connect( r.get(), SIGNAL( finished() ),
+                      &localLoop, SLOT( quit() ) );
+
+    localLoop.exec();
+
     if (r.get()) {
+        r->finished();
         QString pageContent = QString::fromUtf8( &( r->getFullData().front() ),
                                                  r->getFullData().size() );
         ui->textEdit->append(pageContent);
     }
-
-    /*
-    sptr< Dictionary::Class > mdx = Mdx::makeDictionary(fileName.toStdString());
-    if (mdx) {
-        ui->textEdit->append(QString::fromStdString(mdx->getName()));
-        //ui->textEdit->append((mdx->getDescription()));
-
-        std::wstring wordToSearch = L"buld";
-        sptr <Dictionary::WordSearchRequest> pResult = mdx->prefixMatch(wordToSearch, 5);
-        if (pResult) {
-            ui->textEdit->append("haha, find you!");
-        } else {
-            ui->textEdit->append("cannot find the word!");
-        }
-    } else {
-        ui->textEdit->append("failed!");
-    }
-    */
 }
+

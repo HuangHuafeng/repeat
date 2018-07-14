@@ -1,22 +1,25 @@
+#include "mdxdict.h"
+#include "golddict/gddebug.hh"
+
 #include <QMessageBox>
 
-#include "mdxdict.h"
 
 using std::vector;
 using std::string;
 
-MdxDict::MdxDict(QString const & mdxFileFullName):
+MdxLoader::MdxLoader(QString const & mdxFileFullName):
     exceptionText( "Load did not finish" ) // Will be cleared upon success
 {
     this->mdxFileName = mdxFileFullName;
 }
 
-void MdxDict::loadMdxDictionary()
+void MdxLoader::loadMdxDictionary()
 {
     vector< string > allFiles;
     allFiles.push_back(mdxFileName.toStdString());
 
-    QString indexDir = QCoreApplication::applicationDirPath() + "/index";
+    QString indexDir = QCoreApplication::applicationDirPath() + "/";
+    gdDebug("index direcory: %s\n", indexDir.toStdString().c_str());
 
     try
     {
@@ -32,44 +35,79 @@ void MdxDict::loadMdxDictionary()
     }
 }
 
-void MdxDict::run()
+void MdxLoader::run()
 {
     loadMdxDictionary();
 }
 
-void MdxDict::indexingDictionary( string const & dictionaryName ) throw()
+void MdxLoader::indexingDictionary( string const & dictionaryName ) throw()
 {
   emit indexingDictionarySignal( QString::fromUtf8( dictionaryName.c_str() ) );
 }
 
-void loadMdx(QWidget * parent, QString const & mdxFileFullName,
-             std::vector< sptr< Dictionary::Class > > & dictionaries)
+void MdxDict::loadMdx(QString const & mdxFileFullName)
 {
-    dictionaries.clear();
+    m_dictionaries.clear();
 
-    MdxDict mdxDictionary(mdxFileFullName);
+    MdxLoader loader(mdxFileFullName);
 
     //QObject::connect( &mdxDictionary, SIGNAL( indexingDictionarySignal( QString const & ) ),
     //                  &init, SLOT( indexing( QString const & ) ) );
 
     QEventLoop localLoop;
 
-    QObject::connect( &mdxDictionary, SIGNAL( finished() ),
+    QObject::connect( &loader, SIGNAL( finished() ),
                       &localLoop, SLOT( quit() ) );
 
-    mdxDictionary.start();
+    loader.start();
 
     localLoop.exec();
 
-    mdxDictionary.wait();
+    loader.wait();
 
-    if ( mdxDictionary.getExceptionText().size() || mdxDictionary.getDictionaries().size() == 0)
+    if ( loader.getExceptionText().size() || loader.getDictionaries().size() == 0)
     {
-        QMessageBox::critical( parent, "Error loading dictionaries",
-                               QString::fromUtf8( mdxDictionary.getExceptionText().c_str() ) );
+        QMessageBox::critical( m_parent, "Error loading dictionaries",
+                               QString::fromUtf8( loader.getExceptionText().c_str() ) );
 
         return;
     }
 
-    dictionaries = mdxDictionary.getDictionaries();
+    m_dictionaries = loader.getDictionaries();
+}
+
+MdxDict::MdxDict(QWidget *parent): m_articleMaker( m_dictionaries, m_groupInstances, "",""),
+    m_articleNetMgr( parent, m_dictionaries, m_articleMaker, true, true),
+    m_parent(parent)
+{
+    ;
+}
+
+QString MdxDict::getWordDefinitionPage(QString word)
+{
+    if (m_dictionaries.size() == 0)
+    {
+        return "";
+    }
+
+    QString contentType;
+    QString req("gdlookup://localhost?word=" + word + "&dictionaries=" + m_dictionaries[0]->getId().c_str());
+    //QString dic(dictionaries[0]->getId().c_str());
+    //QUrl wordReq( req+dic );
+    sptr< Dictionary::DataRequest > r = m_articleNetMgr.getResource( req,
+                                                                     contentType );
+
+    QEventLoop localLoop;
+
+    QObject::connect( r.get(), SIGNAL( finished() ),
+                      &localLoop, SLOT( quit() ) );
+
+    localLoop.exec();
+
+    if (r.get()) {
+        return QString::fromUtf8( &( r->getFullData().front() ),
+                                                 r->getFullData().size() );
+    } else {
+        return "";
+    }
 }

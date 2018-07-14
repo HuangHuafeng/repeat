@@ -2,8 +2,11 @@
 #define MDXDICT_H
 
 #include "golddict/mdx.hh"
+#include "golddict/instances.hh"
+#include "golddict/article_maker.hh"
+#include "golddict/article_netmgr.hh"
 
-class MdxDict : public QThread, public Dictionary::Initializing
+class MdxLoader : public QThread, public Dictionary::Initializing
 {
     Q_OBJECT
 
@@ -14,7 +17,7 @@ class MdxDict : public QThread, public Dictionary::Initializing
     void loadMdxDictionary();
 
 public:
-    MdxDict(QString const & mdxFileFullName);
+    MdxLoader(QString const & mdxFileFullName);
 
     virtual void run();
 
@@ -35,7 +38,28 @@ public:
 
 };
 
-void loadMdx(QWidget * parent, QString const & mdxFileFullName,
-             std::vector< sptr< Dictionary::Class > > & dictionaries);
+
+class MdxDict {
+
+    std::vector< sptr< Dictionary::Class > > m_dictionaries;
+    Instances::Groups m_groupInstances;
+    ArticleMaker m_articleMaker;
+    ArticleNetworkAccessManager m_articleNetMgr;
+
+    QWidget *m_parent;
+
+public:
+    MdxDict(QWidget * parent);
+
+    void loadMdx(QString const & mdxFileFullName);
+    ArticleNetworkAccessManager & getArticleNetworkAccessManager() {
+        return m_articleNetMgr;
+    }
+
+    std::vector< sptr< Dictionary::Class > > const & getDictionaries() const
+    { return m_dictionaries; }
+
+    QString getWordDefinitionPage(QString word);
+};
 
 #endif // MDXDICT_H

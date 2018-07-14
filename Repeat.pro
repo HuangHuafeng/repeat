@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml network
+QT       += core gui xml network webenginewidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -68,7 +68,9 @@ SOURCES += \
     golddict/article_maker.cc \
     golddict/wordfinder.cc \
     golddict/article_netmgr.cc \
-    mdxdict.cpp
+    mdxdict.cpp \
+    dictschemehandler.cpp \
+    gdview.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -106,7 +108,9 @@ HEADERS += \
     golddict/article_maker.hh \
     golddict/wordfinder.hh \
     golddict/article_netmgr.hh \
-    mdxdict.h
+    mdxdict.h \
+    dictschemehandler.h \
+    gdview.h
 
 FORMS += \
         mainwindow.ui

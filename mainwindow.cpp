@@ -40,9 +40,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_pushButton_clicked()
 {
-    //QueryWord();
-    m_webEngineView->load(QUrl("file:///Users/huafeng/Downloads/tickets/temp/test.html"));
-    //m_webEngineView->setHtml(QString("<html><img src=\"/var/folders/l3/wbxd0lcj7j93qchzjvhnvblh0000gn/T/yGXqZC-spkr_b.png\"></html>"));
+    QueryWord();
 }
 
 void MainWindow::on_lineEdit_returnPressed()

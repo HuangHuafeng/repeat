@@ -7,5 +7,8 @@
         <file>article-style-st-lingvo.css</file>
         <file>article-style-st-modern.css</file>
         <file>article-style.css</file>
+        <file>icons/arrow.png</file>
+        <file>icons/downarrow.png</file>
+        <file>icons/blank.png</file>
     </qresource>
 </RCC>

@@ -48,6 +48,10 @@ class MdxDict {
 
     QWidget *m_parent;
 
+
+    bool m_disallowContentFromOtherSites;
+    bool m_hideGoldenDictHeader;
+
 public:
     MdxDict(QWidget * parent);
 
@@ -60,6 +64,15 @@ public:
     { return m_dictionaries; }
 
     QString getWordDefinitionPage(QString word);
+
+    static void waitRequest(sptr< Dictionary::DataRequest > dr) {
+        if (dr.get()) {
+            QEventLoop localLoop;
+            QObject::connect( dr.get(), SIGNAL( finished() ),
+                              &localLoop, SLOT( quit() ) );
+            localLoop.exec();
+        }
+    }
 };
 
 #endif // MDXDICT_H

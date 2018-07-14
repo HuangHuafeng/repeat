@@ -77,8 +77,10 @@ void MdxDict::loadMdx(QString const & mdxFileFullName)
 }
 
 MdxDict::MdxDict(QWidget *parent): m_articleMaker( m_dictionaries, m_groupInstances, "",""),
-    m_articleNetMgr( parent, m_dictionaries, m_articleMaker, true, true),
-    m_parent(parent)
+    m_articleNetMgr( parent, m_dictionaries, m_articleMaker, m_disallowContentFromOtherSites, m_hideGoldenDictHeader),
+    m_parent(parent),
+    m_disallowContentFromOtherSites(true),
+    m_hideGoldenDictHeader(true)
 {
     ;
 }
@@ -92,18 +94,9 @@ QString MdxDict::getWordDefinitionPage(QString word)
 
     QString contentType;
     QString req("gdlookup://localhost?word=" + word + "&dictionaries=" + m_dictionaries[0]->getId().c_str());
-    //QString dic(dictionaries[0]->getId().c_str());
-    //QUrl wordReq( req+dic );
     sptr< Dictionary::DataRequest > r = m_articleNetMgr.getResource( req,
                                                                      contentType );
-
-    QEventLoop localLoop;
-
-    QObject::connect( r.get(), SIGNAL( finished() ),
-                      &localLoop, SLOT( quit() ) );
-
-    localLoop.exec();
-
+    MdxDict::waitRequest(r);
     if (r.get()) {
         return QString::fromUtf8( &( r->getFullData().front() ),
                                                  r->getFullData().size() );

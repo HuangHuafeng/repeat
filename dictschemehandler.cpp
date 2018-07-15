@@ -70,7 +70,7 @@ void DictSchemeHandler::handleSchemeGdau(QWebEngineUrlRequestJob *request)
     QString contentType;
     auto dr = handleSchemeBres(request, contentType);
     MdxDict::waitRequest(dr);
-    if (dr.get()) {
+    if (dr.get() && dr->getFullData().size() != 0) {
         vector< char > const & data = dr->getFullData();
         QTemporaryFile tmp(QDir::temp().filePath( "XXXXXX-" + request->requestUrl().path().section( '/', -1 ) ), this );
 
@@ -83,8 +83,9 @@ void DictSchemeHandler::handleSchemeGdau(QWebEngineUrlRequestJob *request)
         tmp.setAutoRemove(false);
         QString fileName = tmp.fileName();
         m_tmpFiles.append(fileName);
-        //m_mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
         m_mediaPlayer.play(fileName);
+    } else {
+        gdDebug("failed to get %s", request->requestUrl().toString().toStdString().c_str());
     }
 }
 

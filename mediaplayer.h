@@ -10,6 +10,8 @@ class MediaPlayer : public QObject
     QMediaPlayer m_mediaPlayer;
     QVector<QString> m_filesToPlay;
 
+    void playNextFile();
+
 public:
     MediaPlayer();
 
@@ -17,6 +19,7 @@ public:
 
 public slots:
     void stateChanged(QMediaPlayer::State state);
+    void error(QMediaPlayer::Error error);
 };
 
 #endif // MEDIAPLAYER_H

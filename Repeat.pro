@@ -70,7 +70,8 @@ SOURCES += \
     golddict/article_netmgr.cc \
     mdxdict.cpp \
     dictschemehandler.cpp \
-    gdview.cpp
+    gdview.cpp \
+    mediaplayer.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -110,7 +111,8 @@ HEADERS += \
     golddict/article_netmgr.hh \
     mdxdict.h \
     dictschemehandler.h \
-    gdview.h
+    gdview.h \
+    mediaplayer.h
 
 FORMS += \
         mainwindow.ui

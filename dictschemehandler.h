@@ -2,10 +2,10 @@
 #define DICTSCHEMEHANDLER_H
 
 #include "mdxdict.h"
+#include "mediaplayer.h"
 
 #include <QWebEngineUrlSchemeHandler>
 #include <QWebEngineView>
-#include <QMediaPlayer>
 #include <QVector>
 
 class DictSchemeHandler : public QWebEngineUrlSchemeHandler
@@ -13,7 +13,7 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
     Q_OBJECT
 
     MdxDict & m_dict;
-    QMediaPlayer m_mediaPlayer;
+    MediaPlayer m_mediaPlayer;
     QVector<QString> m_tmpFiles;
 
 private:

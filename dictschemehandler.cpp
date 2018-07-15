@@ -35,7 +35,7 @@ void DictSchemeHandler::installToWebEngingView(QWebEngineView &webEngineView)
 void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 {
     QUrl requestUrl = request->requestUrl();
-    gdDebug("request is %s in DictSchemeHandler::requestStarted()", requestUrl.toString().toStdString().c_str());
+    //gdDebug("request is %s in DictSchemeHandler::requestStarted()", requestUrl.toString().toStdString().c_str());
 
     sptr< Dictionary::DataRequest > dr;
     QString contentType;
@@ -60,7 +60,7 @@ void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
         request->reply(QByteArray(contentType.toStdString().c_str()), reply);
     }
     else {
-        gdDebug("failed in DictSchemeHandler::handleSchemeGdlookup()");
+        gdDebug("failed to handle the request in DictSchemeHandler::handleSchemeGdlookup(): %s", requestUrl.toString().toStdString().c_str());
         request->fail(QWebEngineUrlRequestJob::UrlInvalid);
     }
 }
@@ -83,8 +83,8 @@ void DictSchemeHandler::handleSchemeGdau(QWebEngineUrlRequestJob *request)
         tmp.setAutoRemove(false);
         QString fileName = tmp.fileName();
         m_tmpFiles.append(fileName);
-        m_mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
-        m_mediaPlayer.play();
+        //m_mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
+        m_mediaPlayer.play(fileName);
     }
 }
 

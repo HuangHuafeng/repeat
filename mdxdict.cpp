@@ -67,7 +67,7 @@ void MdxDict::loadMdx(QString const & mdxFileFullName)
 
     if ( loader.getExceptionText().size() || loader.getDictionaries().size() == 0)
     {
-        QMessageBox::critical( m_parent, "Error loading dictionaries",
+        QMessageBox::critical( nullptr, "Error loading dictionaries",
                                QString::fromUtf8( loader.getExceptionText().c_str() ) );
 
         return;
@@ -76,13 +76,11 @@ void MdxDict::loadMdx(QString const & mdxFileFullName)
     m_dictionaries = loader.getDictionaries();
 }
 
-MdxDict::MdxDict(QWidget *parent): m_articleMaker( m_dictionaries, m_groupInstances, "",""),
+MdxDict::MdxDict(QObject *parent): m_articleMaker( m_dictionaries, m_groupInstances, "",""),
     m_articleNetMgr( parent, m_dictionaries, m_articleMaker, m_disallowContentFromOtherSites, m_hideGoldenDictHeader),
-    m_parent(parent),
     m_disallowContentFromOtherSites(true),
     m_hideGoldenDictHeader(true)
 {
-    ;
 }
 
 QString MdxDict::getWordDefinitionPage(QString word)

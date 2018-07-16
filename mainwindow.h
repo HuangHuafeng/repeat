@@ -1,11 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "gdhelper.h"
+
 #include <QMainWindow>
 #include <QWebEngineView>
-
-#include "mdxdict.h"
-#include "dictschemehandler.h"
 
 namespace Ui {
 class MainWindow;
@@ -28,9 +27,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QWebEngineView *m_webEngineView;
-    MdxDict m_dict;
-    DictSchemeHandler m_dictSchemeHandler;
+    GDHelper m_gdhelper;
 
     void QueryWord();
 };

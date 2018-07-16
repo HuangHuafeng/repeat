@@ -46,14 +46,11 @@ class MdxDict {
     ArticleMaker m_articleMaker;
     ArticleNetworkAccessManager m_articleNetMgr;
 
-    QWidget *m_parent;
-
-
     bool m_disallowContentFromOtherSites;
     bool m_hideGoldenDictHeader;
 
 public:
-    MdxDict(QWidget * parent);
+    MdxDict(QObject *parent = nullptr);
 
     void loadMdx(QString const & mdxFileFullName);
     ArticleNetworkAccessManager & getArticleNetworkAccessManager() {

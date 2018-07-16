@@ -70,9 +70,9 @@ SOURCES += \
     golddict/article_netmgr.cc \
     mdxdict.cpp \
     dictschemehandler.cpp \
-    gdview.cpp \
     mediaplayer.cpp \
-    temporaryfilemanager.cpp
+    temporaryfilemanager.cpp \
+    gdhelper.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -112,9 +112,9 @@ HEADERS += \
     golddict/article_netmgr.hh \
     mdxdict.h \
     dictschemehandler.h \
-    gdview.h \
     mediaplayer.h \
-    temporaryfilemanager.h
+    temporaryfilemanager.h \
+    gdhelper.h
 
 FORMS += \
         mainwindow.ui

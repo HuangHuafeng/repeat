@@ -10,17 +10,15 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_dict(this),
-    m_dictSchemeHandler(m_dict, this)
+    m_gdhelper(this)
 {
     ui->setupUi(this);
 
     // load LDOCE6 by default for covenience
-    m_dict.loadMdx("/Users/huafeng/Documents/Nexus7/Dictionary/LDOCE6/LDOCE6.mdx");
+    m_gdhelper.loadDict("/Users/huafeng/Documents/Nexus7/Dictionary/LDOCE6/LDOCE6.mdx");
 
-    m_webEngineView = new QWebEngineView;
-    ui->horizontalLayout_2->addWidget(m_webEngineView);
-    m_dictSchemeHandler.installToWebEngingView(*m_webEngineView);
+    auto definitionView = m_gdhelper.getDefinitionView();
+    ui->horizontalLayout_2->addWidget(definitionView);
     this->resize(800, 600);
 }
 
@@ -33,8 +31,7 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "Open Dictionary");
 
-
-    m_dict.loadMdx(fileName);
+    m_gdhelper.loadDict(fileName);
 }
 
 
@@ -50,9 +47,6 @@ void MainWindow::on_lineEdit_returnPressed()
 
 void MainWindow::QueryWord()
 {
-    if (m_dict.getDictionaries().size()) {
         QString word = ui->lineEdit->text();
-        QString wordDefinition = m_dict.getWordDefinitionPage(word);
-        m_webEngineView->setHtml(wordDefinition);
-    }
+        m_gdhelper.lookupWord(word);
 }

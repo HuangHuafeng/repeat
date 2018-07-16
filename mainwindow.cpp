@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_webEngineView = new QWebEngineView;
     ui->horizontalLayout_2->addWidget(m_webEngineView);
     m_dictSchemeHandler.installToWebEngingView(*m_webEngineView);
-    //m_webEngineView->page()->
+    this->resize(800, 600);
 }
 
 MainWindow::~MainWindow()

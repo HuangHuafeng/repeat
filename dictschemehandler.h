@@ -3,10 +3,10 @@
 
 #include "mdxdict.h"
 #include "mediaplayer.h"
+#include "temporaryfilemanager.h"
 
 #include <QWebEngineUrlSchemeHandler>
 #include <QWebEngineView>
-#include <QVector>
 
 class DictSchemeHandler : public QWebEngineUrlSchemeHandler
 {
@@ -14,7 +14,7 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
 
     MdxDict & m_dict;
     MediaPlayer m_mediaPlayer;
-    QVector<QString> m_tmpFiles;
+    TemporaryFileManager m_tfm;
 
 private:
     sptr< Dictionary::DataRequest >  handleSchemeGdlookup(QWebEngineUrlRequestJob *request, QString & contentType);

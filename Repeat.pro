@@ -71,7 +71,8 @@ SOURCES += \
     mdxdict.cpp \
     dictschemehandler.cpp \
     gdview.cpp \
-    mediaplayer.cpp
+    mediaplayer.cpp \
+    temporaryfilemanager.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -112,7 +113,8 @@ HEADERS += \
     mdxdict.h \
     dictschemehandler.h \
     gdview.h \
-    mediaplayer.h
+    mediaplayer.h \
+    temporaryfilemanager.h
 
 FORMS += \
         mainwindow.ui

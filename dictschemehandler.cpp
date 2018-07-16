@@ -9,16 +9,12 @@
 DictSchemeHandler::DictSchemeHandler(MdxDict & dict, QObject *parent): QWebEngineUrlSchemeHandler(parent),
     m_dict(dict),
     m_mediaPlayer(),
-    m_tmpFiles()
+    m_tfm(parent)
 {
 }
 
 DictSchemeHandler::~DictSchemeHandler()
 {
-    // delete the temporary files
-    for (int i = 0; i < m_tmpFiles.size(); ++i) {
-        QFile::remove(m_tmpFiles.at(i));
-    }
 }
 
 void DictSchemeHandler::installToWebEngingView(QWebEngineView &webEngineView)
@@ -81,9 +77,8 @@ void DictSchemeHandler::handleSchemeGdau(QWebEngineUrlRequestJob *request)
         }
 
         tmp.setAutoRemove(false);
-        QString fileName = tmp.fileName();
-        m_tmpFiles.append(fileName);
-        m_mediaPlayer.play(fileName);
+        m_tfm.addTemporaryFile(tmp);
+        m_mediaPlayer.play(tmp.fileName());
     } else {
         gdDebug("failed to get %s", request->requestUrl().toString().toStdString().c_str());
     }

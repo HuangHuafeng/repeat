@@ -11,30 +11,35 @@ DictSchemeHandler::DictSchemeHandler(MdxDict & dict, QObject *parent): QWebEngin
     m_mediaPlayer(),
     m_tfm(parent)
 {
+    installSchemeHandler();
 }
 
 DictSchemeHandler::~DictSchemeHandler()
 {
 }
 
-void DictSchemeHandler::installToWebEngingView(QWebEngineView &webEngineView)
+void DictSchemeHandler::installSchemeHandler()
 {
-    if (webEngineView.page()->profile()->urlSchemeHandler(QByteArray("gdau"))
-            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("gdlookup"))
-            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("bres"))
-            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("qrcx"))
-            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("gdpicture"))
-            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("gdvideo"))
-            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("bword"))) {
+    // just use the default profile, we are not going to be complicated
+    // to the situation that pages use different profiles
+    QWebEngineProfile *defaultProfile = QWebEngineProfile::defaultProfile();
+    if (defaultProfile->urlSchemeHandler(QByteArray("gdau"))
+            || defaultProfile->urlSchemeHandler(QByteArray("gdlookup"))
+            || defaultProfile->urlSchemeHandler(QByteArray("bres"))
+            || defaultProfile->urlSchemeHandler(QByteArray("qrcx"))
+            || defaultProfile->urlSchemeHandler(QByteArray("gdpicture"))
+            || defaultProfile->urlSchemeHandler(QByteArray("gdvideo"))
+            || defaultProfile->urlSchemeHandler(QByteArray("bword"))) {
         // already installed
+        gdDebug("We should not run to this line in DictSchemeHandler::installSchemeHandler()!");
     } else {
-        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdau"), this);
-        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdlookup"), this);
-        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("bres"), this);
-        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("qrcx"), this);
-        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdpicture"), this);
-        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdvideo"), this);
-        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("bword"), this);
+        defaultProfile->installUrlSchemeHandler(QByteArray("gdau"), this);
+        defaultProfile->installUrlSchemeHandler(QByteArray("gdlookup"), this);
+        defaultProfile->installUrlSchemeHandler(QByteArray("bres"), this);
+        defaultProfile->installUrlSchemeHandler(QByteArray("qrcx"), this);
+        defaultProfile->installUrlSchemeHandler(QByteArray("gdpicture"), this);
+        defaultProfile->installUrlSchemeHandler(QByteArray("gdvideo"), this);
+        defaultProfile->installUrlSchemeHandler(QByteArray("bword"), this);
     }
 }
 

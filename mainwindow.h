@@ -26,9 +26,12 @@ private slots:
 
     void on_lineEdit_returnPressed();
 
+    void on_pushButton_2_clicked();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;
+    QWebEngineView m_definitionView;
 
     StudyWindow m_studyWindow;
     //WordView m_wordView;

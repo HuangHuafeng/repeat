@@ -26,7 +26,7 @@ public:
     DictSchemeHandler(MdxDict & dict, QObject *parent = Q_NULLPTR);
     ~DictSchemeHandler();
 
-    void installToWebEngingView(QWebEngineView & webEngineView);
+    void installSchemeHandler();
 
     virtual void requestStarted(QWebEngineUrlRequestJob *request) override;
 };

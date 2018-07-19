@@ -3,23 +3,18 @@
 
 #include <QLabel>
 
-StudyWindow::StudyWindow(QWidget *parent) :
+StudyWindow::StudyWindow(GDHelper &gdhelper, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StudyWindow),
-    m_gdhelper(parent),
-    m_wordView(parent)
+    m_gdhelper(gdhelper),
+    m_wordView(parent),
+    m_definitionView(parent)
 {
     ui->setupUi(this);
 
-    // load LDOCE6 by default for covenience
-    m_gdhelper.loadDict("/Users/huafeng/Documents/Nexus7/Dictionary/LDOCE6/LDOCE6.mdx");
-
-    m_wordView.setWord("Morning");
     ui->vlDefinition->addWidget(&m_wordView);
-
-    m_gdhelper.lookupWord("impeachment");
-    auto definitionView = m_gdhelper.getDefinitionView();
-    ui->vlDefinition->addWidget(definitionView);
+    ui->vlDefinition->addWidget(&m_definitionView);
+    m_gdhelper.loadBlankPage(m_definitionView);
 }
 
 StudyWindow::~StudyWindow()
@@ -30,4 +25,5 @@ StudyWindow::~StudyWindow()
 void StudyWindow::on_pushButton_clicked()
 {
     m_wordView.setWord("impeachment");
+    m_gdhelper.lookupWord("impeachment", m_definitionView);
 }

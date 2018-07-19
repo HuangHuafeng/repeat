@@ -11,19 +11,14 @@ class GDHelper : public QObject
 {
     Q_OBJECT
 
-    QWebEngineView m_webEngineView;
     MdxDict m_dict;
     DictSchemeHandler m_dictSchemeHandler;
 
 public:
     GDHelper(QObject *parent = nullptr);
 
-    QWebEngineView * getDefinitionView()
-    {
-        return &m_webEngineView;
-    }
-
-    bool lookupWord(QString word);
+    void lookupWord(QString word, QWebEngineView &viewToUpdate);
+    void loadBlankPage(QWebEngineView &viewToUpdate);
     void loadDict(QString const & dictFileFullName);
     QString getWordDefinitionPage(QString word);
 };

@@ -15,7 +15,7 @@ class StudyWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit StudyWindow(QWidget *parent = 0);
+    explicit StudyWindow(GDHelper &gdhelper, QWidget *parent = 0);
     ~StudyWindow();
 
 private slots:
@@ -23,9 +23,11 @@ private slots:
 
 private:
     Ui::StudyWindow *ui;
-
-    GDHelper m_gdhelper;
+    GDHelper &m_gdhelper;
     WordView m_wordView;
+    QWebEngineView m_definitionView;
+
+    // the list of words to learn
 };
 
 #endif // STUDYWINDOW_H

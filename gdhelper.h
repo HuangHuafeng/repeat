@@ -25,6 +25,7 @@ public:
 
     bool lookupWord(QString word);
     void loadDict(QString const & dictFileFullName);
+    QString getWordDefinitionPage(QString word);
 };
 
 #endif // GDHELPER_H

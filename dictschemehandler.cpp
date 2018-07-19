@@ -19,13 +19,23 @@ DictSchemeHandler::~DictSchemeHandler()
 
 void DictSchemeHandler::installToWebEngingView(QWebEngineView &webEngineView)
 {
-    webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdau"), this);
-    webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdlookup"), this);
-    webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("bres"), this);
-    webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("qrcx"), this);
-    webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdpicture"), this);
-    webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdvideo"), this);
-    webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("bword"), this);
+    if (webEngineView.page()->profile()->urlSchemeHandler(QByteArray("gdau"))
+            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("gdlookup"))
+            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("bres"))
+            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("qrcx"))
+            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("gdpicture"))
+            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("gdvideo"))
+            || webEngineView.page()->profile()->urlSchemeHandler(QByteArray("bword"))) {
+        // already installed
+    } else {
+        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdau"), this);
+        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdlookup"), this);
+        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("bres"), this);
+        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("qrcx"), this);
+        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdpicture"), this);
+        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("gdvideo"), this);
+        webEngineView.page()->profile()->installUrlSchemeHandler(QByteArray("bword"), this);
+    }
 }
 
 void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)

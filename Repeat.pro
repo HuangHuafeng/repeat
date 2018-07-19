@@ -72,7 +72,9 @@ SOURCES += \
     dictschemehandler.cpp \
     mediaplayer.cpp \
     temporaryfilemanager.cpp \
-    gdhelper.cpp
+    gdhelper.cpp \
+    studywindow.cpp \
+    wordview.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -114,10 +116,13 @@ HEADERS += \
     dictschemehandler.h \
     mediaplayer.h \
     temporaryfilemanager.h \
-    gdhelper.h
+    gdhelper.h \
+    studywindow.h \
+    wordview.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    studywindow.ui
 
 RESOURCES += \
     res.qrc

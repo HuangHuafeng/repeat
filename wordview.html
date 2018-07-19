@@ -1,0 +1,59 @@
+<html>
+<style type="text/css" media="all">
+    body {
+        margin: 0px 12px;
+        overflow: hidden;
+        background-color: #fefdeb;
+    }
+
+    #_div_word {
+        height: 60px;
+        /* IMPORTANT: decides the window size */
+        vertical-align: middle;
+        font-size: 36px;
+    }
+</style>
+
+<body>
+    <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js">
+    </script>
+    <script type="text/javascript">
+        function test() {
+            worddiv = document.getElementById("_div_word");
+            alert('Window: ' + window.innerWidth + " x " + window.innerHeight
+                + '\ndiv ' + worddiv.clientWidth + " x " + worddiv.clientHeight);
+        }
+
+        var updateWord = function (newWord) {
+            document.getElementById("_div_word").innerHTML = newWord;
+        }
+
+        new QWebChannel(qt.webChannelTransport, function (channel) {
+            // To make the object known globally, assign it to the window object, i.e.:
+            window.wordview = channel.objects.wordview;
+
+            // Connect to the signal "wordChanged":
+            wordview.wordChanged.connect(updateWord);
+            updateWord(wordview.word);
+
+            // set preferred size
+            worddiv = document.getElementById("_div_word");
+            wordview.updateSizeHint(worddiv.clientWidth, worddiv.clientHeight, function (returnValue) { });
+        });
+
+        window.onresize = function () {
+            worddiv = document.getElementById("_div_word");
+            worddiv.style["height"] = window.innerHeight + 'px';
+            worddiv.style["line-height"] = window.innerHeight + 'px';
+        }
+
+        window.onclick = function () {
+            //test();
+        }
+    </script>
+
+    <div id="_div_word">
+    </div>
+</body>
+
+</html>

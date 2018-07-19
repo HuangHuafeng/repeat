@@ -3,7 +3,8 @@
 GDHelper::GDHelper(QObject *parent):
     QObject(parent),
     m_dict(parent),
-    m_dictSchemeHandler(m_dict, parent)
+    m_dictSchemeHandler(m_dict, parent),
+    m_webEngineView(nullptr)
 {
     m_dictSchemeHandler.installToWebEngingView(m_webEngineView);
 }
@@ -22,4 +23,9 @@ bool GDHelper::lookupWord(QString word)
 void GDHelper::loadDict(const QString &dictFileFullName)
 {
     m_dict.loadMdx(dictFileFullName);
+}
+
+QString GDHelper::getWordDefinitionPage(QString word)
+{
+    return m_dict.getWordDefinitionPage(word);
 }

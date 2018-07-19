@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "gdhelper.h"
+#include "studywindow.h"
 
 #include <QMainWindow>
 #include <QWebEngineView>
@@ -28,6 +29,9 @@ private slots:
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;
+
+    StudyWindow m_studyWindow;
+    //WordView m_wordView;
 
     void QueryWord();
 };

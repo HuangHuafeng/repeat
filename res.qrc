@@ -11,5 +11,6 @@
         <file>icons/downarrow.png</file>
         <file>icons/blank.png</file>
         <file>wordview.html</file>
+        <file>wordlist.txt</file>
     </qresource>
 </RCC>

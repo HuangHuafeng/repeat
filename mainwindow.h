@@ -3,6 +3,7 @@
 
 #include "gdhelper.h"
 #include "studywindow.h"
+#include "worddb.h"
 
 #include <QMainWindow>
 #include <QWebEngineView>
@@ -32,7 +33,7 @@ private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;
     QWebEngineView m_definitionView;
-
+    WordDB m_worddb;
     StudyWindow m_studyWindow;
     //WordView m_wordView;
 

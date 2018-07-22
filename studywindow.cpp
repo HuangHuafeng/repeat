@@ -26,4 +26,5 @@ void StudyWindow::on_pushButton_clicked()
 {
     m_wordView.setWord("impeachment");
     m_gdhelper.lookupWord("impeachment", m_definitionView);
+    //ui->pushButton->hide();
 }

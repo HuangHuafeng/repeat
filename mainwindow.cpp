@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "worddb.h"
 #include "golddict/gddebug.hh"
+#include "word.h"
 
 #include <QString>
 #include <QFileDialog>
@@ -12,9 +13,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     m_gdhelper(nullptr),
     m_definitionView(this),
+    m_worddb(),
     m_studyWindow(m_gdhelper, nullptr)
 {
     ui->setupUi(this);
+
+
 
     // load LDOCE6 by default for covenience
     m_gdhelper.loadDict("/Users/huafeng/Documents/Nexus7/Dictionary/LDOCE6/LDOCE6.mdx");
@@ -54,9 +58,20 @@ void MainWindow::QueryWord()
         QString word = ui->lineEdit->text();
         //m_wordView.setWord(word);
         m_gdhelper.lookupWord(word, m_definitionView);
+            Word tempWord(word);
+            gdDebug("expire time: %s", tempWord.getExpireTime().toString().toStdString().c_str());
+            if (tempWord.getFromDatabase()) {
+                gdDebug("found from database");
+            }
+            gdDebug("expire time: %s", tempWord.getExpireTime().toString().toStdString().c_str());
 }
 
 void MainWindow::on_pushButton_2_clicked()
 {
+    auto wordList = Word::getNewWords(10);
+    for (int i = 0;i < wordList.size();i ++) {
+        auto word = wordList.at(i);
+        gdDebug("%s: %s", word->getSpelling().toStdString().c_str(), word->getExpireTime().toString().toStdString().c_str());
+    }
     m_studyWindow.show();
 }

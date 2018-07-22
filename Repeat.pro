@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml network webenginewidgets multimedia
+QT       += core gui xml network webenginewidgets multimedia sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -74,7 +74,9 @@ SOURCES += \
     temporaryfilemanager.cpp \
     gdhelper.cpp \
     studywindow.cpp \
-    wordview.cpp
+    wordview.cpp \
+    worddb.cpp \
+    word.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -118,7 +120,10 @@ HEADERS += \
     temporaryfilemanager.h \
     gdhelper.h \
     studywindow.h \
-    wordview.h
+    wordview.h \
+    worddb.h \
+    word.h \
+    golddict/sptr.hh
 
 FORMS += \
         mainwindow.ui \

@@ -57,13 +57,26 @@ void MainWindow::QueryWord()
 {
         QString word = ui->lineEdit->text();
         //m_wordView.setWord(word);
-        m_gdhelper.lookupWord(word, m_definitionView);
-            Word tempWord(word);
-            gdDebug("expire time: %s", tempWord.getExpireTime().toString().toStdString().c_str());
-            if (tempWord.getFromDatabase()) {
-                gdDebug("found from database");
-            }
-            gdDebug("expire time: %s", tempWord.getExpireTime().toString().toStdString().c_str());
+        //m_gdhelper.lookupWord(word, m_definitionView);
+        Word tempWord(word);
+        gdDebug("expire time: %s", tempWord.getExpireTime().toString().toStdString().c_str());
+        if (tempWord.getFromDatabase()) {
+            gdDebug("found from database");
+        }
+        gdDebug("expire time: %s", tempWord.getExpireTime().toString().toStdString().c_str());
+
+    TestHtmlParse();
+}
+
+void MainWindow::TestHtmlParse()
+{
+    QString word = ui->lineEdit->text();
+    QString html = m_gdhelper.getWordDefinitionPage(word);
+
+    QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+    m_gdhelper.modifyHtml(html);
+    m_definitionView.setHtml(html, baseUrl);
+    gdDebug("%s", baseUrl.toString().toStdString().c_str());
 }
 
 void MainWindow::on_pushButton_2_clicked()
@@ -74,4 +87,40 @@ void MainWindow::on_pushButton_2_clicked()
         gdDebug("%s: %s", word->getSpelling().toStdString().c_str(), word->getExpireTime().toString().toStdString().c_str());
     }
     m_studyWindow.show();
+}
+
+
+void MainWindow::searchLink(QTextFrame * parent)
+{
+    for( QTextFrame::iterator it = parent->begin(); !it.atEnd(); ++it )
+    {
+        QTextFrame *textFrame = it.currentFrame();
+        QTextBlock textBlock = it.currentBlock();
+
+        if( textFrame )
+        {
+            this->searchLink(textFrame);
+        }
+        else if( textBlock.isValid() )
+        {
+            this->searchLink(textBlock);
+        }
+    }
+}
+
+void MainWindow::searchLink(QTextBlock & parent)
+{
+    for(QTextBlock::iterator it = parent.begin(); !it.atEnd(); ++it)
+    {
+        QTextFragment textFragment = it.fragment();
+        if( textFragment.isValid() )
+        {
+            QTextCharFormat textCharFormat = textFragment.charFormat();
+            if( textCharFormat.isAnchor() )
+            {
+                 textCharFormat.anchorHref();  // <-- URL
+                 gdDebug("%s", textCharFormat.anchorHref().toStdString().c_str());
+            }
+        }
+    }
 }

@@ -81,22 +81,37 @@ void DictSchemeHandler::handleSchemeGdau(QWebEngineUrlRequestJob *request)
     QString contentType;
     auto dr = handleSchemeBres(request, contentType);
     MdxDict::waitRequest(dr);
+    QString tempFile = createTemporaryFile(dr, request->requestUrl().path().section( '/', -1 ));
+    m_mediaPlayer.play(tempFile);
+}
+
+QString DictSchemeHandler::createTemporaryFile(sptr< Dictionary::DataRequest > dr, QString fileName)
+{
+    QTemporaryFile tmp(QDir::temp().filePath( "XXXXXX-" + fileName ), this );
     if (dr.get() && dr->getFullData().size() != 0) {
         vector< char > const & data = dr->getFullData();
-        QTemporaryFile tmp(QDir::temp().filePath( "XXXXXX-" + request->requestUrl().path().section( '/', -1 ) ), this );
 
         if ( !tmp.open() || (size_t) tmp.write( &data.front(), data.size() ) != data.size() )
         {
           QMessageBox::critical( 0, "GoldenDict", tr( "Failed to create temporary file." ) );
-          return;
+        } else {
+            tmp.setAutoRemove(false);
+            m_tfm.addTemporaryFile(tmp);
         }
-
-        tmp.setAutoRemove(false);
-        m_tfm.addTemporaryFile(tmp);
-        m_mediaPlayer.play(tmp.fileName());
     } else {
-        gdDebug("failed to get %s", request->requestUrl().toString().toStdString().c_str());
+        // anyway, we write an empty file in this case
+        gdDebug("failed to get data in DictSchemeHandler::createTemporaryFile()");
+
+        if ( !tmp.open() || (size_t) tmp.write( "FAKEDATA", 0 ) != 0 )
+        {
+          QMessageBox::critical( 0, "GoldenDict", tr( "Failed to create temporary file." ) );
+        } else {
+            tmp.setAutoRemove(false);
+            m_tfm.addTemporaryFile(tmp);
+        }
     }
+
+    return tmp.fileName();
 }
 
 void DictSchemeHandler::handleSchemeQrcx(QWebEngineUrlRequestJob *request)
@@ -124,43 +139,140 @@ sptr< Dictionary::DataRequest > DictSchemeHandler::handleSchemeGdlookup(QWebEngi
 
 sptr< Dictionary::DataRequest > DictSchemeHandler::handleSchemeBres(QWebEngineUrlRequestJob *request, QString & /*contentType*/)
 {
-    QUrl url = request->requestUrl();
+    return handleSchemeBres(request->requestUrl());
+}
 
-        std::string id = url.host().toStdString();
 
-        bool search = ( id == "search" );
+sptr< Dictionary::DataRequest > DictSchemeHandler::handleSchemeBres(QUrl url)
+{
+    std::string id = url.host().toStdString();
+    auto dictionaries = m_dict.getDictionaries();
 
-        auto dictionaries = m_dict.getDictionaries();
-
-        if ( !search )
+    for( unsigned x = 0; x < dictionaries.size(); ++x )
+    {
+        if ( dictionaries[ x ]->getId() == id )
         {
-          for( unsigned x = 0; x < dictionaries.size(); ++x )
-            if ( dictionaries[ x ]->getId() == id )
+            if( url.scheme() == "gico" )
             {
-                if( url.scheme() == "gico" )
-                {
-                    QByteArray bytes;
-                    QBuffer buffer(&bytes);
-                    buffer.open(QIODevice::WriteOnly);
-                    dictionaries[ x ]->getIcon().pixmap( 16 ).save(&buffer, "PNG");
-                    buffer.close();
-                    sptr< Dictionary::DataRequestInstant > ico = new Dictionary::DataRequestInstant( true );
-                    ico->getData().resize( bytes.size() );
-                    memcpy( &( ico->getData().front() ), bytes.data(), bytes.size() );
-                    return ico;
-                }
-                try
-                {
-                  return  dictionaries[ x ]->getResource( Qt4x5::Url::path( url ).mid( 1 ).toUtf8().data() );
-                }
-                catch( std::exception & e )
-                {
-                  gdWarning( "getResource request error (%s) in \"%s\"\n", e.what(),
-                             dictionaries[ x ]->getName().c_str() );
-                  return sptr< Dictionary::DataRequest >();
-                }
+                QByteArray bytes;
+                QBuffer buffer(&bytes);
+                buffer.open(QIODevice::WriteOnly);
+                dictionaries[ x ]->getIcon().pixmap( 16 ).save(&buffer, "PNG");
+                buffer.close();
+                sptr< Dictionary::DataRequestInstant > ico = new Dictionary::DataRequestInstant( true );
+                ico->getData().resize( bytes.size() );
+                memcpy( &( ico->getData().front() ), bytes.data(), bytes.size() );
+                return ico;
+            }
+            try
+            {
+              return  dictionaries[ x ]->getResource( Qt4x5::Url::path( url ).mid( 1 ).toUtf8().data() );
+            }
+            catch( std::exception & e )
+            {
+              gdWarning( "getResource request error (%s) in \"%s\"\n", e.what(),
+                         dictionaries[ x ]->getName().c_str() );
+              return sptr< Dictionary::DataRequest >();
             }
         }
 
-        return sptr< Dictionary::DataRequest >();
+    }
+
+    return sptr< Dictionary::DataRequest >();
+}
+
+
+void DictSchemeHandler::saveMediaFile(QUrl url)
+{
+    QString scheme = url.scheme();
+
+    if (scheme.compare("qrcx") == 0) {
+        return saveQcrx(url);
+    }
+
+    if (scheme.compare("gdau") == 0
+            || scheme.compare("gico") == 0
+            || scheme.compare("bres") == 0) {
+        return saveOtherSchemes(url);
+    }
+
+
+    if (scheme.compare("gdlookup") == 0) {
+        return;
+    }
+}
+
+void DictSchemeHandler::saveOtherSchemes(QUrl url)
+{
+    QString fileName = QCoreApplication::applicationDirPath() + "/" + getMediaDir() + url.path();
+    if (QFile::exists(fileName)) {
+        return;
+    }
+
+    QString folder = fileName.section('/', 0, -2);
+    QDir::current().mkpath(folder);
+    auto dr = handleSchemeBres(url);
+    MdxDict::waitRequest(dr);
+    QString tempFile = createTemporaryFile(dr, "doesntmatter");
+    if (QFile::copy(tempFile, fileName) == false) {
+        gdDebug("failed to copy %s to %s", tempFile.toStdString().c_str(),
+                fileName.toStdString().c_str());
+    }
+}
+
+
+void DictSchemeHandler::saveQcrx(QUrl url)
+{
+    QString fileName = QCoreApplication::applicationDirPath() + "/media" + url.path();
+    if (QFile::exists(fileName)) {
+        return;
+    }
+
+    QString folder = fileName.section('/', 0, -2);
+    QDir::current().mkpath(folder);
+    QString tempFile = ":" + url.path();
+    if (QFile::copy(tempFile, fileName) == false) {
+        gdDebug("failed to copy %s to %s", tempFile.toStdString().c_str(),
+                fileName.toStdString().c_str());
+    }
+}
+
+void DictSchemeHandler::modifyHtml(QString &html)
+{
+    const QRegularExpression gdlink("(bres|gdau|gico|qrcx|gdlookup)://[^\"<>']*");
+
+    // save the media files
+    int offset = 0;
+    QRegularExpressionMatch match = gdlink.match(html, offset);
+    while (match.hasMatch()) {
+        saveMediaFile(match.captured());
+        offset = match.capturedEnd();
+        match = gdlink.match(html, offset);
+    }
+
+    // modify the html
+    match = gdlink.match(html, 0);
+    while (match.hasMatch()) {
+        QString matched = match.captured();
+        QUrl url(matched);
+        QString before = "";
+        QString after = "";
+        if (url.scheme().compare("gdau") == 0
+                || url.scheme().compare("gico") == 0
+                || url.scheme().compare("bres") == 0
+                || url.scheme().compare("qrcx") == 0) {
+            before = url.scheme() + "://" + url.host();
+            if (url.scheme().compare("gdau") == 0) {
+                after = "hhfaudio:///" + getMediaDir();
+            } else {
+                after = getMediaDir();
+            }
+            gdDebug("replacing %s with %s", before.toStdString().c_str(), after.toStdString().c_str());
+            html = html.replace(before, after);
+            offset = 0;
+        } else {
+            offset = match.capturedEnd();
+        }
+        match = gdlink.match(html, offset);
+    }
 }

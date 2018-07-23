@@ -19,14 +19,24 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
 private:
     sptr< Dictionary::DataRequest >  handleSchemeGdlookup(QWebEngineUrlRequestJob *request, QString & contentType);
     sptr< Dictionary::DataRequest >  handleSchemeBres(QWebEngineUrlRequestJob *request, QString &);
+    sptr< Dictionary::DataRequest >  handleSchemeBres(QUrl url);
     void  handleSchemeQrcx(QWebEngineUrlRequestJob *request);
     void  handleSchemeGdau(QWebEngineUrlRequestJob *request);
+
+    void saveQcrx(QUrl url);
+    void saveOtherSchemes(QUrl url);
+    QString createTemporaryFile(sptr< Dictionary::DataRequest > dr, QString fileName);
 
 public:
     DictSchemeHandler(MdxDict & dict, QObject *parent = Q_NULLPTR);
     ~DictSchemeHandler();
 
     void installSchemeHandler();
+    void modifyHtml(QString &html);
+    void saveMediaFile(QUrl url);
+    QString getMediaDir() const {
+        return "media";
+    }
 
     virtual void requestStarted(QWebEngineUrlRequestJob *request) override;
 };

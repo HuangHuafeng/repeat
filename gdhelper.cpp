@@ -1,4 +1,5 @@
 #include "gdhelper.h"
+#include "golddict/gddebug.hh"
 
 GDHelper::GDHelper(QObject *parent):
     QObject(parent),
@@ -40,3 +41,10 @@ QString GDHelper::getWordDefinitionPage(QString word)
 {
     return m_dict.getWordDefinitionPage(word);
 }
+
+
+void GDHelper::modifyHtml(QString &html)
+{
+    m_dictSchemeHandler.modifyHtml(html);
+}
+

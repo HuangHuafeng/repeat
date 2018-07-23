@@ -23,66 +23,30 @@ void DictSchemeHandler::installSchemeHandler()
     // just use the default profile, we are not going to be complicated
     // to the situation that pages use different profiles
     QWebEngineProfile *defaultProfile = QWebEngineProfile::defaultProfile();
-    if (defaultProfile->urlSchemeHandler(QByteArray("gdau"))
-            || defaultProfile->urlSchemeHandler(QByteArray("gdlookup"))
-            || defaultProfile->urlSchemeHandler(QByteArray("bres"))
-            || defaultProfile->urlSchemeHandler(QByteArray("qrcx"))
-            || defaultProfile->urlSchemeHandler(QByteArray("gdpicture"))
-            || defaultProfile->urlSchemeHandler(QByteArray("gdvideo"))
-            || defaultProfile->urlSchemeHandler(QByteArray("bword"))) {
+    if (defaultProfile->urlSchemeHandler(QByteArray("hhfaudio"))) {
         // already installed
         gdDebug("We should not run to this line in DictSchemeHandler::installSchemeHandler()!");
     } else {
-        defaultProfile->installUrlSchemeHandler(QByteArray("gdau"), this);
-        defaultProfile->installUrlSchemeHandler(QByteArray("gdlookup"), this);
-        defaultProfile->installUrlSchemeHandler(QByteArray("bres"), this);
-        defaultProfile->installUrlSchemeHandler(QByteArray("qrcx"), this);
-        defaultProfile->installUrlSchemeHandler(QByteArray("gdpicture"), this);
-        defaultProfile->installUrlSchemeHandler(QByteArray("gdvideo"), this);
-        defaultProfile->installUrlSchemeHandler(QByteArray("bword"), this);
+        defaultProfile->installUrlSchemeHandler(QByteArray("hhfaudio"), this);
     }
 }
 
 void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 {
     QUrl requestUrl = request->requestUrl();
-    //gdDebug("request is %s in DictSchemeHandler::requestStarted()", requestUrl.toString().toStdString().c_str());
 
-    sptr< Dictionary::DataRequest > dr;
-    QString contentType;
-
-    if (requestUrl.scheme().compare("gdlookup") == 0) {
-        dr = handleSchemeGdlookup(request, contentType);
-    } else if (requestUrl.scheme().compare("bres") == 0) {
-        dr = handleSchemeBres(request, contentType);
-    } else if (requestUrl.scheme().compare("gdau") == 0) {
-        return handleSchemeGdau(request);
-    } else if (requestUrl.scheme().compare("qrcx") == 0) {
-        return handleSchemeQrcx(request);
+    if (requestUrl.scheme().compare("hhfaudio") == 0) {
+        return handleSchemeHhfaudio(request);
     } else {
+        // impossible as we only register hhfaudio
         gdDebug("scheme %s is unknown in DictSchemeHandler::requestStarted()", requestUrl.scheme().toStdString().c_str());
-    }
-
-    MdxDict::waitRequest(dr);
-    if (dr.get()) {
-        QByteArray *replyData = new QByteArray(&( dr->getFullData().front()), dr->getFullData().size());
-        QBuffer *reply = new QBuffer(replyData);
-        connect(reply, &QIODevice::aboutToClose, reply, &QObject::deleteLater);
-        request->reply(QByteArray(contentType.toStdString().c_str()), reply);
-    }
-    else {
-        gdDebug("failed to handle the request in DictSchemeHandler::handleSchemeGdlookup(): %s", requestUrl.toString().toStdString().c_str());
-        request->fail(QWebEngineUrlRequestJob::UrlInvalid);
     }
 }
 
-void DictSchemeHandler::handleSchemeGdau(QWebEngineUrlRequestJob *request)
+void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
 {
-    QString contentType;
-    auto dr = handleSchemeBres(request, contentType);
-    MdxDict::waitRequest(dr);
-    QString tempFile = createTemporaryFile(dr, request->requestUrl().path().section( '/', -1 ));
-    m_mediaPlayer.play(tempFile);
+    QString audioFile = QCoreApplication::applicationDirPath() + request->requestUrl().path();
+    m_mediaPlayer.play(audioFile);
 }
 
 QString DictSchemeHandler::createTemporaryFile(sptr< Dictionary::DataRequest > dr, QString fileName)
@@ -113,35 +77,6 @@ QString DictSchemeHandler::createTemporaryFile(sptr< Dictionary::DataRequest > d
 
     return tmp.fileName();
 }
-
-void DictSchemeHandler::handleSchemeQrcx(QWebEngineUrlRequestJob *request)
-{
-    QUrl newUrl( request->requestUrl() );
-    newUrl.setScheme( "qrc" );
-    newUrl.setHost( "" );
-    request->redirect(newUrl);
-}
-
-sptr< Dictionary::DataRequest > DictSchemeHandler::handleSchemeGdlookup(QWebEngineUrlRequestJob *request, QString & contentType)
-{
-    ArticleNetworkAccessManager & anam = m_dict.getArticleNetworkAccessManager();
-
-    QUrl queryUrl = request->requestUrl();
-    if( Qt4x5::Url::hasQueryItem( queryUrl, "word" ) == false )
-    {
-        queryUrl.setHost( "localhost" );
-        Qt4x5::Url::addQueryItem( queryUrl, "word", queryUrl.path().mid( 1 ) );
-        Qt4x5::Url::addQueryItem( queryUrl, "group", QString::number( 0 ) );
-    }
-
-    return anam.getResource( queryUrl, contentType );
-}
-
-sptr< Dictionary::DataRequest > DictSchemeHandler::handleSchemeBres(QWebEngineUrlRequestJob *request, QString & /*contentType*/)
-{
-    return handleSchemeBres(request->requestUrl());
-}
-
 
 sptr< Dictionary::DataRequest > DictSchemeHandler::handleSchemeBres(QUrl url)
 {
@@ -200,6 +135,8 @@ void DictSchemeHandler::saveMediaFile(QUrl url)
     if (scheme.compare("gdlookup") == 0) {
         return;
     }
+
+    gdDebug("unprocessed scheme: %s", scheme.toStdString().c_str());
 }
 
 void DictSchemeHandler::saveOtherSchemes(QUrl url)
@@ -239,7 +176,7 @@ void DictSchemeHandler::saveQcrx(QUrl url)
 
 void DictSchemeHandler::modifyHtml(QString &html)
 {
-    const QRegularExpression gdlink("(bres|gdau|gico|qrcx|gdlookup)://[^\"<>']*");
+    const QRegularExpression gdlink("(bres|gdau|gico|qrcx|gdlookup|gdpicture|gdvideo|bword)://[^\"<>']*");
 
     // save the media files
     int offset = 0;
@@ -267,7 +204,13 @@ void DictSchemeHandler::modifyHtml(QString &html)
             } else {
                 after = getMediaDir();
             }
-            gdDebug("replacing %s with %s", before.toStdString().c_str(), after.toStdString().c_str());
+            //gdDebug("replacing %s with %s", before.toStdString().c_str(), after.toStdString().c_str());
+            html = html.replace(before, after);
+            offset = 0;
+        } else if (url.scheme().compare("gdlookup") == 0) {
+            before = url.toString();
+            after = "#";    // invalidate the link
+            //gdDebug("replacing %s with %s", before.toStdString().c_str(), after.toStdString().c_str());
             html = html.replace(before, after);
             offset = 0;
         } else {

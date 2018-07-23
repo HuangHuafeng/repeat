@@ -17,15 +17,16 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
     TemporaryFileManager m_tfm;
 
 private:
-    sptr< Dictionary::DataRequest >  handleSchemeGdlookup(QWebEngineUrlRequestJob *request, QString & contentType);
-    sptr< Dictionary::DataRequest >  handleSchemeBres(QWebEngineUrlRequestJob *request, QString &);
+    void  handleSchemeHhfaudio(QWebEngineUrlRequestJob *request);
     sptr< Dictionary::DataRequest >  handleSchemeBres(QUrl url);
-    void  handleSchemeQrcx(QWebEngineUrlRequestJob *request);
-    void  handleSchemeGdau(QWebEngineUrlRequestJob *request);
 
     void saveQcrx(QUrl url);
     void saveOtherSchemes(QUrl url);
     QString createTemporaryFile(sptr< Dictionary::DataRequest > dr, QString fileName);
+    void saveMediaFile(QUrl url);
+    QString getMediaDir() const {
+        return "media";
+    }
 
 public:
     DictSchemeHandler(MdxDict & dict, QObject *parent = Q_NULLPTR);
@@ -33,10 +34,6 @@ public:
 
     void installSchemeHandler();
     void modifyHtml(QString &html);
-    void saveMediaFile(QUrl url);
-    QString getMediaDir() const {
-        return "media";
-    }
 
     virtual void requestStarted(QWebEngineUrlRequestJob *request) override;
 };

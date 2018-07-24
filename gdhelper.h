@@ -21,9 +21,9 @@ public:
     void loadBlankPage(QWebEngineView &viewToUpdate);
     void loadDict(QString const & dictFileFullName);
     QString getWordDefinitionPage(QString word);
-    void modifyHtml(QString &html);
 
 private:
+    void modifyHtml(QString &html);
     void processGdlookup(QString &html);
     void processOthers(QString &html);
 };

@@ -12,8 +12,9 @@ GDHelper::GDHelper(QObject *parent):
 void GDHelper::lookupWord(QString word, QWebEngineView &viewToUpdate)
 {
     if (m_dict.getDictionaries().size()) {
-        QString wordDefinition = m_dict.getWordDefinitionPage(word);
-        viewToUpdate.setHtml(wordDefinition);
+        QString wordDefinition = getWordDefinitionPage(word);
+        QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+        viewToUpdate.setHtml(wordDefinition, baseUrl);
     }
 }
 
@@ -39,7 +40,9 @@ void GDHelper::loadDict(const QString &dictFileFullName)
 
 QString GDHelper::getWordDefinitionPage(QString word)
 {
-    return m_dict.getWordDefinitionPage(word);
+    QString html = m_dict.getWordDefinitionPage(word);
+    modifyHtml(html);
+    return html;
 }
 
 

@@ -6,9 +6,12 @@
 std::string addAudioLink( std::string const & url,
                           std::string const & dictionaryId )
 {
+    return std::string( "<script type=\"text/javascript\"></script>" );
+    /*
     return std::string( "<script type=\"text/javascript\">" +
                         makeAudioLinkScript( url, dictionaryId ) +
                         "</script>" );
+                        */
 }
 
 std::string makeAudioLinkScript( std::string const & url,

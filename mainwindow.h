@@ -40,9 +40,9 @@ private:
     void QueryWord();
     void TestHtmlParse();
 
-    static void tohtmlCallback(QString html);
     void searchLink(QTextFrame * parent);
     void searchLink(QTextBlock & parent);
+    void saveWord(const QString &spelling);
 };
 
 #endif // MAINWINDOW_H

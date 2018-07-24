@@ -9,13 +9,13 @@
 #include <QVariant>
 
 // m_baselineTime is my daughter's birth time
-const QDateTime Word::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
+const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
 
-Word::Word(QString word, QString definition) :
+Word::Word(QString word) :
     m_new(true),
-    m_spelling(word),
-    m_definition(definition)
+    m_spelling(word)
 {
+    m_definition = "";
     m_expireTime = defaultExpireTime();
 }
 
@@ -23,31 +23,19 @@ void Word::setExpireTime(const QDateTime &expireTime)
 {
     m_new = false;
     m_expireTime = expireTime;
+
+    StudyRecord newSR(m_expireTime, QDateTime::currentDateTime());
+    m_studyHistory.append(newSR);
+    dbsaveStudyRecord(newSR);
 }
 
 void Word::setDefinition(const QString &definition)
 {
     m_definition = definition;
+    dbsaveDefinition();
 }
 
-bool Word::isInDatabase(const QString &spelling)
-{
-    QSqlQuery query;
-    query.prepare("SELECT * FROM words WHERE word=:word  COLLATE NOCASE");
-    query.bindValue(":word", spelling);
-    if (query.exec()) {
-        return query.first();
-    } else {
-        QSqlError error = query.lastError();
-        QMessageBox::critical(nullptr, QObject::tr(""),
-            "failed to query " + spelling + " in Word::isInDatabase()" + error.text(), QMessageBox::Ok);
-        return false;
-    }
-
-    return false;
-}
-
-void Word::saveDefinition() const
+void Word::dbsaveDefinition()
 {
     QSqlQuery query;
     if (Word::isInDatabase(m_spelling)) {
@@ -61,9 +49,22 @@ void Word::saveDefinition() const
     query.bindValue(":definition", m_definition);
     if (query.exec() == false)
     {
-        QSqlError error = query.lastError();
-        QMessageBox::critical(nullptr, QObject::tr(""),
-            "failed to insert " + m_spelling + " in Word::saveToDatabase()" + error.text(), QMessageBox::Ok);
+        databaseError(query, "saving word \"" + m_spelling + "\"");
+    }
+}
+
+void Word::dbgetDefinition()
+{
+    QSqlQuery query;
+    query.prepare("SELECT definition FROM words WHERE word=:word COLLATE NOCASE");
+    query.bindValue(":word", m_spelling);
+    if (query.exec()) {
+        if (query.first()) {
+            // word exist
+            m_definition = query.value("definition").toString();
+        }
+    } else {
+        databaseError(query, "fetching defintion of \"" + m_spelling + "\"");
     }
 }
 
@@ -81,165 +82,153 @@ int Word::isDefintionSaved() const
     query.bindValue(":word", m_spelling);
     if (query.exec()) {
         if (query.first()) {
-            return query.value(0).toInt();
+            return query.value("id").toInt();
         } else {
             return 0;
         }
     } else {
-        QSqlError error = query.lastError();
-        QMessageBox::critical(nullptr, QObject::tr(""),
-            "failed to query " + m_spelling + " in Word::isInDatabase()" + error.text(), QMessageBox::Ok);
+        databaseError(query, "checking word \"" + m_spelling + "\"");
         return 0;
     }
 }
 
 // return 0 if not saved
 // id of the word if saved
-int Word::isExpireTimeSaved() const
+int Word::hasExpireTimeRecord() const
 {
-    int id = isDefintionSaved();
-    if (id == 0) {
+    int wordId = isDefintionSaved();
+    if (wordId == 0) {
         return 0;
     }
 
     QSqlQuery query;
-    query.prepare("SELECT * FROM words_in_study WHERE id=:id LIMIT 1");
-    query.bindValue(":id", id);
+    query.prepare("SELECT * FROM words_in_study WHERE word_id=:word_id LIMIT 1");
+    query.bindValue(":word_id", wordId);
     if (query.exec()) {
         if (query.first()) {
-            return id;
+            return wordId;
         } else {
             return 0;
         }
     } else {
-        QSqlError error = query.lastError();
-        QMessageBox::critical(nullptr, QObject::tr(""),
-            "failed to query " + QString::number(id) + " in Word::isExpireTimeSaved()" + error.text(), QMessageBox::Ok);
+        databaseError(query, "checking expire time of word \"" + m_spelling + "\"");
         return 0;
     }
 }
 
-void Word::saveExpireTime() const
+void Word::dbsaveStudyRecord(const StudyRecord &sr)
 {
     if (isNew()) {
         return;
     }
 
-    int id = isDefintionSaved();
-    if (id == 0) {
+    int wordId = getId();
+    if (wordId == 0) {
         return;
     }
-    gdDebug("id is %d", id);
 
-    int expireSeconds = getIntExpireTime();
+    int expire = sr.m_expire.toSeconds();
+    int studyDate = sr.m_studyDate.toSeconds();
     QSqlQuery query;
-    if (isExpireTimeSaved()) {
-        // update
-        query.prepare("UPDATE words_in_study SET expire=:expire WHERE id=:id");
-    } else {
-        // insert
-        query.prepare("INSERT INTO words_in_study(id, expire) VALUES(:id, :expire)");
-    }
-    query.bindValue(":id", id);
-    query.bindValue(":expire", expireSeconds);
+    query.prepare("INSERT INTO words_in_study(word_id, expire, study_date) VALUES(:word_id, :expire, :study_date)");
+    query.bindValue(":word_id", wordId);
+    query.bindValue(":expire", expire);
+    query.bindValue(":study_date", studyDate);
     if (query.exec() == false)
     {
-        QSqlError error = query.lastError();
-        QMessageBox::critical(nullptr, QObject::tr(""),
-            "failed in Word::saveExpireTime()" + error.text(), QMessageBox::Ok);
+        databaseError(query, "adding expire time of \"" + m_spelling + "\"");
     }
 }
 
-void Word::saveToDatabase() const
+void Word::dbgetStudyRecords()
 {
-    saveDefinition();
-    saveExpireTime();
+    int wordId = getId();
+    if (wordId == 0) {
+        return;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT expire, study_date FROM words_in_study WHERE word_id=:word_id");
+    query.bindValue(":word_id", wordId);
+    if (query.exec()) {
+        while (query.next()) {
+            int expire = query.value("expire").toInt();
+            int studyDate = query.value("study_date").toInt();
+            StudyRecord sr(expire, studyDate);
+            m_studyHistory.append(sr);
+        }
+    } else {
+        databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
+    }
 }
 
 // word is updated if the returned value is true
-bool Word::getFromDatabase()
+void Word::getFromDatabase()
 {
-    int id = 0;
+    dbgetDefinition();
+    dbgetStudyRecords();
+    m_new = false;
+}
+
+
+int Word::getId()
+{
+    return Word::getWordId(m_spelling);
+}
+
+// static
+void Word::databaseError(QSqlQuery &query, const QString what)
+{
+    QSqlError error = query.lastError();
+    QMessageBox::critical(nullptr, QObject::tr(""),
+        "Database error when " + what + ": " + error.text(), QMessageBox::Ok);
+}
+
+// static
+int Word::getWordId(const QString &spelling)
+{
     QSqlQuery query;
-    query.prepare("SELECT id, word, definition FROM words WHERE word=:word COLLATE NOCASE");
-    query.bindValue(":word", m_spelling);
+    query.prepare("SELECT id FROM words WHERE word=:word  COLLATE NOCASE");
+    query.bindValue(":word", spelling);
     if (query.exec()) {
         if (query.first()) {
-            // word exist
-            setDefinition(query.value(2).toString());
-            id = query.value(0).toInt();
+            return query.value("id").toInt();
         } else {
-            return false;
+            return 0;
         }
     } else {
-        QSqlError error = query.lastError();
-        QMessageBox::critical(nullptr, QObject::tr(""),
-            "failed in Word::getFromDatabase()" + error.text(), QMessageBox::Ok);
-        return false;
+        databaseError(query, "check existence of \"" + spelling + "\"");
+        return 0;
     }
 
-    query.prepare("SELECT id, expire FROM words_in_study WHERE id=:id LIMIT 1");
-    query.bindValue(":id", id);
-    if (query.exec()) {
-        if (query.first()) {
-            int seconds = query.value(1).toInt();
-            setExpireTime(getDatetimeExpireTime(seconds));
-        }
-        return true;
-    } else {
-        QSqlError error = query.lastError();
-        QMessageBox::critical(nullptr, QObject::tr(""),
-            "failed to query " + QString::number(id) + " in Word::getFromDatabase()" + error.text(), QMessageBox::Ok);
-        return false;   // something wrong, let's return false
-    }
+    return 0;
 }
 
-sptr<Word> Word::getWordFromDatabase(const QString &spelling) {
-    sptr<Word> word = new Word(spelling);
-    if (word->getFromDatabase()) {
-        return word;
-    } else {
-        return sptr<Word>();
-    }
-}
-
-
-QVector<sptr<Word>> Word::getNewWords(int number)
+// static
+bool Word::isInDatabase(const QString &spelling)
 {
-    QVector<sptr<Word>> wordList;
-
-    if (number > 0) {
-        QSqlQuery query;//("SELECT word FROM words WHERE id NOT IN (SELECT id FROM words_in_study) LIMIT '" + QString::number(number) + "'");
-        query.prepare("SELECT word FROM words WHERE id NOT IN (SELECT id FROM words_in_study) LIMIT :number");
-        query.bindValue(":number", number);
-
-        if (query.exec()) {
-            while (query.next()) {
-                auto word = getWordFromDatabase(query.value(0).toString());
-                wordList.append(word);
-            }
-        } else {
-            QSqlError error = query.lastError();
-            QMessageBox::critical(nullptr, QObject::tr(""),
-                "failed to query in Word::getNewWords()" + error.text(), QMessageBox::Ok);
-        }
-
-    }
-
-    return wordList;
+    return 0 != Word::getWordId(spelling);
 }
 
+// static
 void Word::createDatabaseTables()
 {
     QSqlQuery query;
     if (query.exec("SELECT * FROM words LIMIT 1") == false)
     {
         // table "words" does not exist
-        query.exec("CREATE TABLE words (id INTEGER primary key, "
+        if(query.exec("CREATE TABLE words (id INTEGER primary key, "
                    "word TEXT, "
-                   "definition TEXT)");
-        query.exec("CREATE TABLE words_in_study (id INTEGER, "
-                   "expire INTEGER)");
+                      "definition TEXT)") == false) {
+            databaseError(query, "creating table \"words\"");
+        }
+
+        if (query.exec("CREATE TABLE words_in_study (id INTEGER primary key, "
+                   "word_id INTEGER, "
+                   "expire INTEGER, "
+                   "study_date INTEGER)") == false) {
+            databaseError(query, "creating table \"words_in_study\"");
+        }
     } else {
         // table already exist
         QString msg( "Table \"words\" already exists, doing nothing in Word::createDatabaseTables()." );
@@ -247,4 +236,33 @@ void Word::createDatabaseTables()
         QMessageBox::information(nullptr, QObject::tr(""),
             msg, QMessageBox::Ok);
     }
+}
+
+// static
+sptr<Word> Word::getWordFromDatabase(const QString &spelling) {
+    if (Word::isInDatabase(spelling) == false) {
+        return sptr<Word>();
+    }
+
+    sptr<Word> word = new Word(spelling);
+    word->getFromDatabase();
+    return word;
+}
+
+// static
+QVector<sptr<Word>> Word::getNewWords(int number)
+{
+    QVector<sptr<Word>> wordList;
+
+    if (number > 0) {
+
+    }
+
+    return wordList;
+}
+
+// static
+QDateTime Word::defaultExpireTime()
+{
+    return QDateTime::currentDateTime().addYears(100);
 }

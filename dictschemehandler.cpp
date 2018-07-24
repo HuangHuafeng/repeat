@@ -204,13 +204,11 @@ void DictSchemeHandler::modifyHtml(QString &html)
             } else {
                 after = getMediaDir();
             }
-            //gdDebug("replacing %s with %s", before.toStdString().c_str(), after.toStdString().c_str());
             html = html.replace(before, after);
             offset = 0;
         } else if (url.scheme().compare("gdlookup") == 0) {
             before = url.toString();
             after = "#";    // invalidate the link
-            //gdDebug("replacing %s with %s", before.toStdString().c_str(), after.toStdString().c_str());
             html = html.replace(before, after);
             offset = 0;
         } else {

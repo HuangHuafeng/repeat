@@ -5,11 +5,45 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QSqlQuery>
+#include <QVector>
+
+struct StudyRecord;
+
+class MyTime
+{
+private:
+    static const QDateTime m_baselineTime;
+
+private:
+    QDateTime m_datetime;
+
+public:
+    MyTime(int seconds) :
+         m_datetime(m_baselineTime.addSecs(seconds))
+    {
+    }
+
+    MyTime(QDateTime aTime) :
+         m_datetime(aTime)
+    {
+    }
+
+    int toSeconds() const
+    {
+        return m_baselineTime.secsTo(m_datetime);
+    }
+
+    const QDateTime toDateTime() const
+    {
+        return m_datetime;
+    }
+};
 
 class Word
 {
 public:
-    Word(QString word, QString definition = QString(""));
+    Word(QString word);
 
     bool isNew() const
     {
@@ -28,43 +62,63 @@ public:
         return m_spelling;
     }
 
-    void saveDefinition() const;
-    void saveExpireTime() const;
+    const QString & getDefinition() const
+    {
+        return m_definition;
+    }
+
+    void addExpireTimeRecord() const;
     bool isSaved();
     int isDefintionSaved() const;
-    int isExpireTimeSaved() const;
+    int hasExpireTimeRecord() const;
 
-    void saveToDatabase() const;
-    bool getFromDatabase();
+    void getFromDatabase();
+    int getId();
 
     static void createDatabaseTables();
     static bool isInDatabase(const QString &spelling);
     static sptr<Word> getWordFromDatabase(const QString &spelling);
     static QVector<sptr<Word>> getNewWords(int number);
+    static QDateTime defaultExpireTime();
+
+private:
+    static void databaseError(QSqlQuery &query, const QString what);
+    static int getWordId(const QString &spelling);
+
+    void dbsaveDefinition();
+    void dbgetDefinition();
+    void dbgetStudyRecords();
+    void dbsaveStudyRecord(const StudyRecord &sr);
 
 private:
     bool m_new;
     QString m_spelling;
     QString m_definition;
     QDateTime m_expireTime;
+    QVector<StudyRecord> m_studyHistory;
+};
 
-private:
-    static const QDateTime m_baselineTime;
+struct StudyRecord
+{
+    MyTime m_expire;
+    MyTime m_studyDate;
 
-    QDateTime defaultExpireTime()
+    StudyRecord(QDateTime expire, QDateTime studyDate) :
+        m_expire(expire),
+        m_studyDate(studyDate)
     {
-        // default expire time is after 100 years
-        return m_baselineTime.addYears(100);
     }
 
-    int getIntExpireTime() const
+    StudyRecord(int expireInSeconds, int studyDateInSeconds) :
+        m_expire(expireInSeconds),
+        m_studyDate(studyDateInSeconds)
     {
-        return m_baselineTime.secsTo(m_expireTime);
     }
 
-    QDateTime getDatetimeExpireTime(int seconds) const
+    StudyRecord() :
+        m_expire(Word::defaultExpireTime()),
+        m_studyDate(QDateTime::currentDateTime())
     {
-        return m_baselineTime.addSecs(seconds);
     }
 };
 

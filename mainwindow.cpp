@@ -55,17 +55,26 @@ void MainWindow::on_lineEdit_returnPressed()
 
 void MainWindow::QueryWord()
 {
-        QString word = ui->lineEdit->text();
-        //m_wordView.setWord(word);
-        //m_gdhelper.lookupWord(word, m_definitionView);
-        Word tempWord(word);
-        gdDebug("expire time: %s", tempWord.getExpireTime().toString().toStdString().c_str());
-        if (tempWord.getFromDatabase()) {
-            gdDebug("found from database");
-        }
-        gdDebug("expire time: %s", tempWord.getExpireTime().toString().toStdString().c_str());
+    QString spelling = ui->lineEdit->text();
+    auto word = Word::getWordFromDatabase(spelling);
+    if (!word.get()) {
+        // get the word from dictionary and save to database
+        saveWord(spelling);
+        // get it again
+        word = Word::getWordFromDatabase(spelling);
+    }
 
-    TestHtmlParse();
+    QString html = word->getDefinition();
+    QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+    m_definitionView.setHtml(html, baseUrl);
+}
+
+void MainWindow::saveWord(const QString &spelling)
+{
+    QString html = m_gdhelper.getWordDefinitionPage(spelling);
+    Word word(spelling);
+    word.setDefinition(html);
+    word.setExpireTime(QDateTime::currentDateTime().addDays(10));
 }
 
 void MainWindow::TestHtmlParse()
@@ -74,9 +83,7 @@ void MainWindow::TestHtmlParse()
     QString html = m_gdhelper.getWordDefinitionPage(word);
 
     QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
-    m_gdhelper.modifyHtml(html);
     m_definitionView.setHtml(html, baseUrl);
-    gdDebug("%s", baseUrl.toString().toStdString().c_str());
 }
 
 void MainWindow::on_pushButton_2_clicked()

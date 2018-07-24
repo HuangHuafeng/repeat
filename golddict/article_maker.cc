@@ -178,6 +178,7 @@ std::string ArticleMaker::makeHtmlHeader( QString const & word,
   if ( icon.size() )
     result += "<link rel=\"icon\" type=\"image/png\" href=\"qrcx://localhost/flags/" + Html::escape( icon.toUtf8().data() ) + "\" />\n";
 
+  /*
   result += "<script type=\"text/javascript\">"
             "gdAudioLinks = { first: null, current: null };"
             "function gdMakeArticleActive( newId ) {"
@@ -223,6 +224,7 @@ std::string ArticleMaker::makeHtmlHeader( QString const & word,
               "if(el && el.className.search('gdcollapsedarticle')>0) gdExpandArticle(s);"
             "} }"
             "</script>";
+  */
 
   result += "</head><body>";
 
@@ -629,9 +631,11 @@ void ArticleRequest::bodyFinished()
         else
         {
           // This is the first article
+            /*
           head += "<script type=\"text/javascript\">"
                   "var gdCurrentArticle=\"" + gdFrom  + "\"; "
                   "articleview.onJsActiveArticleChanged(gdCurrentArticle)</script>";
+                  */
         }
 
         bool collapse = false;
@@ -679,13 +683,17 @@ void ArticleRequest::bodyFinished()
         head += string( "<div class=\"gdarticle" ) +
                 ( closePrevSpan ? "" : " gdactivearticle" ) +
                 ( collapse ? " gdcollapsedarticle" : "" ) +
-                "\" id=\"" + gdFrom +
+                "\" id=\"" + gdFrom + "\""
+                + ">";
+                /*
                 "\" onClick=\"gdMakeArticleActive( '" + jsVal + "' );\" " +
                 " onContextMenu=\"gdMakeArticleActive( '" + jsVal + "' );\""
                 + ">";
+                */
 
         closePrevSpan = true;
 
+        /*
         head += string( "<div class=\"gddictname\" onclick=\"gdExpandArticle(\'" ) + dictId + "\');"
           + ( collapse ? "\" style=\"cursor:pointer;" : "" )
           + "\" id=\"gddictname-" + Html::escape( dictId ) + "\""
@@ -699,6 +707,7 @@ void ArticleRequest::bodyFinished()
           + "\" id=\"expandicon-" + Html::escape( dictId ) + "\""
           + ( collapse ? "" : string( " title=\"" ) + tr( "Collapse article" ).toUtf8().data() + "\"" )
           + "></span>" + "</div>";
+        */
 
         head += "<div class=\"gddictnamebodyseparator\"></div>";
 

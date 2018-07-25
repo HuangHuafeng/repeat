@@ -19,7 +19,7 @@ public:
 
     Q_INVOKABLE int updateSizeHint(int w, int h);
 
-    Q_PROPERTY(QString word MEMBER m_word  NOTIFY wordChanged FINAL)
+    Q_PROPERTY(QString word MEMBER m_word NOTIFY wordChanged FINAL)
 
 signals:
     void wordChanged(const QString & newWord);

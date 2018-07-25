@@ -20,9 +20,6 @@ QSize WordView::sizeHint() const
 
 void WordView::initialize()
 {
-    m_channel.registerObject(QString("wordview"), this);
-    page()->setWebChannel(&m_channel);
-
     QFileInfo wordHtmlFile(QDir::currentPath() + "/wordview.html");
 
     if (!wordHtmlFile.exists())
@@ -39,6 +36,9 @@ void WordView::initialize()
     }
 
     setHtml(htmlFile.readAll().data());
+
+    m_channel.registerObject(QString("wordview"), this);
+    page()->setWebChannel(&m_channel);
 }
 
 QString WordView::getWord()

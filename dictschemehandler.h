@@ -20,6 +20,7 @@ private:
     void  handleSchemeHhfaudio(QWebEngineUrlRequestJob *request);
     sptr< Dictionary::DataRequest >  handleSchemeBres(QUrl url);
 
+    void fetchHrefFiles(const QString html);
     void saveQcrx(QUrl url);
     void saveOtherSchemes(QUrl url);
     QString createTemporaryFile(sptr< Dictionary::DataRequest > dr, QString fileName);

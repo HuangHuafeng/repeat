@@ -12,9 +12,10 @@
 const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
 
 Word::Word(QString word) :
-    m_new(true),
     m_spelling(word)
 {
+    m_id = 0;
+    m_new = true;
     m_definition = "";
     m_expireTime = defaultExpireTime();
 }
@@ -56,11 +57,12 @@ void Word::dbsaveDefinition()
 void Word::dbgetDefinition()
 {
     QSqlQuery query;
-    query.prepare("SELECT definition FROM words WHERE word=:word COLLATE NOCASE");
+    query.prepare("SELECT id, definition FROM words WHERE word=:word COLLATE NOCASE");
     query.bindValue(":word", m_spelling);
     if (query.exec()) {
         if (query.first()) {
             // word exist
+            m_id = query.value("id").toInt();
             m_definition = query.value("definition").toString();
         }
     } else {
@@ -146,6 +148,10 @@ void Word::dbgetStudyRecords()
     if (wordId == 0) {
         return;
     }
+    if (m_studyHistory.size() > 0) {
+        // it's already updated!
+        return;
+    }
 
     QSqlQuery query;
     query.prepare("SELECT expire, study_date FROM words_in_study WHERE word_id=:word_id");
@@ -160,6 +166,8 @@ void Word::dbgetStudyRecords()
     } else {
         databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
     }
+
+    m_new = (m_studyHistory.size() > 0);
 }
 
 // word is updated if the returned value is true
@@ -167,13 +175,16 @@ void Word::getFromDatabase()
 {
     dbgetDefinition();
     dbgetStudyRecords();
-    m_new = false;
 }
 
 
 int Word::getId()
 {
-    return Word::getWordId(m_spelling);
+    if (m_id == 0) {
+        m_id = Word::getWordId(m_spelling);
+    }
+
+    return m_id;
 }
 
 // static

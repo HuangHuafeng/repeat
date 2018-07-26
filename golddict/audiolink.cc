@@ -3,8 +3,8 @@
 
 #include "audiolink.hh"
 
-std::string addAudioLink( std::string const & url,
-                          std::string const & dictionaryId )
+std::string addAudioLink( std::string const & /*url*/,
+                          std::string const & /*dictionaryId*/ )
 {
     return std::string( "<script type=\"text/javascript\"></script>" );
     /*

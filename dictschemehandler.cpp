@@ -174,7 +174,7 @@ void DictSchemeHandler::saveQcrx(QUrl url)
     }
 }
 
-void DictSchemeHandler::modifyHtml(QString &html)
+void DictSchemeHandler::fetchHrefFiles(const QString html)
 {
     const QRegularExpression gdlink("(bres|gdau|gico|qrcx|gdlookup|gdpicture|gdvideo|bword)://[^\"<>']*");
 
@@ -186,9 +186,42 @@ void DictSchemeHandler::modifyHtml(QString &html)
         offset = match.capturedEnd();
         match = gdlink.match(html, offset);
     }
+}
+
+void DictSchemeHandler::modifyHtml(QString &html)
+{
+    // save the media files
+    fetchHrefFiles(html);
 
     // modify the html
-    match = gdlink.match(html, 0);
+    QString after;
+    QString tomatch;
+    QRegExp rx;
+
+    // step 1: replace the buttons like "Word origin", "Examples", ...
+    tomatch = "<a class=\"popup-button\" href=\"gdlookup://[^\"<>']*\">[\\w|\\s]+</a>";
+    rx = QRegExp(tomatch.toStdString().c_str());
+    after = "";
+    html = html.replace(rx, after);
+
+    // step 2: replace the schemes like "bres", "gdau", ...
+    std::string dictId = m_dict.getDictionaries()[0].get()->getId();
+    tomatch = QString("=\"(bres|gico|qrcx|gdpicture|gdvideo|bword)://") + dictId.c_str();
+    after = "=\"" + getMediaDir();
+    rx = QRegExp(tomatch.toStdString().c_str());
+    html = html.replace(rx, after);
+
+    // step 3: replace the scheme "gdau" with "hhfaudio"
+    tomatch = QString("=\"gdau://") + dictId.c_str();
+    after = "=\"hhfaudio:///" + getMediaDir();
+    rx = QRegExp(tomatch.toStdString().c_str());
+    html = html.replace(rx, after);
+
+    /*
+    // step 2: replace the schemes like "bres", "gdau", ...
+    int offset = 0;
+    const QRegularExpression gdlink("(bres|gdau|gico|qrcx|gdpicture|gdvideo|bword)://[^\"<>']*");
+    QRegularExpressionMatch match = gdlink.match(html, offset);
     while (match.hasMatch()) {
         QString matched = match.captured();
         QUrl url(matched);
@@ -216,4 +249,6 @@ void DictSchemeHandler::modifyHtml(QString &html)
         }
         match = gdlink.match(html, offset);
     }
+    */
 }
+

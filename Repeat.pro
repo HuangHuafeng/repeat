@@ -76,7 +76,9 @@ SOURCES += \
     studywindow.cpp \
     wordview.cpp \
     worddb.cpp \
-    word.cpp
+    word.cpp \
+    memoryitem.cpp \
+    wordcard.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -123,7 +125,9 @@ HEADERS += \
     wordview.h \
     worddb.h \
     word.h \
-    golddict/sptr.hh
+    golddict/sptr.hh \
+    memoryitem.h \
+    wordcard.h
 
 FORMS += \
         mainwindow.ui \

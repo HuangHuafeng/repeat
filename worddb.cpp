@@ -1,6 +1,7 @@
 #include "worddb.h"
 #include "golddict/gddebug.hh"
 #include "word.h"
+#include "wordcard.h"
 
 #include <QCoreApplication>
 #include <QMessageBox>
@@ -14,6 +15,7 @@ WordDB::WordDB()
 {
     connectDB();
     Word::createDatabaseTables();
+    WordCard::createDatabaseTables();
 }
 
 WordDB::~WordDB()

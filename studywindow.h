@@ -3,6 +3,7 @@
 
 #include "gdhelper.h"
 #include "wordview.h"
+#include "wordcard.h"
 
 #include <QDialog>
 
@@ -26,6 +27,7 @@ private:
     GDHelper &m_gdhelper;
     WordView m_wordView;
     QWebEngineView m_definitionView;
+    WordCard m_wordCard;
 
     // the list of words to learn
 };

@@ -80,9 +80,9 @@ public:
     static sptr<Word> getWordFromDatabase(const QString &spelling);
     static QVector<sptr<Word>> getNewWords(int number);
     static QDateTime defaultExpireTime();
+    static void databaseError(QSqlQuery &query, const QString what);
 
 private:
-    static void databaseError(QSqlQuery &query, const QString what);
     static int getWordId(const QString &spelling);
 
     void dbsaveDefinition();
@@ -92,6 +92,7 @@ private:
 
 private:
     bool m_new;
+    int m_id;   // id in database
     QString m_spelling;
     QString m_definition;
     QDateTime m_expireTime;

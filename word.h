@@ -78,7 +78,7 @@ public:
     static void createDatabaseTables();
     static bool isInDatabase(const QString &spelling);
     static sptr<Word> getWordFromDatabase(const QString &spelling);
-    static QVector<sptr<Word>> getNewWords(int number);
+    static QVector<QString> getNewWords(int number);
     static QDateTime defaultExpireTime();
     static void databaseError(QSqlQuery &query, const QString what);
 

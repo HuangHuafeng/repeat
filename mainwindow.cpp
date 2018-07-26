@@ -14,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_gdhelper(nullptr),
     m_definitionView(this),
     m_worddb(),
-    m_studyWindow(m_gdhelper, nullptr)
+    m_studyWindow(nullptr)
 {
     ui->setupUi(this);
 
@@ -90,7 +90,8 @@ void MainWindow::on_pushButton_2_clicked()
     auto wordList = Word::getNewWords(10);
     for (int i = 0;i < wordList.size();i ++) {
         auto word = wordList.at(i);
-        gdDebug("%s: %s", word->getSpelling().toStdString().c_str(), word->getExpireTime().toString().toStdString().c_str());
+        gdDebug("%s", word.toStdString().c_str());
     }
+    m_studyWindow.setWordList(wordList);
     m_studyWindow.show();
 }

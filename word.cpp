@@ -259,19 +259,24 @@ sptr<Word> Word::getWordFromDatabase(const QString &spelling) {
     return word;
 }
 
+/**
+  get a list of words that is new (a new word has definition, but has no study record)
+  only spelling is added to the list, Word object should be created by the caller to
+  keep flexibility
+  */
 // static
-QVector<sptr<Word>> Word::getNewWords(int number)
+QVector<QString> Word::getNewWords(int number)
 {
-    QVector<sptr<Word>> wordList;
+    QVector<QString> wordList;
 
-    if (number > 0) {        
+    if (number > 0) {
         QSqlQuery query;
         query.prepare("SELECT word FROM words WHERE id NOT IN (SELECT word_id FROM words_in_study) LIMIT :limit");
         query.bindValue(":limit", number);
         if (query.exec()) {
             while (query.next()) {
                 QString spelling = query.value("word").toString();
-                wordList.append(Word::getWordFromDatabase(spelling));
+                wordList.append(spelling);
             }
         } else {
             Word::databaseError(query, "fetching new words");

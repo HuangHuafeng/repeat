@@ -11,6 +11,11 @@ public:
     virtual void update(ResponseQuality responseQuality) override;
     void getFromDatabase();
 
+    sptr<Word> getWord() const
+    {
+        return m_word;
+    }
+
 public:
     static void createDatabaseTables();
     static WordCard generateCardForWord(const QString &spelling);

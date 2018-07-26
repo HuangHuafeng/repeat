@@ -4,10 +4,9 @@
 
 #include <QLabel>
 
-StudyWindow::StudyWindow(GDHelper &gdhelper, QWidget *parent) :
+StudyWindow::StudyWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StudyWindow),
-    m_gdhelper(gdhelper),
     m_wordView(parent),
     m_definitionView(parent),
     m_wordCard()
@@ -16,7 +15,6 @@ StudyWindow::StudyWindow(GDHelper &gdhelper, QWidget *parent) :
 
     ui->vlDefinition->addWidget(&m_wordView);
     ui->vlDefinition->addWidget(&m_definitionView);
-    m_gdhelper.loadBlankPage(m_definitionView);
 }
 
 StudyWindow::~StudyWindow()
@@ -24,18 +22,78 @@ StudyWindow::~StudyWindow()
     delete ui;
 }
 
-void StudyWindow::on_pushButton_clicked()
+void StudyWindow::setWordList(const QVector<QString> &wordList)
 {
-    m_wordView.setWord("impeachment");
-
-    m_wordCard = WordCard::generateCardForWord("impeach");
-    if (m_wordCard.getRepitition() == 0) {
-        m_wordCard.setEasiness(2.0);
+    // remove the old cards
+    if (m_cardList.isEmpty() == false) {
+        m_cardList.clear();
     }
-    m_wordCard.update(MemoryItem::Perfect);
-    QString html = "<html>Repitition: " + QString::number(m_wordCard.getRepitition())
-            + "</br>Interval: " + QString::number(m_wordCard.getInterval() / 24.0, 'f', 2)
-            + "</br>Easiness: " + QString::number(m_wordCard.getEasiness())
-            + "</html>";
-    m_definitionView.setHtml(html);
+
+    // create the new cards according to the list
+    for (int i = 0;i < wordList.size();i ++) {
+        WordCard card = WordCard::generateCardForWord(wordList.at(i));
+        m_cardList.append(card);
+    }
+
+    // update the window
+    showCurrentWord();
+}
+
+void StudyWindow::on_pushPerfect_clicked()
+{
+    nextWord(MemoryItem::Perfect);
+}
+
+void StudyWindow::showCurrentWord()
+{
+    if (m_cardList.isEmpty()) {
+        const QString html = "<html><body><h1>Congratulations! You've finished all words today!</h1></body></html>";
+        m_wordView.setWord("");
+        m_definitionView.setHtml(html);
+        return;
+    }
+
+    WordCard current = m_cardList.first();
+    sptr<Word> word = current.getWord();
+    if (word.get()) {
+        QString html = word->getDefinition();
+        QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+        m_wordView.setWord(word->getSpelling());
+        m_definitionView.setHtml(word->getDefinition(), baseUrl);
+    }
+}
+
+void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)
+{
+    if (m_cardList.isEmpty()) {
+        return;
+    }
+
+    WordCard current = m_cardList.first();
+    current.update(responseQulity);
+
+    if (responseQulity < MemoryItem::CorrectAfterHesitation) {
+        m_cardList.append(current);
+        m_cardList.pop_front();
+    } else {
+        // the word is OK today, remove it
+        m_cardList.pop_front();
+    }
+
+    showCurrentWord();
+}
+
+void StudyWindow::on_pushCorrect_clicked()
+{
+    nextWord(MemoryItem::CorrectAfterHesitation);
+}
+
+void StudyWindow::on_pushIncorrect_clicked()
+{
+    nextWord(MemoryItem::IncorrectButCanRecall);
+}
+
+void StudyWindow::on_pushCorrect3_clicked()
+{
+    nextWord(MemoryItem::CorrectWithDifficulty);
 }

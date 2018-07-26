@@ -1,6 +1,7 @@
 #include "wordcard.h"
 #include "golddict/gddebug.hh"
 
+#include <QDateTime>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -25,6 +26,13 @@ void WordCard::update(ResponseQuality responseQuality)
 
     // save to database
     dbsave();
+
+    // update the word's expire
+    if (m_word.get()) {
+        int days = qRound(getInterval() / 24.0 + 0.5);
+        QDateTime expire = QDateTime::currentDateTime().addDays(days);
+        m_word->setExpireTime(expire);
+    }
 }
 
 void WordCard::getFromDatabase()

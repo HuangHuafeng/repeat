@@ -19,8 +19,8 @@ private:
     QDateTime m_datetime;
 
 public:
-    MyTime(int seconds) :
-         m_datetime(m_baselineTime.addSecs(seconds))
+    MyTime(int minutes) :
+         m_datetime(m_baselineTime.addSecs(minutes * 60))
     {
     }
 
@@ -29,9 +29,9 @@ public:
     {
     }
 
-    int toSeconds() const
+    int toMinutes() const
     {
-        return m_baselineTime.secsTo(m_datetime);
+        return m_baselineTime.secsTo(m_datetime) / 60;
     }
 
     const QDateTime toDateTime() const
@@ -110,9 +110,9 @@ struct StudyRecord
     {
     }
 
-    StudyRecord(int expireInSeconds, int studyDateInSeconds) :
-        m_expire(expireInSeconds),
-        m_studyDate(studyDateInSeconds)
+    StudyRecord(int expireInMinutes, int studyDateInMinutes) :
+        m_expire(expireInMinutes),
+        m_studyDate(studyDateInMinutes)
     {
     }
 

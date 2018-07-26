@@ -50,7 +50,7 @@ void Word::dbsaveDefinition()
     query.bindValue(":definition", m_definition);
     if (query.exec() == false)
     {
-        databaseError(query, "saving word \"" + m_spelling + "\"");
+        Word::databaseError(query, "saving word \"" + m_spelling + "\"");
     }
 }
 
@@ -66,7 +66,7 @@ void Word::dbgetDefinition()
             m_definition = query.value("definition").toString();
         }
     } else {
-        databaseError(query, "fetching defintion of \"" + m_spelling + "\"");
+        Word::databaseError(query, "fetching defintion of \"" + m_spelling + "\"");
     }
 }
 
@@ -89,7 +89,7 @@ int Word::isDefintionSaved() const
             return 0;
         }
     } else {
-        databaseError(query, "checking word \"" + m_spelling + "\"");
+        Word::databaseError(query, "checking word \"" + m_spelling + "\"");
         return 0;
     }
 }
@@ -113,7 +113,7 @@ int Word::hasExpireTimeRecord() const
             return 0;
         }
     } else {
-        databaseError(query, "checking expire time of word \"" + m_spelling + "\"");
+        Word::databaseError(query, "checking expire time of word \"" + m_spelling + "\"");
         return 0;
     }
 }
@@ -129,8 +129,8 @@ void Word::dbsaveStudyRecord(const StudyRecord &sr)
         return;
     }
 
-    int expire = sr.m_expire.toSeconds();
-    int studyDate = sr.m_studyDate.toSeconds();
+    int expire = sr.m_expire.toMinutes();
+    int studyDate = sr.m_studyDate.toMinutes();
     QSqlQuery query;
     query.prepare("INSERT INTO words_in_study(word_id, expire, study_date) VALUES(:word_id, :expire, :study_date)");
     query.bindValue(":word_id", wordId);
@@ -138,7 +138,7 @@ void Word::dbsaveStudyRecord(const StudyRecord &sr)
     query.bindValue(":study_date", studyDate);
     if (query.exec() == false)
     {
-        databaseError(query, "adding expire time of \"" + m_spelling + "\"");
+        Word::databaseError(query, "adding expire time of \"" + m_spelling + "\"");
     }
 }
 
@@ -164,7 +164,7 @@ void Word::dbgetStudyRecords()
             m_studyHistory.append(sr);
         }
     } else {
-        databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
+        Word::databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
     }
 
     m_new = (m_studyHistory.size() > 0);
@@ -176,7 +176,6 @@ void Word::getFromDatabase()
     dbgetDefinition();
     dbgetStudyRecords();
 }
-
 
 int Word::getId()
 {
@@ -208,7 +207,7 @@ int Word::getWordId(const QString &spelling)
             return 0;
         }
     } else {
-        databaseError(query, "check existence of \"" + spelling + "\"");
+        Word::databaseError(query, "check existence of \"" + spelling + "\"");
         return 0;
     }
 
@@ -231,14 +230,14 @@ void Word::createDatabaseTables()
         if(query.exec("CREATE TABLE words (id INTEGER primary key, "
                    "word TEXT, "
                       "definition TEXT)") == false) {
-            databaseError(query, "creating table \"words\"");
+            Word::databaseError(query, "creating table \"words\"");
         }
 
         if (query.exec("CREATE TABLE words_in_study (id INTEGER primary key, "
                    "word_id INTEGER, "
                    "expire INTEGER, "
                    "study_date INTEGER)") == false) {
-            databaseError(query, "creating table \"words_in_study\"");
+            Word::databaseError(query, "creating table \"words_in_study\"");
         }
     } else {
         // table already exist
@@ -265,8 +264,18 @@ QVector<sptr<Word>> Word::getNewWords(int number)
 {
     QVector<sptr<Word>> wordList;
 
-    if (number > 0) {
-
+    if (number > 0) {        
+        QSqlQuery query;
+        query.prepare("SELECT word FROM words WHERE id NOT IN (SELECT word_id FROM words_in_study) LIMIT :limit");
+        query.bindValue(":limit", number);
+        if (query.exec()) {
+            while (query.next()) {
+                QString spelling = query.value("word").toString();
+                wordList.append(Word::getWordFromDatabase(spelling));
+            }
+        } else {
+            Word::databaseError(query, "fetching new words");
+        }
     }
 
     return wordList;

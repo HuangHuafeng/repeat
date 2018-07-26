@@ -74,7 +74,6 @@ void MainWindow::saveWord(const QString &spelling)
     QString html = m_gdhelper.getWordDefinitionPage(spelling);
     Word word(spelling);
     word.setDefinition(html);
-    word.setExpireTime(QDateTime::currentDateTime().addDays(10));
 }
 
 void MainWindow::TestHtmlParse()
@@ -94,40 +93,4 @@ void MainWindow::on_pushButton_2_clicked()
         gdDebug("%s: %s", word->getSpelling().toStdString().c_str(), word->getExpireTime().toString().toStdString().c_str());
     }
     m_studyWindow.show();
-}
-
-
-void MainWindow::searchLink(QTextFrame * parent)
-{
-    for( QTextFrame::iterator it = parent->begin(); !it.atEnd(); ++it )
-    {
-        QTextFrame *textFrame = it.currentFrame();
-        QTextBlock textBlock = it.currentBlock();
-
-        if( textFrame )
-        {
-            this->searchLink(textFrame);
-        }
-        else if( textBlock.isValid() )
-        {
-            this->searchLink(textBlock);
-        }
-    }
-}
-
-void MainWindow::searchLink(QTextBlock & parent)
-{
-    for(QTextBlock::iterator it = parent.begin(); !it.atEnd(); ++it)
-    {
-        QTextFragment textFragment = it.fragment();
-        if( textFragment.isValid() )
-        {
-            QTextCharFormat textCharFormat = textFragment.charFormat();
-            if( textCharFormat.isAnchor() )
-            {
-                 textCharFormat.anchorHref();  // <-- URL
-                 gdDebug("%s", textCharFormat.anchorHref().toStdString().c_str());
-            }
-        }
-    }
 }

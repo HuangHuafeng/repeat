@@ -19,7 +19,7 @@ private:
     QDateTime m_datetime;
 
 public:
-    MyTime(int minutes) :
+    MyTime(qint64 minutes) :
          m_datetime(m_baselineTime.addSecs(minutes * 60))
     {
     }
@@ -29,7 +29,7 @@ public:
     {
     }
 
-    int toMinutes() const
+    qint64 toMinutes() const
     {
         return m_baselineTime.secsTo(m_datetime) / 60;
     }

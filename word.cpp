@@ -129,8 +129,8 @@ void Word::dbsaveStudyRecord(const StudyRecord &sr)
         return;
     }
 
-    int expire = sr.m_expire.toMinutes();
-    int studyDate = sr.m_studyDate.toMinutes();
+    qint64 expire = sr.m_expire.toMinutes();
+    qint64 studyDate = sr.m_studyDate.toMinutes();
     QSqlQuery query;
     query.prepare("INSERT INTO words_in_study(word_id, expire, study_date) VALUES(:word_id, :expire, :study_date)");
     query.bindValue(":word_id", wordId);
@@ -158,16 +158,14 @@ void Word::dbgetStudyRecords()
     query.bindValue(":word_id", wordId);
     if (query.exec()) {
         while (query.next()) {
-            int expire = query.value("expire").toInt();
-            int studyDate = query.value("study_date").toInt();
+            qint64 expire = query.value("expire").toLongLong();
+            qint64 studyDate = query.value("study_date").toLongLong();
             StudyRecord sr(expire, studyDate);
             m_studyHistory.append(sr);
         }
     } else {
         Word::databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
     }
-
-    m_new = (m_studyHistory.size() > 0);
 }
 
 // word is updated if the returned value is true
@@ -175,6 +173,10 @@ void Word::getFromDatabase()
 {
     dbgetDefinition();
     dbgetStudyRecords();
+    if (m_studyHistory.isEmpty() == false) {
+        m_new = false;
+        m_expireTime = m_studyHistory.last().m_expire.toDateTime();
+    }
 }
 
 int Word::getId()

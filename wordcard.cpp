@@ -26,7 +26,7 @@ void WordCard::update(ResponseQuality responseQuality)
     MemoryItem::update(responseQuality);
 
     // changes the interval with the ratio
-    int interval = static_cast<int>(getInterval() * m_ratio);
+    int interval = static_cast<int>(getIntervalInMinute() * m_ratio);
     setInterval(interval);
 
     // save to database
@@ -34,7 +34,7 @@ void WordCard::update(ResponseQuality responseQuality)
 
     // update the word's expire
     if (m_word.get()) {
-        int days = qRound(getInterval() / 24.0 + 0.5);
+        int days = qRound(getIntervalInMinute() / 60.0 / 24.0);
         QDateTime expire = QDateTime::currentDateTime().addDays(days);
         m_word->setExpireTime(expire);
     }
@@ -102,10 +102,11 @@ void WordCard::dbsave()
     }
 
     int easiness = static_cast<int>(getEasiness() * 100);
+    int interval = getIntervalInMinute();
     QSqlQuery query;
     query.prepare("INSERT INTO wordcard(word_id, interval, easiness, repitition) VALUES(:word_id, :interval, :easiness, :repitition)");
     query.bindValue(":word_id", wordId);
-    query.bindValue(":interval", getInterval());
+    query.bindValue(":interval", interval);
     query.bindValue(":easiness", easiness);
     query.bindValue(":repitition", getRepitition());
     if (query.exec() == false)

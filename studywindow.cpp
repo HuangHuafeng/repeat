@@ -93,7 +93,8 @@ QString StudyWindow::minuteToString(int minute)
 void StudyWindow::showWord(const Word &word)
 {
     QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
-    m_wordView.setWord(word.getSpelling());
+    //m_wordView.setWord(word.getSpelling());
+    m_wordView.setWord(word.getSpelling() + ": " + word.getExpireTime().toString().toStdString().c_str());
     m_definitionView.setHtml(word.getDefinition(), baseUrl);
 }
 

@@ -22,7 +22,7 @@ public:
 
     virtual int estimatedInterval(ResponseQuality responseQuality = Perfect) const;
 
-    int getInterval() const
+    int getIntervalInMinute() const
     {
         return m_interval;
     }

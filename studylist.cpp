@@ -6,6 +6,10 @@ StudyList::StudyList()
 
 }
 
+StudyList::~StudyList()
+{
+}
+
 bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQuality responseQulity)
 {
     if (current != m_current) {
@@ -20,7 +24,7 @@ bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQu
 
     if (responseQulity < MemoryItem::CorrectWithDifficulty) {
         // the card need to be reviewed again today
-        addAgainCard(m_current);
+        addCard(m_current);
     }
 
     // current card finishes for the current review
@@ -29,82 +33,47 @@ bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQu
     return true;
 }
 
-void StudyList::addAgainCard(sptr<WordCard> againCard)
+/**
+ * @brief StudyList::addAgainCard
+ * @param againCard: the card that should be reviewed again today
+ * We search the list from the end as the card's expire would
+ * porbably be later than most of the cards in the list
+ */
+void StudyList::addCard(sptr<WordCard> card)
 {
-    if (againCard.get() == 0
-            || againCard->getWord().get() == 0)
+    if (card.get() == 0
+            || card->getWord().get() == 0)
     {
         return;
     }
 
-    auto expire = againCard->getWord()->getExpireTime();
-    QLinkedList<sptr<WordCard>>::iterator it = m_againCards.begin();
-    while (it != m_againCards.end()) {
+    auto expire = card->getWord()->getExpireTime();
+    QLinkedList<sptr<WordCard>>::iterator it = m_cards.end();
+    while (it != m_cards.begin()) {
+        it --;
         if ((*it).get()) {
             auto word = (*it)->getWord();
             if (word.get()) {
-                if (word->getExpireTime() > expire) {
+                if (word->getExpireTime() < expire) {
+                    gdDebug("%s: %s", word->getSpelling().toStdString().c_str(), word->getExpireTime().toString().toStdString().c_str());
+                    gdDebug("%s: %s", card->getWord()->getSpelling().toStdString().c_str(), expire.toString().toStdString().c_str());
+                    gdDebug("INSERT HERE");
+                    it ++;
                     break;
                 }
             }
         }
     }
-    m_againCards.insert(it, againCard);
+    m_cards.insert(it, card);
 }
 
 sptr<WordCard> StudyList::nextCard()
 {
-    if (!m_current.get())
+    if (m_current.get() == 0)
     {
-        sptr<WordCard> firstCard, firstAgainCard;
         if (m_cards.isEmpty() == false) {
-            firstCard = m_cards.first();
-        }
-        if (m_againCards.isEmpty() == false) {
-            firstAgainCard = m_againCards.first();
-        }
-
-        if (firstCard.get()) {
-            if (firstAgainCard.get()) {
-                // compare
-                auto firstWord = firstCard->getWord();
-                auto firstAgainWord = firstAgainCard->getWord();
-                if (firstWord.get()) {
-                    if (firstAgainWord.get()) {
-                        // compare expire
-                        auto firstWordExpire = firstWord->getExpireTime();
-                        auto firstAgainWordExpire = firstAgainWord->getExpireTime();
-                        if (firstWordExpire < firstAgainWordExpire) {
-                            m_current = firstCard;
-                            m_cards.pop_front();
-                        } else {
-                            m_current = firstAgainCard;
-                            m_againCards.pop_front();
-                        }
-                    } else {
-                        m_current = firstCard;
-                        m_cards.pop_front();;
-                    }
-                } else {
-                    if (firstAgainWord.get()) {
-                        m_current = firstAgainCard;
-                        m_againCards.pop_front();
-                    } else {
-                        // no word, should be impossible
-                        assert(false);
-                    }
-                }
-            } else {
-                m_current = firstCard;
-                m_cards.pop_front();
-            }
-        } else {
-            if (firstAgainCard.get()) {
-                m_current = firstAgainCard;
-                m_againCards.pop_front();
-            } else {
-                // no card
-            }
+            m_current = m_cards.first();
+            m_cards.pop_front();
         }
     }
 
@@ -115,16 +84,15 @@ bool StudyList::initiCards(const QVector<QString> &wordList)
 {
     // if there's already cards, fail
     if (m_cards.isEmpty() == false
-            || m_againCards.isEmpty() == false
             || m_current.get()) {
         return false;
     }
 
     // create the new cards according to the list
-    // IMPORTANT: this assumes "wordList" already sorted by "expire"
     for (int i = 0;i < wordList.size();i ++) {
         auto card = WordCard::generateCardForWord(wordList.at(i));
-        m_cards.append(card);
+        //m_cards.append(card);
+        addCard(card);
     }
 
     return true;

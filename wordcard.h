@@ -8,7 +8,9 @@ class WordCard : public MemoryItem
 {
 public:
     WordCard(sptr<Word> word = sptr<Word>(), int interval = 24, float easiness = 2.5, int repition = 0);
+    virtual ~WordCard();
     virtual void update(ResponseQuality responseQuality) override;
+    virtual int estimatedInterval(ResponseQuality responseQuality = Perfect) const override;
     void getFromDatabase();
 
     sptr<Word> getWord() const
@@ -18,7 +20,7 @@ public:
 
 public:
     static void createDatabaseTables();
-    static WordCard generateCardForWord(const QString &spelling);
+    static sptr<WordCard> generateCardForWord(const QString &spelling);
     static void setRatio(float ratio)
     {
         m_ratio = ratio;

@@ -3,6 +3,7 @@
 
 #include "wordview.h"
 #include "wordcard.h"
+#include "studylist.h"
 
 #include <QDialog>
 #include <QVector>
@@ -19,7 +20,7 @@ public:
     explicit StudyWindow(QWidget *parent = 0);
     ~StudyWindow();
 
-    void setWordList(const QVector<QString> &wordList);
+    void setStudyList(sptr<StudyList> studyList);
 
 private slots:
     void on_pushPerfect_clicked();
@@ -34,14 +35,16 @@ private:
     Ui::StudyWindow *ui;
     WordView m_wordView;
     QWebEngineView m_definitionView;
-    WordCard m_wordCard;
 
-    // the list of words to learn
-    QVector<WordCard> m_cardList;
-    //QVector<WordCard> m_againList;
+    sptr<StudyList> m_studyList;
+    sptr<WordCard> m_currentCard;
 
     void showCurrentWord();
+    void showCard(const WordCard &card);
+    void showWord(const Word &word);
+    QString minuteToString(int minute);
     void nextWord(MemoryItem::ResponseQuality responseQulity);
+    void allCardsFinished();
 
 };
 

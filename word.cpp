@@ -287,6 +287,58 @@ QVector<QString> Word::getNewWords(int number)
 }
 
 // static
+QVector<QString> Word::getWords(int number)
+{
+    QVector<QString> wordList;
+    QSqlQuery query;
+
+    if (number > 0) {
+        query.prepare("SELECT word FROM words LIMIT :limit");
+        query.bindValue(":limit", number);
+    } else {
+        query.prepare("SELECT word FROM words");
+    }
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            wordList.append(spelling);
+        }
+    } else {
+        Word::databaseError(query, "fetching new words");
+    }
+
+
+    return wordList;
+}
+
+/**
+  get a list of words that is new (a new word has definition, but has no study record)
+  only spelling is added to the list, Word object should be created by the caller to
+  keep flexibility
+  */
+// static
+QVector<QString> Word::getExpiredWords(int number)
+{
+    QVector<QString> wordList;
+
+    if (number > 0) {
+        QSqlQuery query;
+        query.prepare("SELECT word FROM words WHERE id NOT IN (SELECT word_id FROM words_in_study) LIMIT :limit");
+        query.bindValue(":limit", number);
+        if (query.exec()) {
+            while (query.next()) {
+                QString spelling = query.value("word").toString();
+                wordList.append(spelling);
+            }
+        } else {
+            Word::databaseError(query, "fetching new words");
+        }
+    }
+
+    return wordList;
+}
+
+// static
 QDateTime Word::defaultExpireTime()
 {
     return QDateTime::currentDateTime().addYears(100);

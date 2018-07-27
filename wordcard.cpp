@@ -16,6 +16,11 @@ WordCard::WordCard(sptr<Word> word, int interval, float easiness, int repition) 
     m_word = word;
 }
 
+WordCard::~WordCard()
+{
+
+}
+
 void WordCard::update(ResponseQuality responseQuality)
 {
     MemoryItem::update(responseQuality);
@@ -33,6 +38,26 @@ void WordCard::update(ResponseQuality responseQuality)
         QDateTime expire = QDateTime::currentDateTime().addDays(days);
         m_word->setExpireTime(expire);
     }
+}
+
+int WordCard::estimatedInterval(ResponseQuality responseQuality) const
+{
+    /*
+    int repitition = getRepitition();
+    if (repitition == 0) {//I(1)
+        return 24 * 60;
+    }
+
+    if (repitition == 1) {//I(2)
+        return 24 * 60;
+    }
+
+    if (responseQuality <= IncorrectButCanRecall) {
+        return 24 * 60;
+    }
+    */
+
+    return MemoryItem::estimatedInterval(responseQuality);
 }
 
 void WordCard::getFromDatabase()
@@ -90,11 +115,13 @@ void WordCard::dbsave()
 }
 
 // static
-WordCard WordCard::generateCardForWord(const QString &spelling)
+sptr<WordCard> WordCard::generateCardForWord(const QString &spelling)
 {
     sptr<Word> word = Word::getWordFromDatabase(spelling);
-    WordCard card(word);
-    card.getFromDatabase();
+    sptr<WordCard> card = new WordCard(word);
+    if (card.get()) {
+        card->getFromDatabase();
+    }
 
     return card;
 }

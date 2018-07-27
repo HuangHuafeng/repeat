@@ -17,10 +17,10 @@ public:
         Perfect = 5
     } ResponseQuality;
 
-    MemoryItem(int interval = 24, float easiness = 2.5, int repition = 0);
+    MemoryItem(int interval = 24 * 60, float easiness = 2.5, int repition = 0);
     virtual void update(ResponseQuality responseQuality);
 
-    int estimatedInterval(ResponseQuality responseQuality = Perfect) const;
+    virtual int estimatedInterval(ResponseQuality responseQuality = Perfect) const;
 
     int getInterval() const
     {
@@ -54,7 +54,7 @@ public:
 
 private:
     int m_repition; //
-    int m_interval; // in hours, using seconds may result in overflow
+    int m_interval; // in minutes
     float m_easiness;
 
     float estimatedEasiness(ResponseQuality responseQuality = Perfect) const;

@@ -87,11 +87,6 @@ void MainWindow::TestHtmlParse()
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    auto wordList = Word::getNewWords(10);
-    for (int i = 0;i < wordList.size();i ++) {
-        auto word = wordList.at(i);
-        gdDebug("%s", word.toStdString().c_str());
-    }
-    m_studyWindow.setWordList(wordList);
+    m_studyWindow.setStudyList(StudyList::generateStudyListForAllWord());
     m_studyWindow.show();
 }

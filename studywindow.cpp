@@ -3,16 +3,15 @@
 #include "wordcard.h"
 
 #include <QLabel>
+#include <QMessageBox>
 
 StudyWindow::StudyWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StudyWindow),
     m_wordView(parent),
-    m_definitionView(parent),
-    m_wordCard()
+    m_definitionView(parent)
 {
     ui->setupUi(this);
-
     ui->vlDefinition->addWidget(&m_wordView);
     ui->vlDefinition->addWidget(&m_definitionView);
 }
@@ -22,20 +21,12 @@ StudyWindow::~StudyWindow()
     delete ui;
 }
 
-void StudyWindow::setWordList(const QVector<QString> &wordList)
+void StudyWindow::setStudyList(sptr<StudyList> studyList)
 {
-    // remove the old cards
-    if (m_cardList.isEmpty() == false) {
-        m_cardList.clear();
+    m_studyList = studyList;
+    if (m_studyList.get()) {
+        m_currentCard = m_studyList->nextCard();
     }
-
-    // create the new cards according to the list
-    for (int i = 0;i < wordList.size();i ++) {
-        WordCard card = WordCard::generateCardForWord(wordList.at(i));
-        m_cardList.append(card);
-    }
-
-    // update the window
     showCurrentWord();
 }
 
@@ -46,41 +37,73 @@ void StudyWindow::on_pushPerfect_clicked()
 
 void StudyWindow::showCurrentWord()
 {
-    if (m_cardList.isEmpty()) {
-        const QString html = "<html><body><h1>Congratulations! You've finished all words today!</h1></body></html>";
-        m_wordView.setWord("");
-        m_definitionView.setHtml(html);
-        return;
+    if (m_currentCard.get()) {
+        showCard(*m_currentCard);
+    } else {
+        allCardsFinished();
+    }
+}
+
+void StudyWindow::allCardsFinished()
+{
+    QMessageBox::information(this,
+                             QObject::tr(""),
+                             "Congratulations! All cards finished!");
+    close();
+}
+
+void StudyWindow::showCard(const WordCard &card)
+{
+    auto word = card.getWord();
+    if (word.get()) {
+        showWord(*word);
     }
 
-    WordCard current = m_cardList.first();
-    sptr<Word> word = current.getWord();
-    if (word.get()) {
-        QString html = word->getDefinition();
-        QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
-        m_wordView.setWord(word->getSpelling());
-        m_definitionView.setHtml(word->getDefinition(), baseUrl);
+    int blackout = card.estimatedInterval(MemoryItem::Blackout);
+    int incorrect = card.estimatedInterval(MemoryItem::Incorrect);
+    int ibcr = card.estimatedInterval(MemoryItem::IncorrectButCanRecall);
+    int cwd = card.estimatedInterval(MemoryItem::CorrectWithDifficulty);
+    int cah = card.estimatedInterval(MemoryItem::CorrectAfterHesitation);
+    int perfect = card.estimatedInterval(MemoryItem::Perfect);
+
+    ui->labelIncorrect->setText(minuteToString(ibcr));
+    ui->labelCorrect3->setText(minuteToString(cwd));
+    ui->labelCorrect4->setText(minuteToString(cah));
+    ui->labelPerfect->setText(minuteToString(perfect));
+}
+
+QString StudyWindow::minuteToString(int minute)
+{
+    if (minute < 60) {
+        return QString::number(minute) + " minute";
     }
+
+    if (minute < 60 * 24) {
+        auto hour = minute / 60;
+        auto min = minute % 60;
+        return QString::number(hour) + " hour " + QString::number(min) + " minute";
+    }
+
+    auto day = minute / 60 / 24;
+    auto hour = (minute / 60) % 24;
+    auto min = minute % 60;
+    return QString::number(day) + " day " + QString::number(hour) + " hour " + QString::number(min) + " minute";
+}
+
+void StudyWindow::showWord(const Word &word)
+{
+    QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+    m_wordView.setWord(word.getSpelling());
+    m_definitionView.setHtml(word.getDefinition(), baseUrl);
 }
 
 void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)
 {
-    if (m_cardList.isEmpty()) {
-        return;
+    if (m_studyList.get()) {
+        m_studyList->responseToCurrent(m_currentCard, responseQulity);
+        m_currentCard = m_studyList->nextCard();
+        showCurrentWord();
     }
-
-    WordCard current = m_cardList.first();
-    current.update(responseQulity);
-
-    if (responseQulity < MemoryItem::CorrectAfterHesitation) {
-        m_cardList.append(current);
-        m_cardList.pop_front();
-    } else {
-        // the word is OK today, remove it
-        m_cardList.pop_front();
-    }
-
-    showCurrentWord();
 }
 
 void StudyWindow::on_pushCorrect_clicked()

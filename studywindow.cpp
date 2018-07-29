@@ -1,6 +1,7 @@
 #include "studywindow.h"
 #include "ui_studywindow.h"
 #include "wordcard.h"
+#include "golddict/gddebug.hh"
 
 #include <QLabel>
 #include <QMessageBox>
@@ -11,6 +12,7 @@ StudyWindow::StudyWindow(QWidget *parent) :
     m_wordView(parent),
     m_definitionView(parent)
 {
+    m_state = NoCard;
     ui->setupUi(this);
     ui->vlDefinition->addWidget(&m_wordView);
     ui->vlDefinition->addWidget(&m_definitionView);
@@ -26,20 +28,19 @@ void StudyWindow::setStudyList(sptr<StudyList> studyList)
     m_studyList = studyList;
     if (m_studyList.get()) {
         m_currentCard = m_studyList->nextCard();
+        if (m_currentCard) {
+            m_state = ShowSpell;
+        }
     }
-    showCurrentWord();
+    showCurrentCard();
 }
 
-void StudyWindow::on_pushPerfect_clicked()
-{
-    nextWord(MemoryItem::Perfect);
-}
-
-void StudyWindow::showCurrentWord()
+void StudyWindow::showCurrentCard()
 {
     if (m_currentCard.get()) {
         showCard(*m_currentCard);
     } else {
+        m_state = NoCard;
         allCardsFinished();
     }
 }
@@ -54,13 +55,94 @@ void StudyWindow::allCardsFinished()
 
 void StudyWindow::showCard(const WordCard &card)
 {
+    updateLabels(card);
+    updateButtons();
+
     auto word = card.getWord();
     if (word.get()) {
         showWord(*word);
     }
+}
 
-    int blackout = card.estimatedInterval(MemoryItem::Blackout);
-    int incorrect = card.estimatedInterval(MemoryItem::Incorrect);
+QString StudyWindow::minuteToString(int minute)
+{
+    if (minute < 60) {
+        return QString::number(minute) + QObject::tr("minute");
+    }
+
+    if (minute < 60 * 24) {
+        auto hour = minute / 60.0;
+        return QString::number(hour, 'f', 1) + QObject::tr("hour");
+    }
+
+    if (minute <= 60 * 24 * 30) {
+        auto day = minute / (60.0 * 24);
+        return QString::number(day, 'f', 1) + QObject::tr("day");
+    }
+
+    if (minute <= 60 * 24 * 365) {
+        auto month = minute / (60.0 * 24 * 30);
+        return QString::number(month, 'f', 1) + QObject::tr("month");
+    }
+
+    return QObject::tr("long time later");
+}
+
+void StudyWindow::showWord(const Word &word)
+{
+    //setWindowTitle(word.getSpelling());
+    m_wordView.setWord(word.getSpelling());
+    if (m_state == ShowDefinition) {
+        QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+        m_definitionView.setHtml(word.getDefinition(), baseUrl);
+    } else {
+        m_definitionView.setHtml("<html><html>");
+    }
+}
+
+void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)
+{
+    if (m_studyList.get()) {
+        m_studyList->responseToCurrent(m_currentCard, responseQulity);
+        m_currentCard = m_studyList->nextCard();
+        m_state = ShowSpell;
+    }
+
+    showCurrentCard();
+}
+
+void StudyWindow::on_pushIncorrect_clicked()
+{
+    nextWord(MemoryItem::IncorrectButCanRecall);
+}
+
+void StudyWindow::on_pushCorrect3_clicked()
+{
+    nextWord(MemoryItem::CorrectWithDifficulty);
+}
+
+void StudyWindow::on_pushCorrect4_clicked()
+{
+    nextWord(MemoryItem::CorrectAfterHesitation);
+}
+
+void StudyWindow::on_pushPerfect_clicked()
+{
+    nextWord(MemoryItem::Perfect);
+}
+
+void StudyWindow::on_pushShow_clicked()
+{
+    m_state = ShowDefinition;
+    showCurrentCard();
+}
+
+void StudyWindow::updateLabels(const WordCard &card)
+{
+    //return;
+    //int blackout = card.estimatedInterval(MemoryItem::Blackout);
+    //int incorrect = card.estimatedInterval(MemoryItem::Incorrect);
+    //int ibcr = card.estimatedInterval(MemoryItem::IncorrectButCanRecall);
     int ibcr = card.estimatedInterval(MemoryItem::IncorrectButCanRecall);
     int cwd = card.estimatedInterval(MemoryItem::CorrectWithDifficulty);
     int cah = card.estimatedInterval(MemoryItem::CorrectAfterHesitation);
@@ -72,52 +154,48 @@ void StudyWindow::showCard(const WordCard &card)
     ui->labelPerfect->setText(minuteToString(perfect));
 }
 
-QString StudyWindow::minuteToString(int minute)
+
+void StudyWindow::updateButtons()
 {
-    if (minute < 60) {
-        return QString::number(minute) + " minute";
+    /* uncomment the following code to make the layout better
+     * But layout should really be taken care in ui file
+     * Not by code here!
+     * */
+    /*
+    // remove and add the buttons
+    if (m_state == ShowDefinition) {
+        ui->verticalLayout_6->removeWidget(ui->pushShow);
+
+        ui->verticalLayout->addWidget(ui->pushIncorrect);
+        ui->verticalLayout->addWidget(ui->labelIncorrect);
+        ui->verticalLayout_2->addWidget(ui->pushCorrect3);
+        ui->verticalLayout_2->addWidget(ui->labelCorrect3);
+        ui->verticalLayout_4->addWidget(ui->pushCorrect4);
+        ui->verticalLayout_4->addWidget(ui->labelCorrect4);
+        ui->verticalLayout_5->addWidget(ui->pushPerfect);
+        ui->verticalLayout_5->addWidget(ui->labelPerfect);
+    } else {
+        ui->verticalLayout->removeWidget(ui->labelIncorrect);
+        ui->verticalLayout->removeWidget(ui->pushIncorrect);
+        ui->verticalLayout_2->removeWidget(ui->labelCorrect3);
+        ui->verticalLayout_2->removeWidget(ui->pushCorrect3);
+        ui->verticalLayout_4->removeWidget(ui->labelCorrect4);
+        ui->verticalLayout_4->removeWidget(ui->pushCorrect4);
+        ui->verticalLayout_5->removeWidget(ui->labelPerfect);
+        ui->verticalLayout_5->removeWidget(ui->pushPerfect);
+
+        ui->verticalLayout_6->addWidget(ui->pushShow);
     }
+    */
 
-    if (minute < 60 * 24) {
-        auto hour = minute / 60;
-        auto min = minute % 60;
-        return QString::number(hour) + " hour " + QString::number(min) + " minute";
-    }
-
-    auto day = minute / 60 / 24;
-    auto hour = (minute / 60) % 24;
-    auto min = minute % 60;
-    return QString::number(day) + " day " + QString::number(hour) + " hour " + QString::number(min) + " minute";
-}
-
-void StudyWindow::showWord(const Word &word)
-{
-    QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
-    //m_wordView.setWord(word.getSpelling());
-    m_wordView.setWord(word.getSpelling() + ": " + word.getExpireTime().toString().toStdString().c_str());
-    m_definitionView.setHtml(word.getDefinition(), baseUrl);
-}
-
-void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)
-{
-    if (m_studyList.get()) {
-        m_studyList->responseToCurrent(m_currentCard, responseQulity);
-        m_currentCard = m_studyList->nextCard();
-        showCurrentWord();
-    }
-}
-
-void StudyWindow::on_pushCorrect_clicked()
-{
-    nextWord(MemoryItem::CorrectAfterHesitation);
-}
-
-void StudyWindow::on_pushIncorrect_clicked()
-{
-    nextWord(MemoryItem::IncorrectButCanRecall);
-}
-
-void StudyWindow::on_pushCorrect3_clicked()
-{
-    nextWord(MemoryItem::CorrectWithDifficulty);
+    // show and hide the buttons
+    ui->pushShow->setVisible(m_state == ShowSpell);
+    ui->pushIncorrect->setVisible(m_state == ShowDefinition);
+    ui->pushCorrect4->setVisible(m_state == ShowDefinition);
+    ui->pushCorrect3->setVisible(m_state == ShowDefinition);
+    ui->pushPerfect->setVisible(m_state == ShowDefinition);
+    ui->labelIncorrect->setVisible(m_state == ShowDefinition);
+    ui->labelCorrect3->setVisible(m_state == ShowDefinition);
+    ui->labelCorrect4->setVisible(m_state == ShowDefinition);
+    ui->labelPerfect->setVisible(m_state == ShowDefinition);
 }

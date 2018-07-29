@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "worddb.h"
 #include "golddict/gddebug.hh"
 #include "word.h"
 
@@ -13,7 +12,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     m_gdhelper(nullptr),
     m_definitionView(this),
-    m_worddb(),
     m_studyWindow(nullptr)
 {
     ui->setupUi(this);
@@ -56,6 +54,10 @@ void MainWindow::on_lineEdit_returnPressed()
 void MainWindow::QueryWord()
 {
     QString spelling = ui->lineEdit->text();
+    if (spelling.isEmpty()) {
+        return;
+    }
+
     auto word = Word::getWordFromDatabase(spelling);
     if (!word.get()) {
         // get the word from dictionary and save to database

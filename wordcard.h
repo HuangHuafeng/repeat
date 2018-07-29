@@ -19,18 +19,11 @@ public:
     }
 
 public:
-    static void createDatabaseTables();
+    static bool createDatabaseTables();
     static sptr<WordCard> generateCardForWord(const QString &spelling);
-    static void setRatio(float ratio)
-    {
-        m_ratio = ratio;
-        if (m_ratio <= 0) {
-            m_ratio = 1.0;
-        }
-    }
 
 private:
-    static float m_ratio;
+    static const float m_ratio[MemoryItem::Perfect + 1];
     sptr<Word> m_word;
 
     void dbsave();

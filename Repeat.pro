@@ -137,3 +137,5 @@ FORMS += \
 
 RESOURCES += \
     res.qrc
+
+TRANSLATIONS = myapp_zh_CN.ts

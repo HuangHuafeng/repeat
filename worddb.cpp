@@ -13,32 +13,47 @@
 
 WordDB::WordDB()
 {
-    connectDB();
-    Word::createDatabaseTables();
-    WordCard::createDatabaseTables();
 }
 
 WordDB::~WordDB()
 {
-    m_db.close();
+    if (m_db.isOpen()) {
+        m_db.close();
+    }
 }
 
 bool WordDB::connectDB()
 {
+    if (m_db.isOpen()) {
+        return true;
+    }
+
     QString dbFileName = QCoreApplication::applicationDirPath() + "/words.db";
-    gdDebug("database file is %s", dbFileName.toStdString().c_str());
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(dbFileName);
     if (!m_db.open()) {
-        QMessageBox::critical(nullptr, QObject::tr("Cannot open database"),
-            QObject::tr("Unable to establish a database connection.\n"
-                        "This example needs SQLite support. Please read "
-                        "the Qt SQL driver documentation for information how "
-                        "to build it.\n\n"
-                        "Click Cancel to exit."), QMessageBox::Cancel);
+        QMessageBox::critical(nullptr, QObject::tr("Database Error"),
+                              QObject::tr("Unable to open database file!\n"
+                                          "Click OK to exit."));
+        return false;
+    }
+
+    if (Word::createDatabaseTables() == false) {
+        return false;
+    }
+
+    if (WordCard::createDatabaseTables() == false) {
         return false;
     }
 
     return true;
 }
 
+
+// static
+void WordDB::databaseError(QSqlQuery &query, const QString what)
+{
+    QSqlError error = query.lastError();
+    QMessageBox::critical(nullptr, QObject::tr("Database Error"),
+        "Database error when " + what + ": " + error.text(), QMessageBox::Ok);
+}

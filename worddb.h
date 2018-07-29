@@ -11,9 +11,10 @@ public:
     WordDB();
     ~WordDB();
 
-private:
     bool connectDB();
+    static void databaseError(QSqlQuery &query, const QString what);
 
+private:
     QSqlDatabase m_db;
 
 };

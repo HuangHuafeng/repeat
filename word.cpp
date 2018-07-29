@@ -1,5 +1,6 @@
 #include "word.h"
 #include "golddict/gddebug.hh"
+#include "worddb.h"
 
 #include <QMessageBox>
 #include <QSqlDatabase>
@@ -50,7 +51,7 @@ void Word::dbsaveDefinition()
     query.bindValue(":definition", m_definition);
     if (query.exec() == false)
     {
-        Word::databaseError(query, "saving word \"" + m_spelling + "\"");
+        WordDB::databaseError(query, "saving word \"" + m_spelling + "\"");
     }
 }
 
@@ -66,7 +67,7 @@ void Word::dbgetDefinition()
             m_definition = query.value("definition").toString();
         }
     } else {
-        Word::databaseError(query, "fetching defintion of \"" + m_spelling + "\"");
+        WordDB::databaseError(query, "fetching defintion of \"" + m_spelling + "\"");
     }
 }
 
@@ -89,7 +90,7 @@ int Word::isDefintionSaved() const
             return 0;
         }
     } else {
-        Word::databaseError(query, "checking word \"" + m_spelling + "\"");
+        WordDB::databaseError(query, "checking word \"" + m_spelling + "\"");
         return 0;
     }
 }
@@ -113,7 +114,7 @@ int Word::hasExpireTimeRecord() const
             return 0;
         }
     } else {
-        Word::databaseError(query, "checking expire time of word \"" + m_spelling + "\"");
+        WordDB::databaseError(query, "checking expire time of word \"" + m_spelling + "\"");
         return 0;
     }
 }
@@ -138,7 +139,7 @@ void Word::dbsaveStudyRecord(const StudyRecord &sr)
     query.bindValue(":study_date", studyDate);
     if (query.exec() == false)
     {
-        Word::databaseError(query, "adding expire time of \"" + m_spelling + "\"");
+        WordDB::databaseError(query, "adding expire time of \"" + m_spelling + "\"");
     }
 }
 
@@ -164,7 +165,7 @@ void Word::dbgetStudyRecords()
             m_studyHistory.append(sr);
         }
     } else {
-        Word::databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
+        WordDB::databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
     }
 }
 
@@ -189,14 +190,6 @@ int Word::getId()
 }
 
 // static
-void Word::databaseError(QSqlQuery &query, const QString what)
-{
-    QSqlError error = query.lastError();
-    QMessageBox::critical(nullptr, QObject::tr(""),
-        "Database error when " + what + ": " + error.text(), QMessageBox::Ok);
-}
-
-// static
 int Word::getWordId(const QString &spelling)
 {
     QSqlQuery query;
@@ -209,7 +202,7 @@ int Word::getWordId(const QString &spelling)
             return 0;
         }
     } else {
-        Word::databaseError(query, "check existence of \"" + spelling + "\"");
+        WordDB::databaseError(query, "check existence of \"" + spelling + "\"");
         return 0;
     }
 
@@ -223,7 +216,7 @@ bool Word::isInDatabase(const QString &spelling)
 }
 
 // static
-void Word::createDatabaseTables()
+bool Word::createDatabaseTables()
 {
     QSqlQuery query;
     if (query.exec("SELECT * FROM words LIMIT 1") == false)
@@ -232,22 +225,24 @@ void Word::createDatabaseTables()
         if(query.exec("CREATE TABLE words (id INTEGER primary key, "
                    "word TEXT, "
                       "definition TEXT)") == false) {
-            Word::databaseError(query, "creating table \"words\"");
+            WordDB::databaseError(query, "creating table \"words\"");
+            return false;
         }
 
         if (query.exec("CREATE TABLE words_in_study (id INTEGER primary key, "
                    "word_id INTEGER, "
                    "expire INTEGER, "
                    "study_date INTEGER)") == false) {
-            Word::databaseError(query, "creating table \"words_in_study\"");
+            WordDB::databaseError(query, "creating table \"words_in_study\"");
+            return false;
         }
     } else {
-        // table already exist
+        // table already exist, ignore
         QString msg( "Table \"words\" already exists, doing nothing in Word::createDatabaseTables()." );
         gdDebug("%s", msg.toStdString().c_str());
-        QMessageBox::information(nullptr, QObject::tr(""),
-            msg, QMessageBox::Ok);
     }
+
+    return true;
 }
 
 // static
@@ -281,7 +276,7 @@ QVector<QString> Word::getNewWords(int number)
                 wordList.append(spelling);
             }
         } else {
-            Word::databaseError(query, "fetching new words");
+            WordDB::databaseError(query, "fetching new words");
         }
     }
 
@@ -306,7 +301,7 @@ QVector<QString> Word::getWords(int number)
             wordList.append(spelling);
         }
     } else {
-        Word::databaseError(query, "fetching new words");
+        WordDB::databaseError(query, "fetching new words");
     }
 
 
@@ -333,7 +328,7 @@ QVector<QString> Word::getExpiredWords(int number)
                 wordList.append(spelling);
             }
         } else {
-            Word::databaseError(query, "fetching new words");
+            WordDB::databaseError(query, "fetching new words");
         }
     }
 

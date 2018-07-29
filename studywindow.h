@@ -23,28 +23,39 @@ public:
     void setStudyList(sptr<StudyList> studyList);
 
 private slots:
-    void on_pushPerfect_clicked();
-
-    void on_pushCorrect_clicked();
+    void on_pushShow_clicked();
 
     void on_pushIncorrect_clicked();
 
     void on_pushCorrect3_clicked();
 
+    void on_pushCorrect4_clicked();
+
+    void on_pushPerfect_clicked();
+
 private:
+    typedef enum {
+        ShowSpell = 1,
+        ShowDefinition = 2,
+        NoCard = 3
+    } StudyState;
+
     Ui::StudyWindow *ui;
     WordView m_wordView;
     QWebEngineView m_definitionView;
+    StudyState m_state;
 
     sptr<StudyList> m_studyList;
     sptr<WordCard> m_currentCard;
 
-    void showCurrentWord();
+    void showCurrentCard();
     void showCard(const WordCard &card);
     void showWord(const Word &word);
     QString minuteToString(int minute);
     void nextWord(MemoryItem::ResponseQuality responseQulity);
     void allCardsFinished();
+    void updateButtons();
+    void updateLabels(const WordCard &card);
 
 };
 

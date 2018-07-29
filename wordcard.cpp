@@ -1,5 +1,6 @@
 #include "wordcard.h"
 #include "golddict/gddebug.hh"
+#include "worddb.h"
 
 #include <QDateTime>
 #include <QSqlDatabase>
@@ -8,7 +9,7 @@
 #include <QSqlRecord>
 #include <QVariant>
 
-float WordCard::m_ratio = 1.0f;
+const float WordCard::m_ratio[MemoryItem::Perfect + 1] = {0.1, 0.1, 0.1, 0.64, 0.8, 1.0};
 
 WordCard::WordCard(sptr<Word> word, int interval, float easiness, int repition) :
     MemoryItem(interval, easiness, repition)
@@ -26,7 +27,7 @@ void WordCard::update(ResponseQuality responseQuality)
     MemoryItem::update(responseQuality);
 
     // changes the interval with the ratio
-    int interval = static_cast<int>(getIntervalInMinute() * m_ratio);
+    int interval = static_cast<int>(getIntervalInMinute() * m_ratio[responseQuality]);
     setInterval(interval);
 
     // save to database
@@ -43,21 +44,14 @@ void WordCard::update(ResponseQuality responseQuality)
 int WordCard::estimatedInterval(ResponseQuality responseQuality) const
 {
     /*
-    int repitition = getRepitition();
-    if (repitition == 0) {//I(1)
-        return 24 * 60;
-    }
-
-    if (repitition == 1) {//I(2)
-        return 24 * 60;
-    }
-
-    if (responseQuality <= IncorrectButCanRecall) {
-        return 24 * 60;
-    }
+    如何计算下一次复习的时间？
+    至少应和下面这些相关：
+    1、这个单词的难度，最小值1.3，最大值呢？
+    2、这次复习对这个单词的熟悉程度（“不认识”、“有点印象”、“想起来了”，“记住了”）
+    3、上次复习到这次复习的时间间隔（通常来说，这个也就是上次复习时定下来的间隔【这个是不对的，因为这次复习的时候是间隔时长已经过去了，单词已经expire了】。但有些时候，我们可以提前复习，那么这两个值就不相等了。）
     */
 
-    return MemoryItem::estimatedInterval(responseQuality);
+    return MemoryItem::estimatedInterval(responseQuality) * m_ratio[responseQuality];
 }
 
 void WordCard::getFromDatabase()
@@ -85,7 +79,7 @@ void WordCard::getFromDatabase()
             setRepitition(repitition);
         }
     } else {
-        Word::databaseError(query, "fetching card of \"" + m_word->getSpelling()  + "\"");
+        WordDB::databaseError(query, "fetching card of \"" + m_word->getSpelling()  + "\"");
     }
 }
 
@@ -111,7 +105,7 @@ void WordCard::dbsave()
     query.bindValue(":repitition", getRepitition());
     if (query.exec() == false)
     {
-        Word::databaseError(query, "saving card of \"" + m_word->getSpelling()  + "\"");
+        WordDB::databaseError(query, "saving card of \"" + m_word->getSpelling()  + "\"");
     }
 }
 
@@ -128,7 +122,7 @@ sptr<WordCard> WordCard::generateCardForWord(const QString &spelling)
 }
 
 // static
-void WordCard::createDatabaseTables()
+bool WordCard::createDatabaseTables()
 {
     QSqlQuery query;
     if (query.exec("SELECT * FROM wordcard LIMIT 1") == false)
@@ -139,11 +133,14 @@ void WordCard::createDatabaseTables()
                       "interval INTEGER, "
                       "easiness INTEGER, "
                       "repitition INTEGER)") == false) {
-            Word::databaseError(query, "creating table \"wordcard\"");
+            WordDB::databaseError(query, "creating table \"wordcard\"");
+            return false;
         }
     } else {
         // table already exist
         QString msg( "Table \"wordcard\" already exists, doing nothing in WordCard::createDatabaseTables()." );
         gdDebug("%s", msg.toStdString().c_str());
     }
+
+    return true;
 }

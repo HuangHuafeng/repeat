@@ -1,19 +1,32 @@
 #include "mainwindow.h"
+#include "golddict/gddebug.hh"
+#include "worddb.h"
+
 #include <QApplication>
-//#include <QWebEngineView>
+#include <QTranslator>
+#include <QMessageBox>
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QApplication app(argc, argv);
+
+    WordDB appDb;
+    if (appDb.connectDB() == false) {
+        return 1;
+    }
+
+    QTranslator qtTranslator;
+    qtTranslator.load("qt_" + QLocale::system().name(),
+            QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    app.installTranslator(&qtTranslator);
+
+    QTranslator myappTranslator;
+    //myappTranslator.load("myapp_" + QLocale::system().name());
+    myappTranslator.load("myapp_zh_CN");
+    app.installTranslator(&myappTranslator);
+
     MainWindow w;
     w.show();
 
-    /*
-    QWebEngineView view;
-    view.setUrl(QUrl(QStringLiteral("https://www.qt.io")));
-    view.resize(1024, 750);
-    view.show();
-    */
-
-    return a.exec();
+    return app.exec();
 }

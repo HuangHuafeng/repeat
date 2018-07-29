@@ -113,7 +113,7 @@ std::string ArticleMaker::makeHtmlHeader( QString const & word,
     }
 
     // Turn on/off expanding of article optional parts
-    if( expandOptionalParts )
+    if( expandOptionalParts && 0 )
     {
       result += "<!-- Expand optional parts css -->\n";
       result += "<style type=\"text/css\" media=\"all\">\n";

@@ -26,7 +26,6 @@ public:
     const QLinkedList<sptr<WordCard>> & getList() const;
 
 private:
-    //QVector<sptr<WordCard>> m_cards;
     QLinkedList<sptr<WordCard>> m_cards;
     sptr<WordCard> m_current;
 

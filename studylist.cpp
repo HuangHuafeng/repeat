@@ -20,6 +20,9 @@ bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQu
         return false;
     }
 
+    // remove the card from the list
+    m_cards.pop_front();
+    // update the card's data
     m_current->update(responseQulity);
 
     if (responseQulity < MemoryItem::CorrectWithDifficulty) {
@@ -47,20 +50,14 @@ void StudyList::addCard(sptr<WordCard> card)
         return;
     }
 
-    auto expire = card->getWord()->getExpireTime();
+    auto expire = card->getExpireTime();
     QLinkedList<sptr<WordCard>>::iterator it = m_cards.end();
     while (it != m_cards.begin()) {
         it --;
         if ((*it).get()) {
-            auto word = (*it)->getWord();
-            if (word.get()) {
-                if (word->getExpireTime() < expire) {
-                    //gdDebug("%s: %s", word->getSpelling().toStdString().c_str(), word->getExpireTime().toString().toStdString().c_str());
-                    //gdDebug("%s: %s", card->getWord()->getSpelling().toStdString().c_str(), expire.toString().toStdString().c_str());
-                    //gdDebug("INSERT HERE");
-                    it ++;
-                    break;
-                }
+            if ((*it)->getExpireTime() < expire) {
+                it ++;
+                break;
             }
         }
     }
@@ -73,7 +70,7 @@ sptr<WordCard> StudyList::nextCard()
     {
         if (m_cards.isEmpty() == false) {
             m_current = m_cards.first();
-            m_cards.pop_front();
+            //m_cards.pop_front();
         }
     }
 
@@ -100,12 +97,7 @@ bool StudyList::initiCards(const QVector<QString> &wordList)
 
 const QLinkedList<sptr<WordCard>> & StudyList::getList() const
 {
-    QLinkedList<sptr<WordCard>> rtnList = m_cards;
-    if (m_current) {
-        rtnList.push_front(m_current);
-    }
-
-    return rtnList;
+    return m_cards;
 }
 
 // static

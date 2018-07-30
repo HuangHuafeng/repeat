@@ -9,26 +9,12 @@
 #include <QSqlRecord>
 #include <QVariant>
 
-// m_baselineTime is my daughter's birth time
-const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
-
 Word::Word(QString word) :
     m_spelling(word)
 {
     m_id = 0;
     m_new = true;
     m_definition = "";
-    m_expireTime = defaultExpireTime();
-}
-
-void Word::setExpireTime(const QDateTime &expireTime)
-{
-    m_new = false;
-    m_expireTime = expireTime;
-
-    StudyRecord newSR(m_expireTime, QDateTime::currentDateTime());
-    m_studyHistory.append(newSR);
-    dbsaveStudyRecord(newSR);
 }
 
 void Word::setDefinition(const QString &definition)
@@ -119,65 +105,17 @@ int Word::hasExpireTimeRecord() const
     }
 }
 
-void Word::dbsaveStudyRecord(const StudyRecord &sr)
-{
-    if (isNew()) {
-        return;
-    }
-
-    int wordId = getId();
-    if (wordId == 0) {
-        return;
-    }
-
-    qint64 expire = sr.m_expire.toMinutes();
-    qint64 studyDate = sr.m_studyDate.toMinutes();
-    QSqlQuery query;
-    query.prepare("INSERT INTO words_in_study(word_id, expire, study_date) VALUES(:word_id, :expire, :study_date)");
-    query.bindValue(":word_id", wordId);
-    query.bindValue(":expire", expire);
-    query.bindValue(":study_date", studyDate);
-    if (query.exec() == false)
-    {
-        WordDB::databaseError(query, "adding expire time of \"" + m_spelling + "\"");
-    }
-}
-
-void Word::dbgetStudyRecords()
-{
-    int wordId = getId();
-    if (wordId == 0) {
-        return;
-    }
-    if (m_studyHistory.size() > 0) {
-        // it's already updated!
-        return;
-    }
-
-    QSqlQuery query;
-    query.prepare("SELECT expire, study_date FROM words_in_study WHERE word_id=:word_id");
-    query.bindValue(":word_id", wordId);
-    if (query.exec()) {
-        while (query.next()) {
-            qint64 expire = query.value("expire").toLongLong();
-            qint64 studyDate = query.value("study_date").toLongLong();
-            StudyRecord sr(expire, studyDate);
-            m_studyHistory.append(sr);
-        }
-    } else {
-        WordDB::databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
-    }
-}
-
 // word is updated if the returned value is true
 void Word::getFromDatabase()
 {
     dbgetDefinition();
+    /*
     dbgetStudyRecords();
     if (m_studyHistory.isEmpty() == false) {
         m_new = false;
         m_expireTime = m_studyHistory.last().m_expire.toDateTime();
     }
+    */
 }
 
 int Word::getId()
@@ -223,12 +161,13 @@ bool Word::createDatabaseTables()
     {
         // table "words" does not exist
         if(query.exec("CREATE TABLE words (id INTEGER primary key, "
-                   "word TEXT, "
+                      "word TEXT, "
                       "definition TEXT)") == false) {
             WordDB::databaseError(query, "creating table \"words\"");
             return false;
         }
 
+        /*
         if (query.exec("CREATE TABLE words_in_study (id INTEGER primary key, "
                    "word_id INTEGER, "
                    "expire INTEGER, "
@@ -236,6 +175,7 @@ bool Word::createDatabaseTables()
             WordDB::databaseError(query, "creating table \"words_in_study\"");
             return false;
         }
+        */
     } else {
         // table already exist, ignore
         QString msg( "Table \"words\" already exists, doing nothing in Word::createDatabaseTables()." );
@@ -333,10 +273,4 @@ QVector<QString> Word::getExpiredWords(int number)
     }
 
     return wordList;
-}
-
-// static
-QDateTime Word::defaultExpireTime()
-{
-    return QDateTime::currentDateTime().addYears(100);
 }

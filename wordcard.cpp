@@ -9,6 +9,8 @@
 #include <QSqlRecord>
 #include <QVariant>
 
+// m_baselineTime is my daughter's birth time
+const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
 const float WordCard::m_ratio[MemoryItem::Perfect + 1] = {0.1, 0.1, 0.1, 0.64, 0.8, 1.0};
 
 WordCard::WordCard(sptr<Word> word, int interval, float easiness, int repition) :
@@ -30,15 +32,7 @@ void WordCard::update(ResponseQuality responseQuality)
     int interval = static_cast<int>(getIntervalInMinute() * m_ratio[responseQuality]);
     setInterval(interval);
 
-    // save to database
     dbsave();
-
-    // update the word's expire
-    if (m_word.get()) {
-        int days = qRound(getIntervalInMinute() / 60.0 / 24.0);
-        QDateTime expire = QDateTime::currentDateTime().addDays(days);
-        m_word->setExpireTime(expire);
-    }
 }
 
 int WordCard::estimatedInterval(ResponseQuality responseQuality) const
@@ -67,13 +61,21 @@ void WordCard::getFromDatabase()
     }
 
     QSqlQuery query;
-    query.prepare("SELECT interval, easiness, repitition FROM wordcard WHERE word_id=:word_id");
+    query.prepare("SELECT interval, easiness, repitition, expire, study_date"
+                  " FROM wordcard WHERE word_id=:word_id");
     query.bindValue(":word_id", wordId);
     if (query.exec()) {
-        if (query.last()) {
+        while (query.next()) {
             int interval = query.value("interval").toInt();
             float easiness = query.value("easiness").toInt() / 100.0;
             int repitition = query.value("repitition").toInt();
+            qint64 expire = query.value("expire").toLongLong();
+            qint64 studyDate = query.value("study_date").toLongLong();
+            StudyRecord sr(expire, studyDate);
+            sr.m_easiness = easiness;
+            sr.m_interval = interval;
+            sr.m_repition = repitition;
+            m_studyHistory.append(sr);
             setInterval(interval);
             setEasiness(easiness);
             setRepitition(repitition);
@@ -83,7 +85,62 @@ void WordCard::getFromDatabase()
     }
 }
 
+/*
+void WordCard::dbgetStudyRecords()
+{
+    int wordId = getId();
+    if (wordId == 0) {
+        return;
+    }
+    if (m_studyHistory.size() > 0) {
+        // it's already updated!
+        return;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT expire, study_date FROM words_in_study WHERE word_id=:word_id");
+    query.bindValue(":word_id", wordId);
+    if (query.exec()) {
+        while (query.next()) {
+            qint64 expire = query.value("expire").toLongLong();
+            qint64 studyDate = query.value("study_date").toLongLong();
+            StudyRecord sr(expire, studyDate);
+            m_studyHistory.append(sr);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
+    }
+}
+*/
+
+const QDateTime WordCard::getExpireTime() const
+{
+    if (m_studyHistory.isEmpty())
+    {
+        return defaultExpireTime();
+    }
+
+    return m_studyHistory.last().m_expire.toDateTime();
+}
+
+void WordCard::setExpireTime(const QDateTime &expireTime)
+{
+    StudyRecord newSR(expireTime, QDateTime::currentDateTime());
+    newSR.m_easiness = getEasiness();
+    newSR.m_interval = getIntervalInMinute();
+    newSR.m_repition = getRepitition();
+    m_studyHistory.append(newSR);
+    dbsaveStudyRecord(newSR);
+}
+
 void WordCard::dbsave()
+{
+    int days = qRound(getIntervalInMinute() / 60.0 / 24.0);
+    QDateTime expire = QDateTime::currentDateTime().addDays(days);
+    setExpireTime(expire);
+}
+
+void WordCard::dbsaveStudyRecord(const StudyRecord &sr)
 {
     if (!m_word.get()) {
         return;
@@ -95,18 +152,27 @@ void WordCard::dbsave()
         return;
     }
 
-    int easiness = static_cast<int>(getEasiness() * 100);
-    int interval = getIntervalInMinute();
+    int easiness = static_cast<int>(sr.m_easiness * 100);
+
     QSqlQuery query;
-    query.prepare("INSERT INTO wordcard(word_id, interval, easiness, repitition) VALUES(:word_id, :interval, :easiness, :repitition)");
+    query.prepare("INSERT INTO wordcard(word_id, interval, easiness, repitition, expire, study_date)"
+                  " VALUES(:word_id, :interval, :easiness, :repitition, :expire, :study_date)");
     query.bindValue(":word_id", wordId);
-    query.bindValue(":interval", interval);
+    query.bindValue(":interval", sr.m_interval);
     query.bindValue(":easiness", easiness);
-    query.bindValue(":repitition", getRepitition());
+    query.bindValue(":repitition", sr.m_repition);
+    query.bindValue(":expire", sr.m_expire.toMinutes());
+    query.bindValue(":study_date", sr.m_studyDate.toMinutes());
     if (query.exec() == false)
     {
         WordDB::databaseError(query, "saving card of \"" + m_word->getSpelling()  + "\"");
     }
+}
+
+// static
+QDateTime WordCard::defaultExpireTime()
+{
+    return QDateTime::currentDateTime().addYears(100);
 }
 
 // static
@@ -132,7 +198,9 @@ bool WordCard::createDatabaseTables()
                       "word_id INTEGER, "
                       "interval INTEGER, "
                       "easiness INTEGER, "
-                      "repitition INTEGER)") == false) {
+                      "repitition INTEGER, "
+                      "expire INTEGER, "
+                      "study_date INTEGER)") == false) {
             WordDB::databaseError(query, "creating table \"wordcard\"");
             return false;
         }

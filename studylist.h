@@ -19,8 +19,11 @@ public:
 
     static sptr<StudyList> generateStudyList();
     static sptr<StudyList> generateStudyListForAllWord();
+
     sptr<WordCard> nextCard();
     bool responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQuality responseQulity);
+
+    const QLinkedList<sptr<WordCard>> & getList() const;
 
 private:
     //QVector<sptr<WordCard>> m_cards;

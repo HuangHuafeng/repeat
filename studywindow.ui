@@ -20,12 +20,6 @@
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
-   <property name="spacing">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
    <item>
     <layout class="QVBoxLayout" name="vlDefinition"/>
    </item>
@@ -140,6 +134,27 @@
          </property>
          <property name="autoDefault">
           <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelShow">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignBottom|Qt::AlignHCenter</set>
          </property>
         </widget>
        </item>

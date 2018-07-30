@@ -152,6 +152,11 @@ void StudyWindow::updateLabels(const WordCard &card)
     ui->labelCorrect3->setText(minuteToString(cwd));
     ui->labelCorrect4->setText(minuteToString(cah));
     ui->labelPerfect->setText(minuteToString(perfect));
+
+    if (m_studyList.get()) {
+        auto numberOfCards = m_studyList->getList().size();
+        ui->labelShow->setText("<html><span style=\"color:blue\">" + QString::number(numberOfCards) + "</span><html>");
+    }
 }
 
 
@@ -190,6 +195,7 @@ void StudyWindow::updateButtons()
 
     // show and hide the buttons
     ui->pushShow->setVisible(m_state == ShowSpell);
+    ui->labelShow->setVisible(m_state == ShowSpell);
     ui->pushIncorrect->setVisible(m_state == ShowDefinition);
     ui->pushCorrect4->setVisible(m_state == ShowDefinition);
     ui->pushCorrect3->setVisible(m_state == ShowDefinition);

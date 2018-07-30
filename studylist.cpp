@@ -55,9 +55,9 @@ void StudyList::addCard(sptr<WordCard> card)
             auto word = (*it)->getWord();
             if (word.get()) {
                 if (word->getExpireTime() < expire) {
-                    gdDebug("%s: %s", word->getSpelling().toStdString().c_str(), word->getExpireTime().toString().toStdString().c_str());
-                    gdDebug("%s: %s", card->getWord()->getSpelling().toStdString().c_str(), expire.toString().toStdString().c_str());
-                    gdDebug("INSERT HERE");
+                    //gdDebug("%s: %s", word->getSpelling().toStdString().c_str(), word->getExpireTime().toString().toStdString().c_str());
+                    //gdDebug("%s: %s", card->getWord()->getSpelling().toStdString().c_str(), expire.toString().toStdString().c_str());
+                    //gdDebug("INSERT HERE");
                     it ++;
                     break;
                 }
@@ -96,6 +96,16 @@ bool StudyList::initiCards(const QVector<QString> &wordList)
     }
 
     return true;
+}
+
+const QLinkedList<sptr<WordCard>> & StudyList::getList() const
+{
+    QLinkedList<sptr<WordCard>> rtnList = m_cards;
+    if (m_current) {
+        rtnList.push_front(m_current);
+    }
+
+    return rtnList;
 }
 
 // static

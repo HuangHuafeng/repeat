@@ -1,5 +1,5 @@
 #include "worddb.h"
-#include "golddict/gddebug.hh"
+#include "../golddict/gddebug.hh"
 #include "word.h"
 #include "wordcard.h"
 #include "wordbook.h"
@@ -29,7 +29,8 @@ bool WordDB::connectDB()
         return true;
     }
 
-    QString dbFileName = QCoreApplication::applicationDirPath() + "/words.db";
+    QString dbFileName = "/Users/huafeng/Documents/GitHub/TextFinder/build-Repeat-Desktop_Qt_5_11_1_clang_64bit-Debug/Repeat.app/Contents/MacOS/words.db";
+    //QString dbFileName = QCoreApplication::applicationDirPath() + "/words.db";
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(dbFileName);
     if (!m_db.open()) {

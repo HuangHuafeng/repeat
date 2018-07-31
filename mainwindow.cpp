@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "golddict/gddebug.hh"
-#include "word.h"
+#include "HaiBeiDanCi/word.h"
+#include "HaiBeiDanCi/wordbook.h"
 
 #include <QString>
 #include <QFileDialog>
@@ -91,4 +92,43 @@ void MainWindow::on_pushButton_2_clicked()
 {
     m_studyWindow.setStudyList(StudyList::generateStudyListForAllWord());
     m_studyWindow.show();
+}
+
+void MainWindow::on_pushCreateWords_clicked()
+{
+    QFileInfo wordListInQrc(QDir::currentPath() + "/wordlist.txt");
+
+    if (!wordListInQrc.exists())
+    {
+        QFile::copy(":/wordlist.txt", wordListInQrc.absoluteFilePath());
+        gdDebug("file copied to %s", wordListInQrc.absoluteFilePath().toStdString().c_str());
+    }
+
+    QFile wordListFile(wordListInQrc.absoluteFilePath());
+    if (!wordListFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        gdDebug("failed to load file");
+        return;
+    }
+
+    do {
+        char buf[1024];
+        qint64 lineLength = wordListFile.readLine(buf, sizeof(buf));
+        if (lineLength == -1) {
+            break;
+        }
+        buf[lineLength - 1] = 0;
+        QString spelling(buf);
+        if (spelling.isEmpty() == false) {
+            saveWord(spelling);
+        }
+    } while(1);
+}
+
+void MainWindow::on_pushCreateABook_clicked()
+{
+    WordBook book(QObject::tr("Default"), QObject::tr("the default book"));
+    auto wordList = Word::getNewWords();
+    book.dbsave();
+    book.dbsaveAddWords(wordList);
 }

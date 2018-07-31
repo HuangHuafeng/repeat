@@ -1,7 +1,7 @@
 #ifndef WORD_H
 #define WORD_H
 
-#include "golddict/sptr.hh"
+#include "../golddict/sptr.hh"
 
 #include <QString>
 #include <QDateTime>

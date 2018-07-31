@@ -1,8 +1,10 @@
 #include "mainwindow.h"
-#include "golddict/gddebug.hh"
-#include "HaiBeiDanCi/worddb.h"
+#include "../golddict/gddebug.hh"
+#include "worddb.h"
+#include "dictschemehandler.h"
 
 #include <QApplication>
+#include <QLibraryInfo>
 #include <QTranslator>
 #include <QMessageBox>
 
@@ -24,6 +26,8 @@ int main(int argc, char *argv[])
     //myappTranslator.load("myapp_" + QLocale::system().name());
     myappTranslator.load("myapp_zh_CN");
     app.installTranslator(&myappTranslator);
+
+    DictSchemeHandler dsh;
 
     MainWindow w;
     w.show();

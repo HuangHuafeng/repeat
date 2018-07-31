@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 #include "gdhelper.h"
-#include "studywindow.h"
-#include "worddb.h"
+#include "HaiBeiDanCi/studywindow.h"
+#include "HaiBeiDanCi/worddb.h"
 
 #include <QMainWindow>
 #include <QWebEngineView>
@@ -28,6 +28,10 @@ private slots:
     void on_lineEdit_returnPressed();
 
     void on_pushButton_2_clicked();
+
+    void on_pushCreateWords_clicked();
+
+    void on_pushCreateABook_clicked();
 
 private:
     Ui::MainWindow *ui;

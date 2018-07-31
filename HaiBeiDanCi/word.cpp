@@ -1,5 +1,5 @@
 #include "word.h"
-#include "golddict/gddebug.hh"
+#include "../golddict/gddebug.hh"
 #include "worddb.h"
 
 Word::Word(QString word) :

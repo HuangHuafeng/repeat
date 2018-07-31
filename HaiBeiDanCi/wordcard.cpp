@@ -1,5 +1,5 @@
 #include "wordcard.h"
-#include "golddict/gddebug.hh"
+#include "../golddict/gddebug.hh"
 #include "worddb.h"
 
 #include <QDateTime>

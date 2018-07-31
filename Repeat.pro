@@ -70,16 +70,17 @@ SOURCES += \
     golddict/article_netmgr.cc \
     mdxdict.cpp \
     dictschemehandler.cpp \
-    mediaplayer.cpp \
     temporaryfilemanager.cpp \
     gdhelper.cpp \
-    studywindow.cpp \
-    wordview.cpp \
-    worddb.cpp \
-    word.cpp \
-    memoryitem.cpp \
-    wordcard.cpp \
-    studylist.cpp
+    HaiBeiDanCi/mediaplayer.cpp \
+    HaiBeiDanCi/studywindow.cpp \
+    HaiBeiDanCi/wordview.cpp \
+    HaiBeiDanCi/worddb.cpp \
+    HaiBeiDanCi/word.cpp \
+    HaiBeiDanCi/memoryitem.cpp \
+    HaiBeiDanCi/wordcard.cpp \
+    HaiBeiDanCi/studylist.cpp \
+    HaiBeiDanCi/wordbook.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -117,23 +118,24 @@ HEADERS += \
     golddict/article_maker.hh \
     golddict/wordfinder.hh \
     golddict/article_netmgr.hh \
+    golddict/sptr.hh \
     mdxdict.h \
     dictschemehandler.h \
-    mediaplayer.h \
     temporaryfilemanager.h \
     gdhelper.h \
-    studywindow.h \
-    wordview.h \
-    worddb.h \
-    word.h \
-    golddict/sptr.hh \
-    memoryitem.h \
-    wordcard.h \
-    studylist.h
+    HaiBeiDanCi/mediaplayer.h \
+    HaiBeiDanCi/studywindow.h \
+    HaiBeiDanCi/wordview.h \
+    HaiBeiDanCi/worddb.h \
+    HaiBeiDanCi/word.h \
+    HaiBeiDanCi/memoryitem.h \
+    HaiBeiDanCi/wordcard.h \
+    HaiBeiDanCi/studylist.h \
+    HaiBeiDanCi/wordbook.h
 
 FORMS += \
         mainwindow.ui \
-    studywindow.ui
+    HaiBeiDanCi/studywindow.ui
 
 RESOURCES += \
     res.qrc

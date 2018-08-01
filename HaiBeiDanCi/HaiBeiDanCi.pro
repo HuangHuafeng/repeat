@@ -37,7 +37,8 @@ SOURCES += \
     wordview.cpp \
     dictschemehandler.cpp \
     ../golddict/gddebug.cc \
-    databaseobject.cpp
+    databaseobject.cpp \
+    bookbrowser.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -53,11 +54,13 @@ HEADERS += \
     dictschemehandler.h \
     ../golddict/gddebug.hh \
     ../golddict/sptr.hh \
-    databaseobject.h
+    databaseobject.h \
+    bookbrowser.h
 
 FORMS += \
         mainwindow.ui \
-    studywindow.ui
+    studywindow.ui \
+    bookbrowser.ui
 
 SUBDIRS += \
     HaiBeiDanCi.pro

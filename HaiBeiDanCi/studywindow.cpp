@@ -23,16 +23,28 @@ StudyWindow::~StudyWindow()
     delete ui;
 }
 
-void StudyWindow::setStudyList(sptr<StudyList> studyList)
+/**
+ * @brief StudyWindow::setStudyList
+ * @param studyList
+ * this function assumes studyList is NOT empty
+ * so it does not take care of the UI when the list is empty!
+ * Do NOT show the window if false is returned
+ */
+bool StudyWindow::setStudyList(sptr<StudyList> studyList)
 {
+    if (studyList.get() == 0
+            || studyList->getList().isEmpty()) {
+        return false;
+    }
+
     m_studyList = studyList;
-    if (m_studyList.get()) {
-        m_currentCard = m_studyList->nextCard();
-        if (m_currentCard) {
-            m_state = ShowSpell;
-        }
+    m_currentCard = m_studyList->nextCard();
+    if (m_currentCard) {
+        m_state = StudyWindow::ShowSpell;
     }
     showCurrentCard();
+
+    return true;
 }
 
 void StudyWindow::showCurrentCard()
@@ -40,13 +52,13 @@ void StudyWindow::showCurrentCard()
     if (m_currentCard.get()) {
         showCard(*m_currentCard);
     } else {
-        m_state = NoCard;
         allCardsFinished();
     }
 }
 
 void StudyWindow::allCardsFinished()
 {
+    m_state = StudyWindow::NoCard;
     QMessageBox::information(this,
                              StudyWindow::tr(""),
                              StudyWindow::tr("Congratulations! All cards finished!"));

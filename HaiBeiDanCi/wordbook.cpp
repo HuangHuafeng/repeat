@@ -3,6 +3,8 @@
 #include "../golddict/gddebug.hh"
 #include "word.h"
 
+#include <QMessageBox>
+
 WordBook::WordBook(QString name, QString introduction, int id) :
     m_name(name),
     m_introduction(introduction),
@@ -13,12 +15,22 @@ WordBook::WordBook(QString name, QString introduction, int id) :
 
 int WordBook::getId()
 {
-    if (m_id == 0) {
-        m_id = WordBook::getBookId(m_name);
-    }
-
+    updateFromDatabase();
     return m_id;
 }
+
+const QString WordBook::getName()
+{
+    updateFromDatabase();
+    return m_name;
+}
+
+const QString WordBook::getIntroduction()
+{
+    updateFromDatabase();
+    return m_introduction;
+}
+
 
 bool WordBook::dbsave()
 {
@@ -62,6 +74,24 @@ int WordBook::totalWords()
     }
 
     return 0;
+}
+
+QVector<QString> WordBook::getWords()
+{
+    QVector<QString> wordList;
+    QSqlQuery query;
+    query.prepare("SELECT word FROM words_in_books as wb INNER JOIN words AS w ON wb.word_id=w.id WHERE book_id=:book_id");
+    query.bindValue(":book_id", getId());
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            wordList.append(spelling);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching words in book \"" + getName() + "\"");
+    }
+
+    return wordList;
 }
 
 bool WordBook::hasWord(QString spelling)
@@ -132,6 +162,68 @@ bool WordBook::dbsaveAddWords(const QVector<QString> &words)
     }
 
     return retValue;
+}
+
+void WordBook::updateFromDatabase()
+{
+    if (hasUpdatedFromDatabase() == true) {
+        return;
+    }
+
+    DatabaseObject::updateFromDatabase();
+
+    m_id = WordBook::getBookId(m_name);
+    if (dbgetNameAndIntro() == false) {
+        QMessageBox::critical(nullptr, "", "something wrong when updating book information from database");
+    }
+}
+
+bool WordBook::dbgetNameAndIntro()
+{
+    int bookId = getId();
+    QSqlQuery query;
+    query.prepare("SELECT name, introduction FROM wordbooks WHERE id=:id");
+    query.bindValue(":id", bookId);
+    if (query.exec()) {
+        if (query.first()) {
+            m_name = query.value("name").toString();
+            m_introduction = query.value("introduction").toString();
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        WordDB::databaseError(query, "fetching word books");
+        return false;
+    }
+
+    return true;
+}
+
+// static
+sptr<WordBook> WordBook::getBook(const QString &bookName)
+{
+    sptr<WordBook> book = new WordBook(bookName);
+    if (book.get()) {
+        if (book->getId() == 0) {
+            // the book does not exist in the database
+            return sptr<WordBook>();
+        }
+    }
+
+    return book;
+}
+
+// static
+QVector<QString> WordBook::getWordsInBook(const QString &bookName)
+{
+    QVector<QString> wordList;
+    auto book = WordBook::getBook(bookName);
+    if (book.get()) {
+        wordList = book->getWords();
+    }
+
+    return wordList;
 }
 
 // static

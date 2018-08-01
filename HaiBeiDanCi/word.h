@@ -21,13 +21,10 @@ public:
         return m_spelling;
     }
 
-    const QString & getDefinition();
-
-    bool isSaved();
     int isDefintionSaved() const;
 
-    void lazygetFromDatabase();
     int getId();
+    const QString & getDefinition();
 
     static bool createDatabaseTables();
     static bool isInDatabase(const QString &spelling);

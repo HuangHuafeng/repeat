@@ -20,7 +20,7 @@ public:
     explicit StudyWindow(QWidget *parent = 0);
     ~StudyWindow();
 
-    void setStudyList(sptr<StudyList> studyList);
+    bool setStudyList(sptr<StudyList> studyList);
 
 private slots:
     void on_pushShow_clicked();

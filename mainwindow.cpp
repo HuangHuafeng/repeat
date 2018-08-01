@@ -80,7 +80,7 @@ void MainWindow::on_pushButton_2_clicked()
 {
     QDateTime start = QDateTime::currentDateTime();
 
-    m_studyWindow.setStudyList(StudyList::generateStudyListForAllWord());
+    m_studyWindow.setStudyList(StudyList::generateStudyListForAllWords());
 
     QDateTime end = QDateTime::currentDateTime();
     gdDebug("used %lld seconds", start.secsTo(end));

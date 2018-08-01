@@ -1,5 +1,7 @@
 #include "studylist.h"
 #include "../golddict/gddebug.hh"
+#include "wordbook.h"
+#include "worddb.h"
 
 StudyList::StudyList()
 {
@@ -132,11 +134,74 @@ sptr<StudyList> StudyList::generateStudyList()
 }
 
 // static
-sptr<StudyList> StudyList::generateStudyListForAllWord()
+sptr<StudyList> StudyList::generateStudyListForAllWords()
 {
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
         auto wordList = Word::getWords();
+        sl->initiCards(wordList);
+    }
+
+    return sl;
+}
+
+// static
+sptr<StudyList> StudyList::generateStudyListForAllWordsInBook(const QString &bookName)
+{
+    int bookId = WordBook::getBookId(bookName);
+    if (bookId == 0) {
+        // the book does not exist
+        return sptr<StudyList>();
+    }
+
+    sptr<StudyList> sl = new StudyList();
+    if (sl.get()) {
+        QVector<QString> wordList;
+
+        QSqlQuery query;
+        query.prepare("SELECT word FROM words"
+                      " WHERE id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)");
+        query.bindValue(":book_id", bookId);
+        if (query.exec()) {
+            while (query.next()) {
+                QString spelling = query.value("word").toString();
+                wordList.append(spelling);
+            }
+        } else {
+            WordDB::databaseError(query, "fetching all words from book \"" + bookName + "\"");
+        }
+
+        sl->initiCards(wordList);
+    }
+
+    return sl;
+}
+
+sptr<StudyList> StudyList::generateStudyListForAllExpiredWords(QDateTime expire)
+{
+    sptr<StudyList> sl = new StudyList();
+    if (sl.get()) {
+        QVector<QString> wordList;
+        auto expireInt = MyTime(expire).toMinutes();
+
+        QSqlQuery query;
+        query.prepare(" SELECT word"
+                      " FROM wordcards AS card INNER JOIN words AS word ON card.word_id=word.id"
+                      " WHERE"
+                              " card.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
+                              " AND expire<:expire"
+                      " ORDER BY expire ASC;"
+                    );
+        query.bindValue(":expire", expireInt);
+        if (query.exec()) {
+            while (query.next()) {
+                QString spelling = query.value("word").toString();
+                wordList.append(spelling);
+            }
+        } else {
+            WordDB::databaseError(query, "fetching all expired words");
+        }
+
         sl->initiCards(wordList);
     }
 

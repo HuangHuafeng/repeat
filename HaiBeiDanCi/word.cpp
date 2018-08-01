@@ -49,11 +49,6 @@ void Word::dbgetDefinition()
     }
 }
 
-bool Word::isSaved()
-{
-    return Word::isInDatabase(m_spelling);
-}
-
 // return 0 if not saved
 // id of the word if saved
 int Word::isDefintionSaved() const
@@ -73,34 +68,26 @@ int Word::isDefintionSaved() const
     }
 }
 
-// word is updated if the returned value is true
-void Word::lazygetFromDatabase()
-{
-    // we do nothing here
-    // dbgetDefinition() will be called when getDefinition is called.
-    //dbgetDefinition();
-}
-
 const QString & Word::getDefinition()
 {
-    if (hasUpdatedFromDatabase() == false) {
-        updateFromDatabase();
-    }
+    updateFromDatabase();
 
     return m_definition;
 }
 
 int Word::getId()
 {
-    if (hasUpdatedFromDatabase() == false) {
-        updateFromDatabase();
-    }
+    updateFromDatabase();
 
     return m_id;
 }
 
 void Word::updateFromDatabase()
 {
+    if (hasUpdatedFromDatabase() == true) {
+        return;
+    }
+
     DatabaseObject::updateFromDatabase();
     m_id = Word::getWordId(m_spelling);
     dbgetDefinition();

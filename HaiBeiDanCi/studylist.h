@@ -6,6 +6,7 @@
 
 #include <QVector>
 #include <QLinkedList>
+#include <QDateTime>
 
 /**
  * @brief The StudyList class
@@ -18,7 +19,9 @@ public:
     ~StudyList();
 
     static sptr<StudyList> generateStudyList();
-    static sptr<StudyList> generateStudyListForAllWord();
+    static sptr<StudyList> generateStudyListForAllWords();
+    static sptr<StudyList> generateStudyListForAllWordsInBook(const QString &bookName);
+    static sptr<StudyList> generateStudyListForAllExpiredWords(QDateTime expire = QDateTime::currentDateTime());
 
     sptr<WordCard> nextCard();
     bool responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQuality responseQulity);

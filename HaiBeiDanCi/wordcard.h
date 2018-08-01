@@ -47,12 +47,11 @@ public:
     void dbsaveStudyRecord(const StudyRecord &sr);
     void setExpireTime(const QDateTime &expireTime);
     const QDateTime getExpireTime();
+    QVector<StudyRecord> getStudyHistory();
 
-    /*
     int getIntervalInMinute();
     float getEasiness();
     int getRepitition();
-    */
 
     sptr<Word> getWord() const
     {

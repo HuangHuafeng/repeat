@@ -1,6 +1,7 @@
 #ifndef WORDCARD_H
 #define WORDCARD_H
 
+#include "databaseobject.h"
 #include "memoryitem.h"
 #include "word.h"
 
@@ -36,18 +37,22 @@ public:
     }
 };
 
-class WordCard : public MemoryItem
+class WordCard : public MemoryItem, public DatabaseObject
 {
 public:
     WordCard(sptr<Word> word = sptr<Word>(), int interval = 24, float easiness = 2.5, int repition = 0);
     virtual ~WordCard();
     virtual void update(ResponseQuality responseQuality) override;
-    virtual int estimatedInterval(ResponseQuality responseQuality = Perfect) const override;
-    void getFromDatabase();
-    void dbgetStudyRecords();
+    virtual int estimatedInterval(ResponseQuality responseQuality = Perfect) override;
     void dbsaveStudyRecord(const StudyRecord &sr);
     void setExpireTime(const QDateTime &expireTime);
-    const QDateTime getExpireTime() const;
+    const QDateTime getExpireTime();
+
+    /*
+    int getIntervalInMinute();
+    float getEasiness();
+    int getRepitition();
+    */
 
     sptr<Word> getWord() const
     {
@@ -59,6 +64,9 @@ public:
     static bool createDatabaseTables();
     static sptr<WordCard> generateCardForWord(const QString &spelling);
 
+protected:
+    virtual void updateFromDatabase() override;
+
 private:
     static const float m_ratio[MemoryItem::Perfect + 1];
 
@@ -66,6 +74,7 @@ private:
     QVector<StudyRecord> m_studyHistory;
 
     void dbsave();
+    void dbgetStudyRecords();
 };
 
 struct StudyRecord

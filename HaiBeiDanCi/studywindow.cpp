@@ -53,7 +53,7 @@ void StudyWindow::allCardsFinished()
     close();
 }
 
-void StudyWindow::showCard(const WordCard &card)
+void StudyWindow::showCard(WordCard &card)
 {
     updateLabels(card);
     updateButtons();
@@ -88,7 +88,7 @@ QString StudyWindow::minuteToString(int minute)
     return QObject::tr("long time later");
 }
 
-void StudyWindow::showWord(const Word &word)
+void StudyWindow::showWord(Word &word)
 {
     //setWindowTitle(word.getSpelling());
     m_wordView.setWord(word.getSpelling());
@@ -138,7 +138,7 @@ void StudyWindow::on_pushShow_clicked()
     showCurrentCard();
 }
 
-void StudyWindow::updateLabels(const WordCard &card)
+void StudyWindow::updateLabels(WordCard &card)
 {
     //return;
     //int blackout = card.estimatedInterval(MemoryItem::Blackout);

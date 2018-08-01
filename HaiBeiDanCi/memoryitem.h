@@ -20,9 +20,9 @@ public:
     MemoryItem(int interval = 24 * 60, float easiness = 2.5, int repition = 0);
     virtual void update(ResponseQuality responseQuality);
 
-    virtual int estimatedInterval(ResponseQuality responseQuality = Perfect) const;
+    virtual int estimatedInterval(ResponseQuality responseQuality = Perfect);
 
-    int getIntervalInMinute() const
+    int getIntervalInMinute()
     {
         return m_interval;
     }
@@ -32,7 +32,7 @@ public:
         m_interval = interval;
     }
 
-    float getEasiness() const
+    float getEasiness()
     {
         return m_easiness;
     }
@@ -42,7 +42,7 @@ public:
         m_easiness = easiness;
     }
 
-    int getRepitition() const
+    int getRepitition()
     {
         return m_repition;
     }

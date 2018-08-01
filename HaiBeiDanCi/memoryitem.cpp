@@ -29,7 +29,7 @@ void MemoryItem::update(ResponseQuality responseQuality)
  * @param responseQuality
  * @return expire in MINUTE
  */
-int MemoryItem::estimatedInterval(ResponseQuality responseQuality) const
+int MemoryItem::estimatedInterval(ResponseQuality responseQuality)
 {
     if (m_repition == 0) {//I(1)
         return 24 * 60;

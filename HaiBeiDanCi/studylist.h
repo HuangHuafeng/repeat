@@ -31,7 +31,8 @@ private:
 
 private:
     bool initiCards(const QVector<QString> &wordList);
-    void addCard(sptr<WordCard> card);
+    void addCardNoSort(sptr<WordCard> card);
+    void addCardAagainToday(sptr<WordCard> card);
 };
 
 #endif // STUDYLIST_H

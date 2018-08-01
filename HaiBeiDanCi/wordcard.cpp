@@ -35,8 +35,12 @@ void WordCard::update(ResponseQuality responseQuality)
     dbsave();
 }
 
-int WordCard::estimatedInterval(ResponseQuality responseQuality) const
+int WordCard::estimatedInterval(ResponseQuality responseQuality)
 {
+    // we need to update the values from database before estimating
+    if (hasUpdatedFromDatabase() == false) {
+        updateFromDatabase();
+    }
     /*
     如何计算下一次复习的时间？
     至少应和下面这些相关：
@@ -48,7 +52,7 @@ int WordCard::estimatedInterval(ResponseQuality responseQuality) const
     return MemoryItem::estimatedInterval(responseQuality) * m_ratio[responseQuality];
 }
 
-void WordCard::getFromDatabase()
+void WordCard::dbgetStudyRecords()
 {
     if (!m_word.get()) {
         return;
@@ -113,8 +117,12 @@ void WordCard::dbgetStudyRecords()
 }
 */
 
-const QDateTime WordCard::getExpireTime() const
+const QDateTime WordCard::getExpireTime()
 {
+    if (hasUpdatedFromDatabase() == false) {
+        updateFromDatabase();
+    }
+
     if (m_studyHistory.isEmpty())
     {
         return defaultExpireTime();
@@ -125,6 +133,12 @@ const QDateTime WordCard::getExpireTime() const
 
 void WordCard::setExpireTime(const QDateTime &expireTime)
 {
+    // we need to make sure easiness, reptition, interval are ALREADY updated from the database
+    // m_studyHistory also need to be updated before setting
+    if (hasUpdatedFromDatabase() == false) {
+        updateFromDatabase();
+    }
+
     StudyRecord newSR(expireTime, QDateTime::currentDateTime());
     newSR.m_easiness = getEasiness();
     newSR.m_interval = getIntervalInMinute();
@@ -169,6 +183,41 @@ void WordCard::dbsaveStudyRecord(const StudyRecord &sr)
     }
 }
 
+void WordCard::updateFromDatabase()
+{
+    DatabaseObject::updateFromDatabase();
+    dbgetStudyRecords();
+}
+
+/*
+int WordCard::getIntervalInMinute()
+{
+    if (hasUpdatedFromDatabase() == false) {
+        updateFromDatabase();
+    }
+
+    return MemoryItem::getIntervalInMinute();
+}
+
+float WordCard::getEasiness()
+{
+    if (hasUpdatedFromDatabase() == false) {
+        updateFromDatabase();
+    }
+
+    return MemoryItem::getEasiness();
+}
+
+int WordCard::getRepitition()
+{
+    if (hasUpdatedFromDatabase() == false) {
+        updateFromDatabase();
+    }
+
+    return MemoryItem::getRepitition();
+}
+*/
+
 // static
 QDateTime WordCard::defaultExpireTime()
 {
@@ -178,11 +227,9 @@ QDateTime WordCard::defaultExpireTime()
 // static
 sptr<WordCard> WordCard::generateCardForWord(const QString &spelling)
 {
-    sptr<Word> word = Word::getWordFromDatabase(spelling);
+    //sptr<Word> word = Word::getWordFromDatabase(spelling);
+    sptr<Word> word = new Word(spelling);
     sptr<WordCard> card = new WordCard(word);
-    if (card.get()) {
-        card->getFromDatabase();
-    }
 
     return card;
 }

@@ -49,13 +49,13 @@ private:
     sptr<WordCard> m_currentCard;
 
     void showCurrentCard();
-    void showCard(const WordCard &card);
-    void showWord(const Word &word);
+    void showCard(WordCard &card);
+    void showWord(Word &word);
     QString minuteToString(int minute);
     void nextWord(MemoryItem::ResponseQuality responseQulity);
     void allCardsFinished();
     void updateButtons();
-    void updateLabels(const WordCard &card);
+    void updateLabels(WordCard &card);
 
 };
 

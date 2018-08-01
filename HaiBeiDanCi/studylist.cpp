@@ -27,7 +27,7 @@ bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQu
 
     if (responseQulity < MemoryItem::CorrectWithDifficulty) {
         // the card need to be reviewed again today
-        addCard(m_current);
+        addCardAagainToday(m_current);
     }
 
     // current card finishes for the current review
@@ -37,12 +37,10 @@ bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQu
 }
 
 /**
- * @brief StudyList::addAgainCard
- * @param againCard: the card that should be reviewed again today
- * We search the list from the end as the card's expire would
- * porbably be later than most of the cards in the list
+ * @brief StudyList::addCardNoSort
+ * add card to the end of m_cards
  */
-void StudyList::addCard(sptr<WordCard> card)
+void StudyList::addCardNoSort(sptr<WordCard> card)
 {
     if (card.get() == 0
             || card->getWord().get() == 0)
@@ -50,6 +48,10 @@ void StudyList::addCard(sptr<WordCard> card)
         return;
     }
 
+    m_cards.append(card);
+
+    /* this can be very slow as getExpireTime() caused database query
+     * also the QDateTime comparison is heavy.
     auto expire = card->getExpireTime();
     QLinkedList<sptr<WordCard>>::iterator it = m_cards.end();
     while (it != m_cards.begin()) {
@@ -62,6 +64,24 @@ void StudyList::addCard(sptr<WordCard> card)
         }
     }
     m_cards.insert(it, card);
+    */
+}
+
+/**
+ * @brief StudyList::addCardAagainToday
+ * @param card
+ * card need to be reviewed again, should be taken care
+ * specially in order to avoid being buried by the existing cards
+ */
+void StudyList::addCardAagainToday(sptr<WordCard> card)
+{
+    if (card.get() == 0
+            || card->getWord().get() == 0)
+    {
+        return;
+    }
+
+    m_cards.append(card);
 }
 
 sptr<WordCard> StudyList::nextCard()
@@ -70,13 +90,19 @@ sptr<WordCard> StudyList::nextCard()
     {
         if (m_cards.isEmpty() == false) {
             m_current = m_cards.first();
-            //m_cards.pop_front();
         }
     }
 
     return m_current;
 }
 
+/**
+ * @brief StudyList::initiCards
+ * @param wordList
+ * @return
+ * this function assumes that wordList is already ordered
+ * so NO sorting is done here!
+ */
 bool StudyList::initiCards(const QVector<QString> &wordList)
 {
     // if there's already cards, fail
@@ -88,8 +114,7 @@ bool StudyList::initiCards(const QVector<QString> &wordList)
     // create the new cards according to the list
     for (int i = 0;i < wordList.size();i ++) {
         auto card = WordCard::generateCardForWord(wordList.at(i));
-        //m_cards.append(card);
-        addCard(card);
+        addCardNoSort(card);
     }
 
     return true;
@@ -112,10 +137,6 @@ sptr<StudyList> StudyList::generateStudyListForAllWord()
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
         auto wordList = Word::getWords();
-        for (int i = 0;i < wordList.size();i ++) {
-            auto word = wordList.at(i);
-            gdDebug("%s", word.toStdString().c_str());
-        }
         sl->initiCards(wordList);
     }
 

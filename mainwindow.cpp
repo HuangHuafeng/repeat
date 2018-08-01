@@ -7,6 +7,7 @@
 #include <QString>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QDateTime>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -77,7 +78,13 @@ void MainWindow::QueryWord()
 
 void MainWindow::on_pushButton_2_clicked()
 {
+    QDateTime start = QDateTime::currentDateTime();
+
     m_studyWindow.setStudyList(StudyList::generateStudyListForAllWord());
+
+    QDateTime end = QDateTime::currentDateTime();
+    gdDebug("used %lld seconds", start.secsTo(end));
+
     m_studyWindow.show();
 }
 

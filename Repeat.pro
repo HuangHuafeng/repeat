@@ -81,7 +81,8 @@ SOURCES += \
     HaiBeiDanCi/wordcard.cpp \
     HaiBeiDanCi/studylist.cpp \
     HaiBeiDanCi/wordbook.cpp \
-    newbook.cpp
+    newbook.cpp \
+    HaiBeiDanCi/databaseobject.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -133,7 +134,8 @@ HEADERS += \
     HaiBeiDanCi/wordcard.h \
     HaiBeiDanCi/studylist.h \
     HaiBeiDanCi/wordbook.h \
-    newbook.h
+    newbook.h \
+    HaiBeiDanCi/databaseobject.h
 
 FORMS += \
         mainwindow.ui \

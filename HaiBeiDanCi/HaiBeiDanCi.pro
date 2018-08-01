@@ -36,7 +36,8 @@ SOURCES += \
     worddb.cpp \
     wordview.cpp \
     dictschemehandler.cpp \
-    ../golddict/gddebug.cc
+    ../golddict/gddebug.cc \
+    databaseobject.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -51,7 +52,8 @@ HEADERS += \
     wordview.h \
     dictschemehandler.h \
     ../golddict/gddebug.hh \
-    ../golddict/sptr.hh
+    ../golddict/sptr.hh \
+    databaseobject.h
 
 FORMS += \
         mainwindow.ui \

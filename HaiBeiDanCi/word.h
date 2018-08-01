@@ -1,6 +1,7 @@
 #ifndef WORD_H
 #define WORD_H
 
+#include "databaseobject.h"
 #include "../golddict/sptr.hh"
 
 #include <QString>
@@ -8,7 +9,7 @@
 #include <QSqlQuery>
 #include <QVector>
 
-class Word
+class Word : public DatabaseObject
 {
 public:
     Word(QString word);
@@ -20,15 +21,12 @@ public:
         return m_spelling;
     }
 
-    const QString & getDefinition() const
-    {
-        return m_definition;
-    }
+    const QString & getDefinition();
 
     bool isSaved();
     int isDefintionSaved() const;
 
-    void getFromDatabase();
+    void lazygetFromDatabase();
     int getId();
 
     static bool createDatabaseTables();
@@ -38,6 +36,9 @@ public:
     static QVector<QString> getWords(int number = 0);
     static QVector<QString> getExpiredWords(int number);
     static int getWordId(const QString &spelling);
+
+protected:
+    virtual void updateFromDatabase() override;
 
 private:
     void dbsaveDefinition();

@@ -48,8 +48,8 @@ void StudyWindow::showCurrentCard()
 void StudyWindow::allCardsFinished()
 {
     QMessageBox::information(this,
-                             QObject::tr(""),
-                             "Congratulations! All cards finished!");
+                             StudyWindow::tr(""),
+                             StudyWindow::tr("Congratulations! All cards finished!"));
     close();
 }
 

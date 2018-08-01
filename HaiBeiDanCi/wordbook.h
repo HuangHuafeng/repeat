@@ -14,11 +14,11 @@ public:
 
     int getId();
 
-    const QString getName() {
+    const QString getName() const {
         return m_name;
     }
 
-    const QString getIntroduction() {
+    const QString getIntroduction() const {
         return m_introduction;
     }
 
@@ -27,7 +27,9 @@ public:
     bool dbsave();
     bool dbget();
     bool dbsaveAddWords(const QVector<QString> &words);
+    bool addWord(QString spelling);
     bool dbsaveDeleteAllWords();
+    int totalWords();
 
     static bool createDatabaseTables();
     static QVector<sptr<WordBook>> getWordBooks();
@@ -39,8 +41,6 @@ private:
     QString m_name;
     QString m_introduction;
     int m_id;   // id in database
-
-    bool addWord(QString spelling);
 };
 
 #endif // WORDBOOK_H

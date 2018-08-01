@@ -6,14 +6,15 @@
 
 #include <QString>
 #include <QFileDialog>
-//#include <QWebEngineSettings>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_gdhelper(nullptr),
     m_definitionView(this),
-    m_studyWindow(nullptr)
+    m_studyWindow(nullptr),
+    m_newbookWindow(m_gdhelper, this)
 {
     ui->setupUi(this);
 
@@ -54,38 +55,24 @@ void MainWindow::on_lineEdit_returnPressed()
 
 void MainWindow::QueryWord()
 {
+    m_gdhelper.loadBlankPage(m_definitionView);
+
     QString spelling = ui->lineEdit->text();
     if (spelling.isEmpty()) {
         return;
     }
 
-    auto word = Word::getWordFromDatabase(spelling);
-    if (!word.get()) {
-        // get the word from dictionary and save to database
-        saveWord(spelling);
-        // get it again
-        word = Word::getWordFromDatabase(spelling);
+    if (m_gdhelper.saveWord(spelling) == false) {
+        QMessageBox::information(this, QObject::tr(""),
+            QObject::tr("Cannot find the word ") + "\"" + spelling + "\"");
     }
 
-    QString html = word->getDefinition();
-    QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
-    m_definitionView.setHtml(html, baseUrl);
-}
-
-void MainWindow::saveWord(const QString &spelling)
-{
-    QString html = m_gdhelper.getWordDefinitionPage(spelling);
-    Word word(spelling);
-    word.setDefinition(html);
-}
-
-void MainWindow::TestHtmlParse()
-{
-    QString word = ui->lineEdit->text();
-    QString html = m_gdhelper.getWordDefinitionPage(word);
-
-    QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
-    m_definitionView.setHtml(html, baseUrl);
+    auto word = Word::getWordFromDatabase(spelling);
+    if (word.get()) {
+        QString html = word->getDefinition();
+        QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+        m_definitionView.setHtml(html, baseUrl);
+    }
 }
 
 void MainWindow::on_pushButton_2_clicked()
@@ -94,41 +81,7 @@ void MainWindow::on_pushButton_2_clicked()
     m_studyWindow.show();
 }
 
-void MainWindow::on_pushCreateWords_clicked()
+void MainWindow::on_pushNewBook_clicked()
 {
-    QFileInfo wordListInQrc(QDir::currentPath() + "/wordlist.txt");
-
-    if (!wordListInQrc.exists())
-    {
-        QFile::copy(":/wordlist.txt", wordListInQrc.absoluteFilePath());
-        gdDebug("file copied to %s", wordListInQrc.absoluteFilePath().toStdString().c_str());
-    }
-
-    QFile wordListFile(wordListInQrc.absoluteFilePath());
-    if (!wordListFile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        gdDebug("failed to load file");
-        return;
-    }
-
-    do {
-        char buf[1024];
-        qint64 lineLength = wordListFile.readLine(buf, sizeof(buf));
-        if (lineLength == -1) {
-            break;
-        }
-        buf[lineLength - 1] = 0;
-        QString spelling(buf);
-        if (spelling.isEmpty() == false) {
-            saveWord(spelling);
-        }
-    } while(1);
-}
-
-void MainWindow::on_pushCreateABook_clicked()
-{
-    WordBook book(QObject::tr("Default"), QObject::tr("the default book"));
-    auto wordList = Word::getNewWords();
-    book.dbsave();
-    book.dbsaveAddWords(wordList);
+    m_newbookWindow.show();
 }

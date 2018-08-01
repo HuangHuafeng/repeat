@@ -1,5 +1,6 @@
 #include "gdhelper.h"
 #include "golddict/gddebug.hh"
+#include "HaiBeiDanCi/word.h"
 
 GDHelper::GDHelper(QObject *parent):
     QObject(parent),
@@ -51,3 +52,21 @@ void GDHelper::modifyHtml(QString &html)
     m_dictSchemeHandler.modifyHtml(html);
 }
 
+
+bool GDHelper::saveWord(const QString &spelling)
+{
+    if (Word::getWordId(spelling) != 0) {
+        // already in database
+        return true;
+    }
+
+    QString html = getWordDefinitionPage(spelling);
+    if (html.contains("<p>No translation for <b>")) {
+        // cannot find the word in the dictionary
+        return false;
+    }
+
+    Word word(spelling);
+    word.setDefinition(html);
+    return true;
+}

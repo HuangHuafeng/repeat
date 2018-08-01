@@ -21,11 +21,10 @@ public:
     void loadBlankPage(QWebEngineView &viewToUpdate);
     void loadDict(QString const & dictFileFullName);
     QString getWordDefinitionPage(QString word);
+    bool saveWord(const QString &spelling);
 
 private:
     void modifyHtml(QString &html);
-    void processGdlookup(QString &html);
-    void processOthers(QString &html);
 };
 
 #endif // GDHELPER_H

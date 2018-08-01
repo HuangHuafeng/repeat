@@ -18,16 +18,16 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QPushButton" name="pushCreateWords">
+       <widget class="QPushButton" name="pushNewBook">
         <property name="text">
-         <string>Create Words</string>
+         <string>New Book</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushCreateABook">
+       <widget class="QPushButton" name="pushButton_2">
         <property name="text">
-         <string>Create A Book</string>
+         <string>Study</string>
         </property>
        </widget>
       </item>
@@ -42,13 +42,6 @@
        <widget class="QPushButton" name="pushButton">
         <property name="text">
          <string>Query</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_2">
-        <property name="text">
-         <string>Study</string>
         </property>
        </widget>
       </item>

@@ -60,10 +60,5 @@ FORMS += \
 SUBDIRS += \
     HaiBeiDanCi.pro
 
-DISTFILES += \
-    HaiBeiDanCi.pro.user \
-    wordview.html \
-    wordlist.txt
-
 RESOURCES += \
     haibeidanci.qrc

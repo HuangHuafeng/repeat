@@ -61,5 +61,5 @@ void WordDB::databaseError(QSqlQuery &query, const QString what)
 {
     QSqlError error = query.lastError();
     QMessageBox::critical(nullptr, QObject::tr("Database Error"),
-        "Database error when " + what + ": " + error.text(), QMessageBox::Ok);
+        QObject::tr("Database error when ") + what + ": " + error.text(), QMessageBox::Ok);
 }

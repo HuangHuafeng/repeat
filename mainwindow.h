@@ -4,6 +4,7 @@
 #include "gdhelper.h"
 #include "HaiBeiDanCi/studywindow.h"
 #include "HaiBeiDanCi/worddb.h"
+#include "newbook.h"
 
 #include <QMainWindow>
 #include <QWebEngineView>
@@ -29,23 +30,20 @@ private slots:
 
     void on_pushButton_2_clicked();
 
-    void on_pushCreateWords_clicked();
-
-    void on_pushCreateABook_clicked();
+    void on_pushNewBook_clicked();
 
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;
     QWebEngineView m_definitionView;
     StudyWindow m_studyWindow;
+    NewBook m_newbookWindow;
     //WordView m_wordView;
 
     void QueryWord();
-    void TestHtmlParse();
 
     void searchLink(QTextFrame * parent);
     void searchLink(QTextBlock & parent);
-    void saveWord(const QString &spelling);
 };
 
 #endif // MAINWINDOW_H

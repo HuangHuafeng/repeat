@@ -80,7 +80,8 @@ SOURCES += \
     HaiBeiDanCi/memoryitem.cpp \
     HaiBeiDanCi/wordcard.cpp \
     HaiBeiDanCi/studylist.cpp \
-    HaiBeiDanCi/wordbook.cpp
+    HaiBeiDanCi/wordbook.cpp \
+    newbook.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -131,11 +132,13 @@ HEADERS += \
     HaiBeiDanCi/memoryitem.h \
     HaiBeiDanCi/wordcard.h \
     HaiBeiDanCi/studylist.h \
-    HaiBeiDanCi/wordbook.h
+    HaiBeiDanCi/wordbook.h \
+    newbook.h
 
 FORMS += \
         mainwindow.ui \
-    HaiBeiDanCi/studywindow.ui
+    HaiBeiDanCi/studywindow.ui \
+    newbook.ui
 
 RESOURCES += \
     res.qrc

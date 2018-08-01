@@ -46,6 +46,24 @@ bool WordBook::dbsave()
     return true;
 }
 
+int WordBook::totalWords()
+{
+    QSqlQuery query;
+    query.prepare("SELECT count(*) FROM words_in_books WHERE book_id=:book_id");
+    query.bindValue(":book_id", getId());
+    if (query.exec()) {
+        if (query.first()) {
+            return query.value(0).toInt();
+        } else {
+            return 0;
+        }
+    } else {
+        WordDB::databaseError(query, "fetching word books");
+    }
+
+    return 0;
+}
+
 bool WordBook::hasWord(QString spelling)
 {
     int wordId = Word::getWordId(spelling);
@@ -173,7 +191,7 @@ bool WordBook::isInDatabase(int bookId)
     }
 
     QSqlQuery query;
-    query.prepare("SELECT * FROM wordbooks WHERE book_id=:book_id");
+    query.prepare("SELECT * FROM wordbooks WHERE id=:book_id");
     query.bindValue(":book_id", bookId);
     if (query.exec()) {
         if (query.first()) {

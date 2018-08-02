@@ -7,8 +7,6 @@ BookBrowser::BookBrowser(QWidget *parent) :
     ui(new Ui::BookBrowser)
 {
     ui->setupUi(this);
-    ui->horizontalLayout->addWidget(&m_definitionView);
-
 
     QStringList header;
     header.append(BookBrowser::tr("Word"));
@@ -38,7 +36,7 @@ void BookBrowser::addBookToTheView(WordBook &book)
 {
     // remove all the items
     ui->treeWidget->clear();
-    auto wordList = book.getWords();
+    auto wordList = book.getAllWords();
     for (int i = 0;i < wordList.size();i ++) {
         auto spelling = wordList.at(i);
         QStringList infoList;
@@ -48,8 +46,6 @@ void BookBrowser::addBookToTheView(WordBook &book)
             auto expire = wordcard->getExpireTime().toLocalTime();
             infoList.append(expire.toString());
         }
-        //infoList.append(QString::number(totalWords));
-        //infoList.append(book.getIntroduction());
         QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
         ui->treeWidget->addTopLevelItem(item);
     }

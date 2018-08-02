@@ -4,6 +4,7 @@
 #include "studywindow.h"
 #include "wordbook.h"
 #include "bookbrowser.h"
+#include "studylist.h"
 
 #include <QMainWindow>
 
@@ -22,9 +23,15 @@ public:
 private slots:
     void on_pushTest_clicked();
 
-    void on_pushButton_clicked();
+    void on_pushBrowse_clicked();
 
-    void on_pushButton_2_clicked();
+    void on_pushStudy_clicked();
+
+    void on_pushReview_clicked();
+
+    void on_pushRevSd_clicked();
+
+    void on_pushExpired_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -33,6 +40,7 @@ private:
 
     void listBooks();
     void addBookToTheView(WordBook &book);
+    void startStudy(sptr<StudyList> studyList);
 };
 
 #endif // MAINWINDOW_H

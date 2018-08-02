@@ -54,6 +54,7 @@ private:
     QString minuteToString(int minute);
     void nextWord(MemoryItem::ResponseQuality responseQulity);
     void allCardsFinished();
+    void cleanTheWidgets();
     void updateButtons();
     void updateLabels(WordCard &card);
 

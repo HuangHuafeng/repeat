@@ -33,9 +33,11 @@ StudyWindow::~StudyWindow()
 bool StudyWindow::setStudyList(sptr<StudyList> studyList)
 {
     if (studyList.get() == 0
-            || studyList->getList().isEmpty()) {
+            || studyList->size() == 0) {
         return false;
     }
+
+    cleanTheWidgets();
 
     m_studyList = studyList;
     m_currentCard = m_studyList->nextCard();
@@ -63,6 +65,12 @@ void StudyWindow::allCardsFinished()
                              StudyWindow::tr(""),
                              StudyWindow::tr("Congratulations! All cards finished!"));
     close();
+}
+
+void StudyWindow::cleanTheWidgets()
+{
+    m_wordView.setWord("");
+    m_definitionView.setHtml("");
 }
 
 void StudyWindow::showCard(WordCard &card)

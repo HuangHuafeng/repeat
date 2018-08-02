@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>640</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,12 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QTreeWidget" name="twBooks">
+      <property name="indentation">
+       <number>0</number>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
       <property name="columnCount">
        <number>2</number>
       </property>
@@ -35,16 +41,37 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="pushBrowse">
         <property name="text">
          <string>Browse</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pushExpired">
         <property name="text">
-         <string>Study</string>
+         <string>Study Expired Words</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushReview">
+        <property name="text">
+         <string>Study Old Words</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushStudy">
+        <property name="text">
+         <string>Study New Words</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushRevSd">
+        <property name="text">
+         <string>Study All Words</string>
         </property>
        </widget>
       </item>
@@ -64,7 +91,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>640</width>
      <height>22</height>
     </rect>
    </property>

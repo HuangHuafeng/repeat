@@ -76,11 +76,26 @@ int WordBook::totalWords()
     return 0;
 }
 
-QVector<QString> WordBook::getWords()
+QVector<QString> WordBook::getAllWords()
+{
+    return getStudiedWords() + getNewWords();
+}
+
+/**
+ * @brief WordBook::getStudiedWords
+ * @return a list of words ASC
+ * A "studied word" is a word that has a record in table wordcards
+ */
+QVector<QString> WordBook::getStudiedWords()
 {
     QVector<QString> wordList;
     QSqlQuery query;
-    query.prepare("SELECT word FROM words_in_books as wb INNER JOIN words AS w ON wb.word_id=w.id WHERE book_id=:book_id");
+    query.prepare(" SELECT word"
+                  " FROM words AS w INNER JOIN wordcards as c ON w.id=c.word_id"
+                  " WHERE"
+                            " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
+                            " AND c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
+                  " ORDER BY c.expire ASC");
     query.bindValue(":book_id", getId());
     if (query.exec()) {
         while (query.next()) {
@@ -89,6 +104,61 @@ QVector<QString> WordBook::getWords()
         }
     } else {
         WordDB::databaseError(query, "fetching words in book \"" + getName() + "\"");
+    }
+
+    return wordList;
+}
+
+/**
+ * @brief WordBook::getNewWords
+ * @return a list of words ordered by word id ASC
+ * A "new word" is a word that has NO record in table wordcards
+ */
+QVector<QString> WordBook::getNewWords()
+{
+    QVector<QString> wordList;
+    QSqlQuery query;
+    query.prepare(" SELECT word"
+                  " FROM words AS w"
+                  " WHERE"
+                            " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
+                            " AND w.id NOT IN (SELECT word_id FROM wordcards GROUP BY word_id)"
+                  " ORDER BY w.id ASC");
+    query.bindValue(":book_id", getId());
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            wordList.append(spelling);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching words in book \"" + getName() + "\"");
+    }
+
+    return wordList;
+}
+
+
+QVector<QString> WordBook::getExpiredWords(const QDateTime expire)
+{
+    auto expireInt = MyTime(expire).toMinutes();
+    QVector<QString> wordList;
+    QSqlQuery query;
+    query.prepare(" SELECT word"
+                  " FROM words AS w INNER JOIN wordcards as c ON w.id=c.word_id"
+                  " WHERE"
+                            " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
+                            " AND c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
+                            " AND c.expire<:expireint"
+                  " ORDER BY c.expire ASC");
+    query.bindValue(":book_id", getId());
+    query.bindValue(":expireint", expireInt);
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            wordList.append(spelling);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching expired words in book \"" + getName() + "\"");
     }
 
     return wordList;
@@ -220,7 +290,7 @@ QVector<QString> WordBook::getWordsInBook(const QString &bookName)
     QVector<QString> wordList;
     auto book = WordBook::getBook(bookName);
     if (book.get()) {
-        wordList = book->getWords();
+        wordList = book->getAllWords();
     }
 
     return wordList;

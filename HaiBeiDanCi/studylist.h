@@ -19,14 +19,22 @@ public:
     ~StudyList();
 
     static sptr<StudyList> generateStudyList();
-    static sptr<StudyList> generateStudyListForAllWords();
-    static sptr<StudyList> generateStudyListForAllWordsInBook(const QString &bookName);
-    static sptr<StudyList> generateStudyListForAllExpiredWords(QDateTime expire = QDateTime::currentDateTime());
+    static sptr<StudyList> allWords();
+
+    static sptr<StudyList> allWordsInBook(const QString &bookName);
+    static sptr<StudyList> allNewWordsInBook(const QString &bookName);
+    static sptr<StudyList> allStudiedWordsInBook(const QString &bookName);
+    static sptr<StudyList> allExpiredWordsInBook(const QString &bookName, const QDateTime expire);
+
+    static sptr<StudyList> allExpiredWords(QDateTime expire = QDateTime::currentDateTime());
 
     sptr<WordCard> nextCard();
     bool responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQuality responseQulity);
 
     const QLinkedList<sptr<WordCard>> & getList() const;
+    int size() const {
+        return m_cards.size();
+    }
 
 private:
     QLinkedList<sptr<WordCard>> m_cards;

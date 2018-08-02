@@ -20,13 +20,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushTest_clicked()
-{
-    m_studyWindow.setStudyList(StudyList::generateStudyListForAllWords());
-    m_studyWindow.show();
-}
-
-
 void MainWindow::listBooks()
 {
     QStringList header;
@@ -56,16 +49,38 @@ void MainWindow::addBookToTheView(WordBook &book)
     ui->twBooks->addTopLevelItem(item);
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_pushTest_clicked()
+{
+    m_studyWindow.setStudyList(StudyList::allWords());
+    m_studyWindow.show();
+}
+
+void MainWindow::on_pushBrowse_clicked()
 {
     auto bookName = ui->twBooks->currentItem()->text(0);
-    //m_studyWindow.setStudyList(StudyList::generateStudyListForAllWordsInBook(bookName));
+    if (m_bookBrowser.setBook(bookName) == true) {
+        m_bookBrowser.show();
+    }
+}
 
-    auto expire = QDateTime::currentDateTime().addDays(10);
-    gdDebug("going to get words expired on %lld", MyTime(expire).toMinutes());
-    auto studyList = StudyList::generateStudyListForAllExpiredWords(expire);
+void MainWindow::on_pushStudy_clicked()
+{
+    auto bookName = ui->twBooks->currentItem()->text(0);
+    auto studyList = StudyList::allNewWordsInBook(bookName);
+    startStudy(studyList);
+}
+
+void MainWindow::on_pushReview_clicked()
+{
+    auto bookName = ui->twBooks->currentItem()->text(0);
+    auto studyList = StudyList::allStudiedWordsInBook(bookName);
+    startStudy(studyList);
+}
+
+void MainWindow::startStudy(sptr<StudyList> studyList)
+{
     if (studyList.get() == 0
-            || studyList->getList().isEmpty()) {
+            || studyList->size() == 0) {
         QMessageBox::information(this,
                                  MainWindow::tr(""),
                                  MainWindow::tr("No word to study!"));
@@ -82,10 +97,23 @@ void MainWindow::on_pushButton_clicked()
     }
 }
 
-void MainWindow::on_pushButton_2_clicked()
+void MainWindow::on_pushRevSd_clicked()
 {
     auto bookName = ui->twBooks->currentItem()->text(0);
-    if (m_bookBrowser.setBook(bookName) == true) {
-        m_bookBrowser.show();
-    }
+    auto studyList = StudyList::allWordsInBook(bookName);
+    startStudy(studyList);
+}
+
+void MainWindow::on_pushExpired_clicked()
+{
+    auto bookName = ui->twBooks->currentItem()->text(0);
+
+    auto expire = QDateTime::currentDateTime().addDays(10); // add 10 days for test purpose!!!
+    gdDebug("book: %s", bookName.toStdString().c_str());
+    gdDebug("going to get words expired on %lld, the date is %s", MyTime(expire).toMinutes(), expire.toString().toStdString().c_str());
+    //auto studyList = StudyList::allExpiredWords(expire);
+
+    auto studyList = StudyList::allExpiredWordsInBook(bookName, expire);
+
+    startStudy(studyList);
 }

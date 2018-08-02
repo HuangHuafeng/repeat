@@ -22,7 +22,6 @@ public:
 
 private:
     Ui::BookBrowser *ui;
-    QWebEngineView m_definitionView;
 
     void addBookToTheView(WordBook &book);
 };

@@ -134,7 +134,7 @@ sptr<StudyList> StudyList::generateStudyList()
 }
 
 // static
-sptr<StudyList> StudyList::generateStudyListForAllWords()
+sptr<StudyList> StudyList::allWords()
 {
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
@@ -146,38 +146,99 @@ sptr<StudyList> StudyList::generateStudyListForAllWords()
 }
 
 // static
-sptr<StudyList> StudyList::generateStudyListForAllWordsInBook(const QString &bookName)
+sptr<StudyList> StudyList::allNewWordsInBook(const QString &bookName)
 {
-    int bookId = WordBook::getBookId(bookName);
-    if (bookId == 0) {
+    auto book = WordBook::getBook(bookName);
+    if (book.get() == 0) {
         // the book does not exist
+        return sptr<StudyList>();
+    }
+
+    auto wordList = book->getNewWords();
+    if (wordList.isEmpty()) {
+        // no word
         return sptr<StudyList>();
     }
 
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
-        QVector<QString> wordList;
-
-        QSqlQuery query;
-        query.prepare("SELECT word FROM words"
-                      " WHERE id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)");
-        query.bindValue(":book_id", bookId);
-        if (query.exec()) {
-            while (query.next()) {
-                QString spelling = query.value("word").toString();
-                wordList.append(spelling);
-            }
-        } else {
-            WordDB::databaseError(query, "fetching all words from book \"" + bookName + "\"");
-        }
-
         sl->initiCards(wordList);
     }
 
     return sl;
 }
 
-sptr<StudyList> StudyList::generateStudyListForAllExpiredWords(QDateTime expire)
+// static
+sptr<StudyList> StudyList::allStudiedWordsInBook(const QString &bookName)
+{
+    auto book = WordBook::getBook(bookName);
+    if (book.get() == 0) {
+        // the book does not exist
+        return sptr<StudyList>();
+    }
+
+    auto wordList = book->getStudiedWords();
+    if (wordList.isEmpty()) {
+        // no word
+        return sptr<StudyList>();
+    }
+
+    sptr<StudyList> sl = new StudyList();
+    if (sl.get()) {
+        sl->initiCards(wordList);
+    }
+
+    return sl;
+}
+
+// static
+sptr<StudyList> StudyList::allExpiredWordsInBook(const QString &bookName, const QDateTime expire)
+{
+    auto book = WordBook::getBook(bookName);
+    if (book.get() == 0) {
+        // the book does not exist
+        return sptr<StudyList>();
+    }
+
+    auto wordList = book->getExpiredWords(expire);
+    if (wordList.isEmpty()) {
+        // no word
+        return sptr<StudyList>();
+    }
+
+    sptr<StudyList> sl = new StudyList();
+    if (sl.get()) {
+        sl->initiCards(wordList);
+    }
+
+    return sl;
+}
+
+
+// static
+sptr<StudyList> StudyList::allWordsInBook(const QString &bookName)
+{
+    auto book = WordBook::getBook(bookName);
+    if (book.get() == 0) {
+        // the book does not exist
+        return sptr<StudyList>();
+    }
+
+    auto wordList = book->getAllWords();
+    if (wordList.isEmpty()) {
+        // no word
+        return sptr<StudyList>();
+    }
+
+    sptr<StudyList> sl = new StudyList();
+    if (sl.get()) {
+        sl->initiCards(wordList);
+    }
+
+    return sl;
+}
+
+sptr<StudyList> StudyList::allExpiredWords(QDateTime expire)
 {
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {

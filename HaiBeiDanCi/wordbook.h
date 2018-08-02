@@ -3,6 +3,7 @@
 
 #include "databaseobject.h"
 #include "../golddict/sptr.hh"
+#include "wordcard.h"
 
 #include <QString>
 #include <QVector>
@@ -25,7 +26,10 @@ public:
     bool addWord(QString spelling);
     bool dbsaveDeleteAllWords();
     int totalWords();
-    QVector<QString> getWords();
+    QVector<QString> getAllWords();
+    QVector<QString> getStudiedWords();
+    QVector<QString> getNewWords();
+    QVector<QString> getExpiredWords(const QDateTime expire);
 
     static bool createDatabaseTables();
     static QVector<sptr<WordBook>> getWordBooks();

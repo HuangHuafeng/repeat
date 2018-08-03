@@ -38,7 +38,8 @@ SOURCES += \
     dictschemehandler.cpp \
     ../golddict/gddebug.cc \
     databaseobject.cpp \
-    bookbrowser.cpp
+    bookbrowser.cpp \
+    temporaryfilemanager.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -55,7 +56,8 @@ HEADERS += \
     ../golddict/gddebug.hh \
     ../golddict/sptr.hh \
     databaseobject.h \
-    bookbrowser.h
+    bookbrowser.h \
+    temporaryfilemanager.h
 
 FORMS += \
         mainwindow.ui \

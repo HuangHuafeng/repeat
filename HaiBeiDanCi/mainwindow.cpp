@@ -51,8 +51,14 @@ void MainWindow::addBookToTheView(WordBook &book)
 
 void MainWindow::on_pushTest_clicked()
 {
-    m_studyWindow.setStudyList(StudyList::allWords());
-    m_studyWindow.show();
+    auto studyList = StudyList::allWords();
+    startStudy(studyList);
+
+    /* if the window is created on heap, when to delete it?!
+    auto sw = new StudyWindow(this);
+    sw->setStudyList(StudyList::allWords());
+    sw->show();
+    */
 }
 
 void MainWindow::on_pushBrowse_clicked()
@@ -89,6 +95,7 @@ void MainWindow::startStudy(sptr<StudyList> studyList)
 
     auto setRestul = m_studyWindow.setStudyList(studyList);
     if (setRestul) {
+        m_studyWindow.reloadView();
         m_studyWindow.show();
     } else {
         QMessageBox::critical(this,

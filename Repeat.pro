@@ -70,7 +70,7 @@ SOURCES += \
     golddict/article_netmgr.cc \
     mdxdict.cpp \
     dictschemehandler.cpp \
-    temporaryfilemanager.cpp \
+    HaiBeiDanCi/temporaryfilemanager.cpp \
     gdhelper.cpp \
     HaiBeiDanCi/mediaplayer.cpp \
     HaiBeiDanCi/studywindow.cpp \
@@ -123,7 +123,7 @@ HEADERS += \
     golddict/sptr.hh \
     mdxdict.h \
     dictschemehandler.h \
-    temporaryfilemanager.h \
+    HaiBeiDanCi/temporaryfilemanager.h \
     gdhelper.h \
     HaiBeiDanCi/mediaplayer.h \
     HaiBeiDanCi/studywindow.h \

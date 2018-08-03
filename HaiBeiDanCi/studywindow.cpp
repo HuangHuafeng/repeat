@@ -9,13 +9,11 @@
 StudyWindow::StudyWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StudyWindow),
-    m_wordView(parent),
-    m_definitionView(parent)
+    m_wordView(parent)
 {
     m_state = NoCard;
     ui->setupUi(this);
     ui->vlDefinition->addWidget(&m_wordView);
-    ui->vlDefinition->addWidget(&m_definitionView);
 }
 
 StudyWindow::~StudyWindow()
@@ -49,6 +47,11 @@ bool StudyWindow::setStudyList(sptr<StudyList> studyList)
     return true;
 }
 
+void StudyWindow::reloadView()
+{
+    m_wordView.reloadHtml();
+}
+
 void StudyWindow::showCurrentCard()
 {
     if (m_currentCard.get()) {
@@ -69,8 +72,7 @@ void StudyWindow::allCardsFinished()
 
 void StudyWindow::cleanTheWidgets()
 {
-    m_wordView.setWord("");
-    m_definitionView.setHtml("");
+    m_wordView.setWord();
 }
 
 void StudyWindow::showCard(WordCard &card)
@@ -78,10 +80,7 @@ void StudyWindow::showCard(WordCard &card)
     updateLabels(card);
     updateButtons();
 
-    auto word = card.getWord();
-    if (word.get()) {
-        showWord(*word);
-    }
+    showWord(card.getWord());
 }
 
 QString StudyWindow::minuteToString(int minute)
@@ -108,17 +107,22 @@ QString StudyWindow::minuteToString(int minute)
     return QObject::tr("long time later");
 }
 
-void StudyWindow::showWord(Word &word)
+void StudyWindow::showWord(sptr<Word> word)
 {
     //setWindowTitle(word.getSpelling());
-    m_wordView.setWord(word.getSpelling());
+    m_wordView.setWord(word);
+    if (m_state == ShowDefinition) {
+        m_wordView.setShowSetting(WordView::ShowAll);
+    } else {
+        m_wordView.setShowSetting(WordView::ShowSpell);
+    }
+    /*
     if (m_state == ShowDefinition) {
         QUrl baseUrl("file:///Users/huafeng/Documents/GitHub/TextFinder/build-Repeat-Desktop_Qt_5_11_1_clang_64bit-Debug/Repeat.app/Contents/MacOS/");
         //QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
-        m_definitionView.setHtml(word.getDefinition(), baseUrl);
-    } else {
-        m_definitionView.setHtml("<html><html>");
+        m_wordView.setHtml(word.getDefinition(), baseUrl);
     }
+    */
 }
 
 void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)

@@ -21,6 +21,7 @@ public:
     ~StudyWindow();
 
     bool setStudyList(sptr<StudyList> studyList);
+    void reloadView();
 
 private slots:
     void on_pushShow_clicked();
@@ -42,7 +43,6 @@ private:
 
     Ui::StudyWindow *ui;
     WordView m_wordView;
-    QWebEngineView m_definitionView;
     StudyState m_state;
 
     sptr<StudyList> m_studyList;
@@ -50,7 +50,7 @@ private:
 
     void showCurrentCard();
     void showCard(WordCard &card);
-    void showWord(Word &word);
+    void showWord(sptr<Word> word);
     QString minuteToString(int minute);
     void nextWord(MemoryItem::ResponseQuality responseQulity);
     void allCardsFinished();

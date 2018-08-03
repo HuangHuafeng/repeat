@@ -3,7 +3,7 @@
 
 #include "mdxdict.h"
 #include "HaiBeiDanCi/mediaplayer.h"
-#include "temporaryfilemanager.h"
+#include "HaiBeiDanCi/temporaryfilemanager.h"
 
 #include <QWebEngineUrlSchemeHandler>
 #include <QWebEngineView>

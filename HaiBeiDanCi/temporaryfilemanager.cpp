@@ -1,5 +1,4 @@
 #include "temporaryfilemanager.h"
-#include "golddict/gddebug.hh"
 
 TemporaryFileManager::TemporaryFileManager(QObject *parent) : QObject(parent),
     m_files()
@@ -21,10 +20,5 @@ TemporaryFileManager::~TemporaryFileManager()
 
 void TemporaryFileManager::addTemporaryFile(const QTemporaryFile &temporaryFile)
 {
-    //gdDebug("temporary file: %s", temporaryFile.fileName().toStdString().c_str());
-    // autoRemove() seems removes the file, peculiar!
-    //if (temporaryFile.autoRemove() == false)
-    {
-        m_files.append(temporaryFile.fileName());
-    }
+    m_files.append(temporaryFile.fileName());
 }

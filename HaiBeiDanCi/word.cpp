@@ -2,6 +2,9 @@
 #include "../golddict/gddebug.hh"
 #include "worddb.h"
 
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
+
 Word::Word(QString word) :
     m_spelling(word)
 {
@@ -73,6 +76,19 @@ const QString & Word::getDefinition()
     updateFromDatabase();
 
     return m_definition;
+}
+
+QString Word::getDefinitionDIV()
+{
+    QString div = getDefinition();
+
+    const QRegularExpression body("<body>(?<wanted_div>(.|\\n)*)</body>");
+    QRegularExpressionMatch match = body.match(div, 0);
+    if (match.hasMatch()) {
+        div = match.captured("wanted_div");
+    }
+
+    return div;
 }
 
 int Word::getId()

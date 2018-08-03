@@ -709,9 +709,9 @@ void ArticleRequest::bodyFinished()
           + "\" id=\"expandicon-" + Html::escape( dictId ) + "\""
           + ( collapse ? "" : string( " title=\"" ) + tr( "Collapse article" ).toUtf8().data() + "\"" )
           + "></span>" + "</div>";
-        */
 
         head += "<div class=\"gddictnamebodyseparator\"></div>";
+        */
 
         head += "<div class=\"gdarticlebody gdlangfrom-";
         head += LangCoder::intToCode2( activeDict->getLangFrom() ).toLatin1().data();

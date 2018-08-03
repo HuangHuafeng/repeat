@@ -70,7 +70,8 @@ void MainWindow::QueryWord()
 
     auto word = Word::getWordFromDatabase(spelling);
     if (word.get()) {
-        QString html = word->getDefinition();
+        //QString html = word->getDefinition();
+        QString html = word->getDefinitionDIV();
         QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
         m_definitionView.setHtml(html, baseUrl);
     }
@@ -80,7 +81,7 @@ void MainWindow::on_pushButton_2_clicked()
 {
     QDateTime start = QDateTime::currentDateTime();
 
-    m_studyWindow.setStudyList(StudyList::generateStudyListForAllWords());
+    m_studyWindow.setStudyList(StudyList::allWords());
 
     QDateTime end = QDateTime::currentDateTime();
     gdDebug("used %lld seconds", start.secsTo(end));

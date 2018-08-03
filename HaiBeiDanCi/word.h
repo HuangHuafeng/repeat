@@ -25,6 +25,7 @@ public:
 
     int getId();
     const QString & getDefinition();
+    QString getDefinitionDIV();
 
     static bool createDatabaseTables();
     static bool isInDatabase(const QString &spelling);

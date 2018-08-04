@@ -12,7 +12,6 @@
         text-align: center;
         font-size: 48px;
         overflow: hidden;
-        background-color: #6e8dec;
     }
 
     #__wordview_definition__ {
@@ -33,7 +32,6 @@
             alert(temp);
         }
 
-
         function update_definition_height() {
             var definition_div = document.getElementById("__wordview_definition__");
             var window_height = "innerHeight" in window ? window.innerHeight : document.documentElement.offsetHeight;
@@ -41,14 +39,64 @@
             definition_div.style.height = preferred_height + "px";
         }
 
-        var onWordChanged = function () {
-            spelling_div = document.getElementById("__wordview_spelling__");
-            spelling_div.innerHTML = wordview.spelling;
-            spelling_div.scrollTop = 0;
+        function updateSpelling() {
+            spelling_span = document.getElementById("__spelling__");
+            spelling_span.innerHTML = wordview.spelling;
+            //spelling_span.scrollTop = 0;
+        }
 
+        function playElementAudio(ele) {
+            var amevoice = document.getElementById(ele).innerHTML;
+            var audioLink = /media.*mp3/;
+            var matched = amevoice.match(audioLink);
+            if (matched != null) {
+                var fileName = window.location.pathname + matched[0];
+                var audio = new Audio(fileName);
+                audio.play();
+            }
+        }
+
+        function playAmevoice() {
+            playElementAudio("__amevoice__");
+        }
+
+        /**
+          * find the British & American pronounce and add them to the page
+        */
+        function updateProunce() {
+            var definition = document.getElementById("__wordview_definition__").innerHTML;
+
+            // brevoice
+            var brePronounceLink = /<a href=[^><]*><img[^><]*spkr_r\.png\"><\/a>/;
+            var matched = definition.match(brePronounceLink);
+            if (matched != null) {
+                document.getElementById("__brevoice__").innerHTML = matched[0];
+            }
+
+            // amevoice
+            var amePronounceLink = /<a href=[^><]*><img[^><]*spkr_b\.png\"><\/a>/;
+            matched = definition.match(amePronounceLink);
+            var amevoice = "";
+            if (matched != null) {
+                document.getElementById("__amevoice__").innerHTML = matched[0];
+            }
+        }
+
+        function updateDivSpelling() {
+            updateSpelling();
+        }
+
+        function updateDivDefinition() {
             definition_div = document.getElementById("__wordview_definition__");
             definition_div.innerHTML = wordview.definition;
             definition_div.scrollTop = 0;
+        }
+
+        var onWordChanged = function () {
+            updateDivSpelling();
+            updateDivDefinition();
+            updateProunce();
+            playAmevoice();
         }
 
         var onShowSettingChanged = function () {
@@ -99,8 +147,15 @@
     </script>
 
     <div id="__wordview_spelling__">
+        <span id="__spelling__">
+        </span>
+        <span id="__brevoice__">
+        </span>
+        <span id="__amevoice__">
+        </span>
     </div>
     <div id="__wordview_definition__">
     </div>
 </body>
+
 </html>

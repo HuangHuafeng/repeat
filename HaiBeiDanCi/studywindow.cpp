@@ -109,20 +109,16 @@ QString StudyWindow::minuteToString(int minute)
 
 void StudyWindow::showWord(sptr<Word> word)
 {
-    //setWindowTitle(word.getSpelling());
-    m_wordView.setWord(word);
+    if (m_wordView.getSpelling() != word->getSpelling()) {
+        // set the word ONLY when its spelling is different
+        m_wordView.setWord(word);
+    }
+
     if (m_state == ShowDefinition) {
         m_wordView.setShowSetting(WordView::ShowAll);
     } else {
         m_wordView.setShowSetting(WordView::ShowSpell);
     }
-    /*
-    if (m_state == ShowDefinition) {
-        QUrl baseUrl("file:///Users/huafeng/Documents/GitHub/TextFinder/build-Repeat-Desktop_Qt_5_11_1_clang_64bit-Debug/Repeat.app/Contents/MacOS/");
-        //QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
-        m_wordView.setHtml(word.getDefinition(), baseUrl);
-    }
-    */
 }
 
 void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)

@@ -40,39 +40,102 @@
     </item>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
+       <number>50</number>
+      </property>
+      <property name="bottomMargin">
+       <number>20</number>
+      </property>
       <item>
-       <widget class="QPushButton" name="pushBrowse">
-        <property name="text">
-         <string>Browse</string>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="title">
+         <string>Expired Words</string>
         </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="pushStudyExpiredWords">
+           <property name="text">
+            <string>Study</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushBrowseExpiredWords">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushExpired">
-        <property name="text">
-         <string>Study Expired Words</string>
+       <widget class="QGroupBox" name="groupBox_4">
+        <property name="title">
+         <string>Old Words</string>
         </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QPushButton" name="pushStudyOldWords">
+           <property name="text">
+            <string>Study</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushBrowseOldWords">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushReview">
-        <property name="text">
-         <string>Study Old Words</string>
+       <widget class="QGroupBox" name="groupBox_5">
+        <property name="title">
+         <string>New Words</string>
         </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QPushButton" name="pushStudyNewWords">
+           <property name="text">
+            <string>Study</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushBrowseNewWords">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushStudy">
-        <property name="text">
-         <string>Study New Words</string>
+       <widget class="QGroupBox" name="groupBox_6">
+        <property name="title">
+         <string>All Words</string>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushRevSd">
-        <property name="text">
-         <string>Study All Words</string>
-        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QPushButton" name="pushStudyAllWords">
+           <property name="text">
+            <string>Study</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushBrowseAllWords">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>

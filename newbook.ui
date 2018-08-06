@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>New Book</string>
   </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
   <layout class="QVBoxLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">

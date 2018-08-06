@@ -13,5 +13,7 @@
         <file>icons/collapse_opt.png</file>
         <file>icons/expand_opt.png</file>
         <file>wordview.html</file>
+        <file>e_lemma.txt</file>
+        <file>AntBNC_lemmas_ver_001.txt</file>
     </qresource>
 </RCC>

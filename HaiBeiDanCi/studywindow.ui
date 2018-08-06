@@ -20,6 +20,21 @@
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <layout class="QVBoxLayout" name="vlDefinition"/>
    </item>
@@ -28,11 +43,14 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
+     <property name="topMargin">
+      <number>5</number>
+     </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="spacing">
-        <number>0</number>
-       </property>
        <item>
         <widget class="QPushButton" name="pushIncorrect">
          <property name="sizePolicy">
@@ -74,9 +92,6 @@
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
-       <property name="spacing">
-        <number>0</number>
-       </property>
        <item>
         <widget class="QPushButton" name="pushCorrect3">
          <property name="sizePolicy">
@@ -118,9 +133,6 @@
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_6">
-       <property name="spacing">
-        <number>0</number>
-       </property>
        <item>
         <widget class="QPushButton" name="pushShow">
          <property name="sizePolicy">
@@ -159,9 +171,6 @@
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="spacing">
-        <number>0</number>
-       </property>
        <item>
         <widget class="QPushButton" name="pushCorrect4">
          <property name="sizePolicy">
@@ -200,9 +209,6 @@
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_5">
-       <property name="spacing">
-        <number>0</number>
-       </property>
        <item>
         <widget class="QPushButton" name="pushPerfect">
          <property name="sizePolicy">

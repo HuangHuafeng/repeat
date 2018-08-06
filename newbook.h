@@ -6,6 +6,7 @@
 
 #include <QString>
 #include <QDialog>
+#include <QMap>
 
 namespace Ui {
 class NewBook;
@@ -16,7 +17,7 @@ class NewBook : public QDialog
     Q_OBJECT
 
 public:
-    explicit NewBook(GDHelper &gdhelper, QWidget *parent = 0);
+    explicit NewBook(GDHelper &gdhelper, QWidget *parent = nullptr);
     ~NewBook();
 
 private slots:
@@ -28,7 +29,14 @@ private:
     Ui::NewBook *ui;
     GDHelper &m_gdhelper;
 
+    QMap<QString, QString> m_lemmaMap;
+
     void addWordsToBook(WordBook &book, const QString fileName);
+    void addWordListToBook(WordBook &book, const QStringList wordList);
+    QString lemmaWord(QString spelling);
+    void loadLemmas();
+    void load_e_lemma();
+    void loadAntLemma();
 };
 
 #endif // NEWBOOK_H

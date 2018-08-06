@@ -15,3 +15,4 @@ void DatabaseObject::updateFromDatabase()
 {
     m_updated = true;
 }
+

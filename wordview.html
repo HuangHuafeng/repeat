@@ -1,17 +1,34 @@
 <html>
 <style type="text/css" media="all">
     body {
-        margin: 0px 12px;
+        margin: 0px 0px;
         overflow: hidden;
-        background-color: #fefdeb;
+        background-color: #c7edcc;
     }
 
-    #_div_word {
-        height: 60px;
-        /* IMPORTANT: decides the window size */
+    #__wordview_spelling__ {
+        min-height: 60px;
         vertical-align: middle;
-        font-size: 36px;
+        text-align: center;
+        font-size: 48px;
+        overflow: hidden;
     }
+
+    #__wordview_definition__ {
+        overflow-y: auto;
+    }
+
+    /* beginning of "hide the blocks like grammer" */
+    .tail, .crossref, .collobox {
+        display: none;
+    }
+
+    #gdfrom-ce0779e705a4a7fcfc4e001b2bff69f8 .mdict  .entry .f2nbox,
+    #gdfrom-ce0779e705a4a7fcfc4e001b2bff69f8 .mdict .entry .grambox {
+        display: none;
+    }
+    /* end of "hide the blocks like grammer" */
+
 </style>
 
 <body>
@@ -19,13 +36,96 @@
     </script>
     <script type="text/javascript">
         function test() {
-            worddiv = document.getElementById("_div_word");
-            alert('Window: ' + window.innerWidth + " x " + window.innerHeight
-                + '\ndiv ' + worddiv.clientWidth + " x " + worddiv.clientHeight);
+            worddiv = document.getElementById("__wordview_spelling__");
+            var temp = "showSetting: " + wordview.showSetting;
+            temp = temp + "\n" + "spelling: " + wordview.spelling;
+            temp = temp + "\n" + "definition: " + wordview.definition;
+            alert(temp);
         }
 
-        var updateWord = function (newWord) {
-            document.getElementById("_div_word").innerHTML = newWord;
+        function update_definition_height() {
+            var definition_div = document.getElementById("__wordview_definition__");
+            var window_height = "innerHeight" in window ? window.innerHeight : document.documentElement.offsetHeight;
+            var preferred_height = window_height - definition_div.offsetTop;
+            definition_div.style.height = preferred_height + "px";
+        }
+
+        function updateSpelling() {
+            spelling_span = document.getElementById("__spelling__");
+            spelling_span.innerHTML = wordview.spelling;
+            //spelling_span.scrollTop = 0;
+        }
+
+        function playElementAudio(ele) {
+            var amevoice = document.getElementById(ele).innerHTML;
+            var audioLink = /media.*mp3/;
+            var matched = amevoice.match(audioLink);
+            if (matched != null) {
+                var fileName = window.location.pathname + matched[0];
+                var audio = new Audio(fileName);
+                audio.play();
+            }
+        }
+
+        function playAmevoice() {
+            playElementAudio("__amevoice__");
+        }
+
+        /**
+          * find the British & American pronounce and add them to the page
+        */
+        function updateProunce() {
+            var definition = document.getElementById("__wordview_definition__").innerHTML;
+
+            // brevoice
+            var brePronounceLink = /<a href=[^><]*><img[^><]*spkr_r\.png\"><\/a>/;
+            var matched = definition.match(brePronounceLink);
+            if (matched != null) {
+                document.getElementById("__brevoice__").innerHTML = matched[0];
+            }
+
+            // amevoice
+            var amePronounceLink = /<a href=[^><]*><img[^><]*spkr_b\.png\"><\/a>/;
+            matched = definition.match(amePronounceLink);
+            var amevoice = "";
+            if (matched != null) {
+                document.getElementById("__amevoice__").innerHTML = matched[0];
+            }
+        }
+
+        function updateDivSpelling() {
+            updateSpelling();
+        }
+
+        function updateDivDefinition() {
+            definition_div = document.getElementById("__wordview_definition__");
+            definition_div.innerHTML = wordview.definition;
+            definition_div.scrollTop = 0;
+        }
+
+        var onWordChanged = function () {
+            updateDivSpelling();
+            updateDivDefinition();
+            updateProunce();
+            playAmevoice();
+        }
+
+        var onShowSettingChanged = function () {
+            spelling_div = document.getElementById("__wordview_spelling__");
+            definition_div = document.getElementById("__wordview_definition__");
+            if (wordview.showSetting == 1) {
+                spelling_div.style["display"] = "block";
+                definition_div.style["display"] = "none";
+            } else if (wordview.showSetting == 2) {
+                spelling_div.style["display"] = "none";
+                definition_div.style["display"] = "block";
+            } else if (wordview.showSetting == 3) {
+                spelling_div.style["display"] = "block";
+                definition_div.style["display"] = "block";
+            } else {
+                spelling_div.style["display"] = "none";
+                definition_div.style["display"] = "none";
+            }
         }
 
         new QWebChannel(qt.webChannelTransport, function (channel) {
@@ -33,24 +133,23 @@
             window.wordview = channel.objects.wordview;
 
             // Connect to the signal "wordChanged":
-            wordview.wordChanged.connect(updateWord);
-            updateWord(wordview.word);
+            wordview.wordChanged.connect(onWordChanged);
+            onWordChanged();
 
-            // set preferred size
-            worddiv = document.getElementById("_div_word");
-            wordview.updateSizeHint(worddiv.clientWidth, worddiv.clientHeight, function (returnValue) { });
+            // Connect to the signal "wordChanged":
+            wordview.showSettingChanged.connect(onShowSettingChanged);
+            onShowSettingChanged();
         });
 
         window.onresize = function () {
-            worddiv = document.getElementById("_div_word");
-            worddiv.style["height"] = window.innerHeight + 'px';
-            worddiv.style["line-height"] = window.innerHeight + 'px';
+            //worddiv = document.getElementById("_div_word");
+            //worddiv.style["height"] = window.innerHeight + 'px';
+            //worddiv.style["line-height"] = window.innerHeight + 'px';
+            update_definition_height();
         }
 
         window.onload = function () {
-            worddiv = document.getElementById("_div_word");
-            //worddiv.style["height"] = window.innerHeight + 'px';
-            worddiv.style["line-height"] = window.innerHeight + 'px';
+            //update_definition_height();
         }
 
         window.onclick = function () {
@@ -58,8 +157,15 @@
         }
     </script>
 
-    <div id="_div_word">
+    <div id="__wordview_spelling__">
+        <span id="__spelling__">
+        </span>
+        <span id="__brevoice__">
+        </span>
+        <span id="__amevoice__">
+        </span>
+    </div>
+    <div id="__wordview_definition__">
     </div>
 </body>
-
 </html>

@@ -20,7 +20,7 @@ void Word::setDefinition(const QString &definition)
 
 void Word::dbsaveDefinition()
 {
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     if (Word::isInDatabase(m_spelling)) {
         // update
         query.prepare("UPDATE words SET definition=:definition WHERE word=:word");
@@ -38,7 +38,7 @@ void Word::dbsaveDefinition()
 
 void Word::dbgetDefinition()
 {
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT id, definition FROM words WHERE word=:word COLLATE NOCASE");
     query.bindValue(":word", m_spelling);
     if (query.exec()) {
@@ -56,7 +56,7 @@ void Word::dbgetDefinition()
 // id of the word if saved
 int Word::isDefintionSaved() const
 {
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT id FROM words WHERE word=:word");
     query.bindValue(":word", m_spelling);
     if (query.exec()) {
@@ -100,19 +100,24 @@ int Word::getId()
 
 void Word::updateFromDatabase()
 {
+    m_id = Word::getWordId(m_spelling);
+    if (m_id == 0) {
+        // the word does NOT exist in the database
+        return;
+    }
+
     if (hasUpdatedFromDatabase() == true) {
         return;
     }
 
     DatabaseObject::updateFromDatabase();
-    m_id = Word::getWordId(m_spelling);
     dbgetDefinition();
 }
 
 // static
 int Word::getWordId(const QString &spelling)
 {
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT id FROM words WHERE word=:word  COLLATE NOCASE");
     query.bindValue(":word", spelling);
     if (query.exec()) {
@@ -138,7 +143,7 @@ bool Word::isInDatabase(const QString &spelling)
 // static
 bool Word::createDatabaseTables()
 {
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     if (query.exec("SELECT * FROM words LIMIT 1") == false)
     {
         // table "words" does not exist
@@ -189,7 +194,7 @@ QVector<QString> Word::getNewWords(int number)
     QVector<QString> wordList;
 
     if (number > 0) {
-        QSqlQuery query;
+        auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
         query.prepare("SELECT word FROM words WHERE id NOT IN (SELECT word_id FROM words_in_study) LIMIT :limit");
         query.bindValue(":limit", number);
         if (query.exec()) {
@@ -209,7 +214,7 @@ QVector<QString> Word::getNewWords(int number)
 QVector<QString> Word::getWords(int number)
 {
     QVector<QString> wordList;
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
 
     if (number > 0) {
         query.prepare("SELECT word FROM words LIMIT :limit");
@@ -241,7 +246,7 @@ QVector<QString> Word::getExpiredWords(int number)
     QVector<QString> wordList;
 
     if (number > 0) {
-        QSqlQuery query;
+        auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
         query.prepare("SELECT word FROM words WHERE id NOT IN (SELECT word_id FROM words_in_study) LIMIT :limit");
         query.bindValue(":limit", number);
         if (query.exec()) {

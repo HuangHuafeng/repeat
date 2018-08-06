@@ -15,9 +15,20 @@
     }
 
     #__wordview_definition__ {
-        height: 300px;
         overflow-y: auto;
     }
+
+    /* beginning of "hide the blocks like grammer" */
+    .tail, .crossref, .collobox {
+        display: none;
+    }
+
+    #gdfrom-ce0779e705a4a7fcfc4e001b2bff69f8 .mdict  .entry .f2nbox,
+    #gdfrom-ce0779e705a4a7fcfc4e001b2bff69f8 .mdict .entry .grambox {
+        display: none;
+    }
+    /* end of "hide the blocks like grammer" */
+
 </style>
 
 <body>
@@ -157,5 +168,4 @@
     <div id="__wordview_definition__">
     </div>
 </body>
-
 </html>

@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_studyWindow(nullptr),
-    m_bookBrowser(nullptr)
+    m_browserWindow(nullptr)
 {
     ui->setupUi(this);
     listBooks();
@@ -36,6 +36,8 @@ void MainWindow::listBooks()
             addBookToTheView(*book);
         }
     }
+
+    ui->twBooks->sortItems(0, Qt::SortOrder::AscendingOrder);
 }
 
 void MainWindow::addBookToTheView(WordBook &book)
@@ -61,28 +63,6 @@ void MainWindow::on_pushTest_clicked()
     */
 }
 
-void MainWindow::on_pushBrowse_clicked()
-{
-    auto bookName = ui->twBooks->currentItem()->text(0);
-    if (m_bookBrowser.setBook(bookName) == true) {
-        m_bookBrowser.show();
-    }
-}
-
-void MainWindow::on_pushStudy_clicked()
-{
-    auto bookName = ui->twBooks->currentItem()->text(0);
-    auto studyList = StudyList::allNewWordsInBook(bookName);
-    startStudy(studyList);
-}
-
-void MainWindow::on_pushReview_clicked()
-{
-    auto bookName = ui->twBooks->currentItem()->text(0);
-    auto studyList = StudyList::allStudiedWordsInBook(bookName);
-    startStudy(studyList);
-}
-
 void MainWindow::startStudy(sptr<StudyList> studyList)
 {
     if (studyList.get() == 0
@@ -100,27 +80,93 @@ void MainWindow::startStudy(sptr<StudyList> studyList)
     } else {
         QMessageBox::critical(this,
                                  MainWindow::tr(""),
-                                 MainWindow::tr("failed to set the study list!"));
+                                 MainWindow::tr("failed to set the word list to study!"));
     }
 }
 
-void MainWindow::on_pushRevSd_clicked()
+
+void MainWindow::startBrowse(sptr<StudyList> studyList)
 {
-    auto bookName = ui->twBooks->currentItem()->text(0);
-    auto studyList = StudyList::allWordsInBook(bookName);
-    startStudy(studyList);
+    if (studyList.get() == 0
+            || studyList->size() == 0) {
+        QMessageBox::information(this,
+                                 MainWindow::tr(""),
+                                 MainWindow::tr("No word to Browse!"));
+        return;
+    }
+
+    auto setRestul = m_browserWindow.setWordList(studyList);
+    if (setRestul) {
+        m_browserWindow.reloadView();
+        m_browserWindow.show();
+    } else {
+        QMessageBox::critical(this,
+                                 MainWindow::tr(""),
+                                 MainWindow::tr("failed to set the word list to browse!"));
+    }
 }
 
-void MainWindow::on_pushExpired_clicked()
+sptr<StudyList> MainWindow::expiredWordsFromCurrentBook()
 {
     auto bookName = ui->twBooks->currentItem()->text(0);
+    auto expire = QDateTime::currentDateTime();
+    return StudyList::allExpiredWordsInBook(bookName, expire);
+}
 
-    auto expire = QDateTime::currentDateTime().addDays(10); // add 10 days for test purpose!!!
-    gdDebug("book: %s", bookName.toStdString().c_str());
-    gdDebug("going to get words expired on %lld, the date is %s", MyTime(expire).toMinutes(), expire.toString().toStdString().c_str());
-    //auto studyList = StudyList::allExpiredWords(expire);
+void MainWindow::on_pushStudyExpiredWords_clicked()
+{
+    startStudy(expiredWordsFromCurrentBook());
+}
 
-    auto studyList = StudyList::allExpiredWordsInBook(bookName, expire);
+void MainWindow::on_pushBrowseExpiredWords_clicked()
+{
+    startBrowse(expiredWordsFromCurrentBook());
+}
 
-    startStudy(studyList);
+sptr<StudyList> MainWindow::oldWordsFromCurrentBook()
+{
+    auto bookName = ui->twBooks->currentItem()->text(0);
+    return StudyList::allStudiedWordsInBook(bookName);
+}
+
+void MainWindow::on_pushStudyOldWords_clicked()
+{
+    startStudy(oldWordsFromCurrentBook());
+}
+
+void MainWindow::on_pushBrowseOldWords_clicked()
+{
+    startBrowse(oldWordsFromCurrentBook());
+}
+
+sptr<StudyList> MainWindow::newWordsFromCurrentBook()
+{
+    auto bookName = ui->twBooks->currentItem()->text(0);
+    return StudyList::allNewWordsInBook(bookName);
+}
+
+void MainWindow::on_pushStudyNewWords_clicked()
+{
+    startStudy(newWordsFromCurrentBook());
+}
+
+void MainWindow::on_pushBrowseNewWords_clicked()
+{
+    startBrowse(newWordsFromCurrentBook());
+}
+
+sptr<StudyList> MainWindow::allWordsFromCurrentBook()
+{
+    auto bookName = ui->twBooks->currentItem()->text(0);
+    return StudyList::allWordsInBook(bookName);
+}
+
+void MainWindow::on_pushStudyAllWords_clicked()
+{
+    startStudy(allWordsFromCurrentBook());
+}
+
+void MainWindow::on_pushBrowseAllWords_clicked()
+{
+    startBrowse(allWordsFromCurrentBook());
 }

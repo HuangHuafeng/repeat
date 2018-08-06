@@ -38,8 +38,8 @@ SOURCES += \
     dictschemehandler.cpp \
     ../golddict/gddebug.cc \
     databaseobject.cpp \
-    bookbrowser.cpp \
-    temporaryfilemanager.cpp
+    temporaryfilemanager.cpp \
+    browserwindow.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -56,13 +56,13 @@ HEADERS += \
     ../golddict/gddebug.hh \
     ../golddict/sptr.hh \
     databaseobject.h \
-    bookbrowser.h \
-    temporaryfilemanager.h
+    temporaryfilemanager.h \
+    browserwindow.h
 
 FORMS += \
         mainwindow.ui \
     studywindow.ui \
-    bookbrowser.ui
+    browserwindow.ui
 
 SUBDIRS += \
     HaiBeiDanCi.pro

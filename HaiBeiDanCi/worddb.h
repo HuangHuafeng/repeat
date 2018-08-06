@@ -1,6 +1,8 @@
 #ifndef WORDDB_H
 #define WORDDB_H
 
+#include "../golddict/sptr.hh"
+
 #include <QVector>
 #include <QDateTime>
 #include <QSqlDatabase>
@@ -8,18 +10,25 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QVariant>
+#include <QMap>
 
 class WordDB
 {
 public:
     WordDB();
-    ~WordDB();
+    virtual ~WordDB();
 
-    bool connectDB();
+    bool connectDB(const QString &connectionName = "");
+
     static void databaseError(QSqlQuery &query, const QString what);
+    static sptr<QSqlDatabase> getDatabase();
+    static sptr<QSqlQuery> createSqlQuery();
 
 private:
-    QSqlDatabase m_db;
+    static QMap<QThread *, sptr<QSqlDatabase>> m_mapConns;
+
+    void rememberDatabase(sptr<QSqlDatabase> database);
+    void clearDatabase();
 
 };
 

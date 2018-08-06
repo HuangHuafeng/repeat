@@ -90,7 +90,7 @@ struct StudyRecord
     {
     }
 
-    StudyRecord(int expireInMinutes, int studyDateInMinutes) :
+    StudyRecord(qint64 expireInMinutes, qint64 studyDateInMinutes) :
         m_expire(expireInMinutes),
         m_studyDate(studyDateInMinutes)
     {

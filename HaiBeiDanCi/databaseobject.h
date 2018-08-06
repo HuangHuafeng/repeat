@@ -6,6 +6,11 @@
  * The main purpose is to provide a way of lazy update from database
  */
 
+#include "../golddict/sptr.hh"
+#include "worddb.h"
+
+#include <QSqlQuery>
+
 class DatabaseObject
 {
 public:

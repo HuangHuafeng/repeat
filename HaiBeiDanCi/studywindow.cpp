@@ -14,6 +14,7 @@ StudyWindow::StudyWindow(QWidget *parent) :
     m_state = NoCard;
     ui->setupUi(this);
     ui->vlDefinition->addWidget(&m_wordView);
+    //setStyleSheet("background-color:#c7edcc;");
 }
 
 StudyWindow::~StudyWindow()

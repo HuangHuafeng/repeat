@@ -63,14 +63,14 @@ void WordCard::dbgetStudyRecords()
         return;
     }
 
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT interval, easiness, repitition, expire, study_date"
                   " FROM wordcards WHERE word_id=:word_id");
     query.bindValue(":word_id", wordId);
     if (query.exec()) {
         while (query.next()) {
             int interval = query.value("interval").toInt();
-            float easiness = query.value("easiness").toInt() / 100.0;
+            float easiness = query.value("easiness").toInt() / 100.0f;
             int repitition = query.value("repitition").toInt();
             qint64 expire = query.value("expire").toLongLong();
             qint64 studyDate = query.value("study_date").toLongLong();
@@ -100,7 +100,7 @@ void WordCard::dbgetStudyRecords()
         return;
     }
 
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT expire, study_date FROM words_in_study WHERE word_id=:word_id");
     query.bindValue(":word_id", wordId);
     if (query.exec()) {
@@ -169,7 +169,7 @@ void WordCard::dbsaveStudyRecord(const StudyRecord &sr)
 
     int easiness = static_cast<int>(sr.m_easiness * 100);
 
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("INSERT INTO wordcards(word_id, interval, easiness, repitition, expire, study_date)"
                   " VALUES(:word_id, :interval, :easiness, :repitition, :expire, :study_date)");
     query.bindValue(":word_id", wordId);
@@ -234,7 +234,7 @@ sptr<WordCard> WordCard::generateCardForWord(const QString &spelling)
 // static
 bool WordCard::createDatabaseTables()
 {
-    QSqlQuery query;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     if (query.exec("SELECT * FROM wordcards LIMIT 1") == false)
     {
         // table "wordcards" does not exist

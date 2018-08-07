@@ -11,7 +11,8 @@
 
 // m_baselineTime is my daughter's birth time
 const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
-const float WordCard::m_ratio[MemoryItem::Perfect + 1] = {0.1, 0.1, 0.1, 0.64, 0.8, 1.0};
+const float WordCard::m_ratio[MemoryItem::Perfect + 1] = {0.1f, 0.1f, 0.1f, 0.64f, 0.8f, 1.0f};
+QMap<QString, sptr<WordCard>> WordCard::m_cards;
 
 WordCard::WordCard(sptr<Word> word, int interval, float easiness, int repition) :
     MemoryItem(interval, easiness, repition)
@@ -222,13 +223,108 @@ QDateTime WordCard::defaultExpireTime()
 }
 
 // static
+void WordCard::readAllCardsFromDatabase()
+{
+    static bool allCardsCreated = false;
+    if (allCardsCreated == true) {
+        return;
+    }
+
+    allCardsCreated = true;
+
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    query.prepare(" SELECT word"
+                  " FROM wordcards AS c"
+                  " INNER JOIN words AS w"
+                            " ON c.word_id=w.id"
+                  " WHERE c.id"
+                  " IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)");
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            sptr<Word> word = Word::getWordFromDatabase(spelling);
+            sptr<WordCard> card = new WordCard(word);
+            m_cards.insert(spelling, card);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching all cards from database");
+    }
+}
+
+// static
+/**
+ * @brief WordCard::generateCardForWord
+ * @param spelling
+ * This function returns a card.
+ * nullptr ONLY IN CASE word "spelling" does not exist in the database
+ */
 sptr<WordCard> WordCard::generateCardForWord(const QString &spelling)
 {
-    //sptr<Word> word = Word::getWordFromDatabase(spelling);
-    sptr<Word> word = new Word(spelling);
-    sptr<WordCard> card = new WordCard(word);
+    WordCard::readAllCardsFromDatabase();
+
+    sptr<WordCard> card = getCardForWord(spelling);
+    if (card.get()) {
+        return  card;
+    }
+
+    sptr<Word> word = Word::getWordFromDatabase(spelling);
+    if (word.get()) {
+        card = new WordCard(word);
+        m_cards.insert(spelling, card);
+    }
 
     return card;
+}
+
+// static
+/**
+ * @brief WordCard::getCardForWord
+ * @param spelling
+ * This function returns a card.
+ * 1) nullptr if there's no card for word "spelling"
+ * 2) nullptr IN CASE word "spelling" does not exist in the database
+ */
+sptr<WordCard> WordCard::getCardForWord(const QString &spelling)
+{
+    WordCard::readAllCardsFromDatabase();
+
+    return m_cards.value(spelling);
+}
+
+// static
+bool WordCard::doesWordHaveCard(const QString &spelling)
+{
+    WordCard::readAllCardsFromDatabase();
+
+    return m_cards.value(spelling).get() != nullptr;
+    /*
+    sptr<WordCard> card = m_cards.value(spelling);
+    if (card.get()) {
+        // there is a card
+        return  true;
+    }
+
+    bool retVal = false;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    query.prepare(" SELECT *"
+                  " FROM wordcards"
+                  " WHERE word_id"
+                        " IN (SELECT id FROM words WHERE word=:word)"
+                  " LIMIT 1");
+    query.bindValue(":word", spelling);
+    if (query.exec()) {
+        if (query.first()) {
+            retVal = true;
+        } else {
+            retVal = false;
+        }
+    } else {
+        WordDB::databaseError(query, "checking if there's card for word \"" + spelling  + "\"");
+        retVal = false;
+    }
+
+    return retVal;
+    */
 }
 
 // static

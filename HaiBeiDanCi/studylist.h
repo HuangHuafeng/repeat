@@ -18,32 +18,33 @@ public:
     StudyList();
     ~StudyList();
 
-    static sptr<StudyList> generateStudyList();
     static sptr<StudyList> allWords();
+    static sptr<StudyList> allNewWords();
+    static sptr<StudyList> allStudiedWords();
+    static sptr<StudyList> allExpiredWords(QDateTime expire = QDateTime::currentDateTime());
 
     static sptr<StudyList> allWordsInBook(const QString &bookName);
     static sptr<StudyList> allNewWordsInBook(const QString &bookName);
     static sptr<StudyList> allStudiedWordsInBook(const QString &bookName);
     static sptr<StudyList> allExpiredWordsInBook(const QString &bookName, const QDateTime expire);
 
-    static sptr<StudyList> allExpiredWords(QDateTime expire = QDateTime::currentDateTime());
-
     sptr<WordCard> nextCard();
     bool responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQuality responseQulity);
 
-    const QLinkedList<sptr<WordCard>> & getList() const;
+    const QVector<QString> & getWordList() const {
+        return m_words;
+    }
+
     int size() const {
-        return m_cards.size();
+        return m_words.size();
     }
 
 private:
-    QLinkedList<sptr<WordCard>> m_cards;
+    QVector<QString> m_words;
     sptr<WordCard> m_current;
 
-private:
-    bool initiCards(const QVector<QString> &wordList);
-    void addCardNoSort(sptr<WordCard> card);
-    void addCardAagainToday(sptr<WordCard> card);
+    void setWordList(const QVector<QString> &wordList);
+    void learnWordAgain(const QString spelling);
 };
 
 #endif // STUDYLIST_H

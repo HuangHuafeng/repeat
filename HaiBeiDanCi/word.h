@@ -43,6 +43,7 @@ private:
     void dbgetDefinition();
 
 private:
+    static QMap<QString, sptr<Word>> m_words;
     int m_id;   // id in database
     QString m_spelling;
     QString m_definition;

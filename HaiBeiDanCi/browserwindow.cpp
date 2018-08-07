@@ -56,7 +56,28 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         return;
     }
 
-    auto cardList = studyList->getList();
+    auto wordList = studyList->getWordList();
+    for (int i = 0;i < wordList.size();i ++) {
+        auto word = wordList.at(i);
+        QStringList infoList;
+
+        // append spelling
+        infoList.append(word);
+
+        //
+        auto card = WordCard::getCardForWord(word);
+        if (card.get()) {
+            //infoList.append(card->getExpireTime().toString());
+            infoList.append(QString::number(card->getRepitition()));
+        }else {
+            infoList.append("No card");
+        }
+
+        // add the item to the tree widget
+        QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
+        ui->treeWidget->addTopLevelItem(item);
+    }
+    /*
     auto it = cardList.begin();
     while (it != cardList.end()) {
         auto wordcard = *it;
@@ -77,6 +98,7 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
 
         it ++;
     }
+    */
 }
 
 void BrowserWindow::onTreeWidgetUpdated()
@@ -103,7 +125,7 @@ void BrowserWindow::startUpdater()
     m_updaterThread = new TreeWidgetUpdater(*this, ui->treeWidget, this);
     connect(m_updaterThread, SIGNAL(updateFinished()), this, SLOT(onTreeWidgetUpdated()));
     connect(m_updaterThread, SIGNAL(finished()), m_updaterThread, SLOT(deleteLater()));
-    m_updaterThread->start(QThread::Priority::HighPriority);
+    m_updaterThread->start();
 }
 
 bool BrowserWindow::setWordList(sptr<StudyList> studyList)
@@ -113,7 +135,7 @@ bool BrowserWindow::setWordList(sptr<StudyList> studyList)
         return false;
     }
 
-    stopUpdater();
+    //stopUpdater();
 
     lockTree();
     // remove all the items
@@ -130,7 +152,7 @@ bool BrowserWindow::setWordList(sptr<StudyList> studyList)
     }
     unlockTree();
 
-    startUpdater();
+    //startUpdater();
 
     return true;
 }
@@ -223,7 +245,8 @@ void TreeWidgetUpdater::updateTreeWidget()
         updatedItems ++;
         if (updatedItems % 100 == 0) {
             // can this help the thread to be interrupted eaiser???
-            msleep(10);
+            //msleep(50);
+            break;
         }
 
         if (isInterruptionRequested()) {

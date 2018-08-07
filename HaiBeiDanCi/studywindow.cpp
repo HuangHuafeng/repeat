@@ -31,7 +31,7 @@ StudyWindow::~StudyWindow()
  */
 bool StudyWindow::setStudyList(sptr<StudyList> studyList)
 {
-    if (studyList.get() == 0
+    if (studyList.get() == nullptr
             || studyList->size() == 0) {
         return false;
     }
@@ -176,7 +176,7 @@ void StudyWindow::updateLabels(WordCard &card)
     ui->labelPerfect->setText(minuteToString(perfect));
 
     if (m_studyList.get()) {
-        auto numberOfCards = m_studyList->getList().size();
+        auto numberOfCards = m_studyList->getWordList().size();
         ui->labelShow->setText("<html><span style=\"color:blue\">" + QString::number(numberOfCards) + "</span><html>");
     }
 }

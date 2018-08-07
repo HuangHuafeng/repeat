@@ -40,8 +40,7 @@ public:
 class WordCard : public MemoryItem, public DatabaseObject
 {
 public:
-    WordCard(sptr<Word> word = sptr<Word>(), int interval = 24, float easiness = 2.5, int repition = 0);
-    virtual ~WordCard();
+    virtual ~WordCard() override;
     virtual void update(ResponseQuality responseQuality) override;
     virtual int estimatedInterval(ResponseQuality responseQuality = Perfect) override;
     void dbsaveStudyRecord(const StudyRecord &sr);
@@ -61,13 +60,19 @@ public:
 public:
     static QDateTime defaultExpireTime();
     static bool createDatabaseTables();
+    static bool doesWordHaveCard(const QString &spelling);
     static sptr<WordCard> generateCardForWord(const QString &spelling);
+    static sptr<WordCard> getCardForWord(const QString &spelling);
+    static void readAllCardsFromDatabase();
 
 protected:
     virtual void updateFromDatabase() override;
 
 private:
+    WordCard(sptr<Word> word = sptr<Word>(), int interval = 24, float easiness = 2.5, int repition = 0);
+
     static const float m_ratio[MemoryItem::Perfect + 1];
+    static QMap<QString, sptr<WordCard>> m_cards;
 
     sptr<Word> m_word;
     QVector<StudyRecord> m_studyHistory;

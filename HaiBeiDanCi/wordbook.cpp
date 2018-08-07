@@ -177,22 +177,23 @@ bool WordBook::hasWord(QString spelling)
 
 bool WordBook::hasWord(int wordId)
 {
+    bool retVal = false;
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT * FROM words_in_books WHERE word_id=:word_id AND book_id=:book_id");
     query.bindValue(":word_id", wordId);
     query.bindValue(":book_id", getId());
     if (query.exec()) {
         if (query.first()) {
-            return true;
+            retVal = true;
         } else {
-            return false;
+            retVal = false;
         }
     } else {
         WordDB::databaseError(query, "checking if word with id \"" + QString::number(wordId) + "\" is in book \"" + m_name + "\"");
-        return false;
+        retVal = false;
     }
 
-    return false;
+    return retVal;
 }
 
 bool WordBook::addWord(QString spelling)
@@ -255,6 +256,7 @@ void WordBook::updateFromDatabase()
 
 bool WordBook::dbgetNameAndIntro()
 {
+    bool retVal = false;
     int bookId = getId();
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT name, introduction FROM wordbooks WHERE id=:id");
@@ -263,16 +265,16 @@ bool WordBook::dbgetNameAndIntro()
         if (query.first()) {
             m_name = query.value("name").toString();
             m_introduction = query.value("introduction").toString();
-            return true;
+            retVal = true;
         } else {
-            return false;
+            retVal = false;
         }
     } else {
         WordDB::databaseError(query, "fetching word books");
-        return false;
+        retVal = false;
     }
 
-    return true;
+    return retVal;
 }
 
 // static
@@ -357,59 +359,62 @@ bool WordBook::isInDatabase(int bookId)
         return false;
     }
 
+    bool retVal = false;
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT * FROM wordbooks WHERE id=:book_id");
     query.bindValue(":book_id", bookId);
     if (query.exec()) {
         if (query.first()) {
-            return true;
+            retVal = true;
         } else {
-            return false;
+            retVal = false;
         }
     } else {
         WordDB::databaseError(query, "checking existence of word book with id \"" + QString::number(bookId) + "\"");
-        return false;
+        retVal = false;
     }
 
-    return false;
+    return retVal;
 }
 
 // static
 bool WordBook::isInDatabase(const QString &name)
 {
+    bool retVal = false;
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT * FROM wordbooks WHERE name=:name");
     query.bindValue(":name", name);
     if (query.exec()) {
         if (query.first()) {
-            return true;
+            retVal = true;
         } else {
-            return false;
+            retVal = false;
         }
     } else {
         WordDB::databaseError(query, "checking existence of word book \"" + name + "\"");
-        return false;
+        retVal = false;
     }
 
-    return false;
+    return retVal;
 }
 
 // static
 int WordBook::getBookId(const QString &name)
 {
+    int retVal = 0;
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
     query.prepare("SELECT id FROM wordbooks WHERE name=:name  COLLATE NOCASE");
     query.bindValue(":name", name);
     if (query.exec()) {
         if (query.first()) {
-            return query.value("id").toInt();
+            retVal = query.value("id").toInt();
         } else {
-            return 0;
+            retVal = 0;
         }
     } else {
         WordDB::databaseError(query, "checking id of book \"" + name + "\"");
-        return 0;
+        retVal = 0;
     }
 
-    return 0;
+    return retVal;
 }

@@ -18,18 +18,21 @@ bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQu
         return false;
     }
 
-    if (m_current.get() == 0) {
+    if (m_current.get() == nullptr) {
         return false;
     }
 
     // remove the card from the list
-    m_cards.pop_front();
+    m_words.pop_front();
     // update the card's data
     m_current->update(responseQulity);
 
     if (responseQulity < MemoryItem::CorrectWithDifficulty) {
         // the card need to be reviewed again today
-        addCardAagainToday(m_current);
+        auto word = m_current->getWord();
+        if (word.get()) {
+            learnWordAgain(word->getSpelling());
+        }
     }
 
     // current card finishes for the current review
@@ -38,99 +41,26 @@ bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQu
     return true;
 }
 
-/**
- * @brief StudyList::addCardNoSort
- * add card to the end of m_cards
- */
-void StudyList::addCardNoSort(sptr<WordCard> card)
+void StudyList::learnWordAgain(const QString spelling)
 {
-    if (card.get() == 0
-            || card->getWord().get() == 0)
-    {
-        return;
-    }
-
-    m_cards.append(card);
-
-    /* this can be very slow as getExpireTime() caused database query
-     * also the QDateTime comparison is heavy.
-    auto expire = card->getExpireTime();
-    QLinkedList<sptr<WordCard>>::iterator it = m_cards.end();
-    while (it != m_cards.begin()) {
-        it --;
-        if ((*it).get()) {
-            if ((*it)->getExpireTime() < expire) {
-                it ++;
-                break;
-            }
-        }
-    }
-    m_cards.insert(it, card);
-    */
-}
-
-/**
- * @brief StudyList::addCardAagainToday
- * @param card
- * card need to be reviewed again, should be taken care
- * specially in order to avoid being buried by the existing cards
- */
-void StudyList::addCardAagainToday(sptr<WordCard> card)
-{
-    if (card.get() == 0
-            || card->getWord().get() == 0)
-    {
-        return;
-    }
-
-    m_cards.append(card);
+    m_words.append(spelling);
 }
 
 sptr<WordCard> StudyList::nextCard()
 {
-    if (m_current.get() == 0)
+    if (m_current.get() == nullptr)
     {
-        if (m_cards.isEmpty() == false) {
-            m_current = m_cards.first();
+        if (m_words.isEmpty() == false) {
+            m_current = WordCard::generateCardForWord(m_words.first());
         }
     }
 
     return m_current;
 }
 
-/**
- * @brief StudyList::initiCards
- * @param wordList
- * @return
- * this function assumes that wordList is already ordered
- * so NO sorting is done here!
- */
-bool StudyList::initiCards(const QVector<QString> &wordList)
+void StudyList::setWordList(const QVector<QString> &wordList)
 {
-    // if there's already cards, fail
-    if (m_cards.isEmpty() == false
-            || m_current.get()) {
-        return false;
-    }
-
-    // create the new cards according to the list
-    for (int i = 0;i < wordList.size();i ++) {
-        auto card = WordCard::generateCardForWord(wordList.at(i));
-        addCardNoSort(card);
-    }
-
-    return true;
-}
-
-const QLinkedList<sptr<WordCard>> & StudyList::getList() const
-{
-    return m_cards;
-}
-
-// static
-sptr<StudyList> StudyList::generateStudyList()
-{
-    return sptr<StudyList>();
+    m_words = wordList;
 }
 
 // static
@@ -139,7 +69,7 @@ sptr<StudyList> StudyList::allWords()
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
         auto wordList = Word::getWords();
-        sl->initiCards(wordList);
+        sl->setWordList(wordList);
     }
 
     return sl;
@@ -149,7 +79,7 @@ sptr<StudyList> StudyList::allWords()
 sptr<StudyList> StudyList::allNewWordsInBook(const QString &bookName)
 {
     auto book = WordBook::getBook(bookName);
-    if (book.get() == 0) {
+    if (book.get() == nullptr) {
         // the book does not exist
         return sptr<StudyList>();
     }
@@ -162,7 +92,7 @@ sptr<StudyList> StudyList::allNewWordsInBook(const QString &bookName)
 
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
-        sl->initiCards(wordList);
+        sl->setWordList(wordList);
     }
 
     return sl;
@@ -172,7 +102,7 @@ sptr<StudyList> StudyList::allNewWordsInBook(const QString &bookName)
 sptr<StudyList> StudyList::allStudiedWordsInBook(const QString &bookName)
 {
     auto book = WordBook::getBook(bookName);
-    if (book.get() == 0) {
+    if (book.get() == nullptr) {
         // the book does not exist
         return sptr<StudyList>();
     }
@@ -185,7 +115,7 @@ sptr<StudyList> StudyList::allStudiedWordsInBook(const QString &bookName)
 
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
-        sl->initiCards(wordList);
+        sl->setWordList(wordList);
     }
 
     return sl;
@@ -195,7 +125,7 @@ sptr<StudyList> StudyList::allStudiedWordsInBook(const QString &bookName)
 sptr<StudyList> StudyList::allExpiredWordsInBook(const QString &bookName, const QDateTime expire)
 {
     auto book = WordBook::getBook(bookName);
-    if (book.get() == 0) {
+    if (book.get() == nullptr) {
         // the book does not exist
         return sptr<StudyList>();
     }
@@ -208,7 +138,7 @@ sptr<StudyList> StudyList::allExpiredWordsInBook(const QString &bookName, const 
 
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
-        sl->initiCards(wordList);
+        sl->setWordList(wordList);
     }
 
     return sl;
@@ -219,7 +149,7 @@ sptr<StudyList> StudyList::allExpiredWordsInBook(const QString &bookName, const 
 sptr<StudyList> StudyList::allWordsInBook(const QString &bookName)
 {
     auto book = WordBook::getBook(bookName);
-    if (book.get() == 0) {
+    if (book.get() == nullptr) {
         // the book does not exist
         return sptr<StudyList>();
     }
@@ -232,7 +162,7 @@ sptr<StudyList> StudyList::allWordsInBook(const QString &bookName)
 
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
-        sl->initiCards(wordList);
+        sl->setWordList(wordList);
     }
 
     return sl;
@@ -263,7 +193,7 @@ sptr<StudyList> StudyList::allExpiredWords(QDateTime expire)
             WordDB::databaseError(query, "fetching all expired words");
         }
 
-        sl->initiCards(wordList);
+        sl->setWordList(wordList);
     }
 
     return sl;

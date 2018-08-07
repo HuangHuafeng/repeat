@@ -5,6 +5,8 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 
+QMap<QString, sptr<Word>> Word::m_words;
+
 Word::Word(QString word) :
     m_spelling(word)
 {
@@ -175,11 +177,18 @@ bool Word::createDatabaseTables()
 // static
 sptr<Word> Word::getWordFromDatabase(const QString &spelling)
 {
+    sptr<Word> word = m_words.value(spelling);
+    if (word.get()) {
+        return word;
+    }
+
     if (Word::isInDatabase(spelling) == false) {
         return sptr<Word>();
     }
 
-    sptr<Word> word = new Word(spelling);
+    word = new Word(spelling);
+    m_words.insert(spelling, word);
+
     return word;
 }
 

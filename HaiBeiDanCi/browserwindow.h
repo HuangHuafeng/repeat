@@ -4,30 +4,14 @@
 #include "wordview.h"
 #include "wordcard.h"
 #include "studylist.h"
+#include "../golddict/gddebug.hh"
 
 #include <QDialog>
 #include <QVector>
 #include <QThread>
 #include <QTreeWidget>
 
-class TreeWidgetUpdater : public QThread {
-    Q_OBJECT
-    void run() override;
-    void updateTreeWidget();
-
-    QTreeWidget *m_treeWidget;
-    bool m_itemsWillBeRemoved;
-
-public:
-    TreeWidgetUpdater(QTreeWidget *treeWidget, QObject *parent = nullptr);
-    void setItemsWillBeRemoved() {
-        m_itemsWillBeRemoved = true;
-    }
-
-signals:
-    void updateFinished();
-
-};
+class TreeWidgetUpdater;
 
 namespace Ui {
 class BrowserWindow;
@@ -44,10 +28,18 @@ public:
     bool setWordList(sptr<StudyList> studyList);
     void reloadView();
 
+    void lockTree() {
+        m_mutex.lock();
+    }
+    void unlockTree() {
+        m_mutex.unlock();
+    }
+
 private:
     Ui::BrowserWindow *ui;
     WordView m_wordView;
     TreeWidgetUpdater *m_updaterThread;
+    QMutex m_mutex;
 
     void addWordsToTreeView(sptr<StudyList> studyList);
     void showHideButtons(bool definitionIsShown);
@@ -62,6 +54,22 @@ private slots:
     void on_pushNext_clicked();
     void on_pushShow_clicked();
     void onTreeWidgetUpdated();
+};
+
+class TreeWidgetUpdater : public QThread {
+    Q_OBJECT
+    void run() override;
+    void updateTreeWidget();
+
+    BrowserWindow &m_bw;
+    QTreeWidget *m_treeWidget;
+
+public:
+    TreeWidgetUpdater(BrowserWindow &bw, QTreeWidget *treeWidget, QObject *parent = nullptr);
+
+signals:
+    void updateFinished();
+
 };
 
 #endif // BROWSERWINDOW_H

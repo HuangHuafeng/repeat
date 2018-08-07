@@ -4,12 +4,14 @@
 #include "worddb.h"
 
 #include <QSplitter>
+#include <QMutex>
 
 BrowserWindow::BrowserWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BrowserWindow),
     m_wordView(parent),
-    m_updaterThread(nullptr)
+    m_updaterThread(nullptr),
+    m_mutex()
 {
     ui->setupUi(this);
 
@@ -84,8 +86,8 @@ void BrowserWindow::onTreeWidgetUpdated()
 
 void BrowserWindow::stopUpdater()
 {
-    if (m_updaterThread != nullptr) {
-        m_updaterThread->setItemsWillBeRemoved();
+    if (m_updaterThread != nullptr && m_updaterThread->isRunning()) {
+        m_updaterThread->requestInterruption();
         m_updaterThread->wait();
         m_updaterThread = nullptr;
     }
@@ -98,10 +100,10 @@ void BrowserWindow::startUpdater()
         return;
     }
 
-    m_updaterThread = new TreeWidgetUpdater(ui->treeWidget, this);
+    m_updaterThread = new TreeWidgetUpdater(*this, ui->treeWidget, this);
     connect(m_updaterThread, SIGNAL(updateFinished()), this, SLOT(onTreeWidgetUpdated()));
     connect(m_updaterThread, SIGNAL(finished()), m_updaterThread, SLOT(deleteLater()));
-    m_updaterThread->start();
+    m_updaterThread->start(QThread::Priority::HighPriority);
 }
 
 bool BrowserWindow::setWordList(sptr<StudyList> studyList)
@@ -113,6 +115,7 @@ bool BrowserWindow::setWordList(sptr<StudyList> studyList)
 
     stopUpdater();
 
+    lockTree();
     // remove all the items
     ui->treeWidget->clear();
     ui->treeWidget->setSortingEnabled(false);
@@ -125,6 +128,7 @@ bool BrowserWindow::setWordList(sptr<StudyList> studyList)
     if (*it) {
         ui->treeWidget->setCurrentItem(*it);
     }
+    unlockTree();
 
     startUpdater();
 
@@ -185,10 +189,10 @@ void BrowserWindow::showHideButtons(bool definitionIsShown)
     //ui->widgetBottom->adjustSize();
 }
 
-TreeWidgetUpdater::TreeWidgetUpdater(QTreeWidget *treeWidget, QObject *parent) :
+TreeWidgetUpdater::TreeWidgetUpdater(BrowserWindow &bw, QTreeWidget *treeWidget, QObject *parent) :
     QThread (parent),
-    m_treeWidget(treeWidget),
-    m_itemsWillBeRemoved(false)
+    m_bw(bw),
+    m_treeWidget(treeWidget)
 {
 
 }
@@ -211,8 +215,20 @@ void TreeWidgetUpdater::updateTreeWidget()
         return;
     }
 
+    m_bw.lockTree();
+
+    int updatedItems = 0;
     QTreeWidgetItemIterator it(m_treeWidget);
-    while (*it && m_itemsWillBeRemoved == false) {
+    while (*it) {
+        updatedItems ++;
+        if (updatedItems % 100 == 0) {
+            // can this help the thread to be interrupted eaiser???
+            msleep(10);
+        }
+
+        if (isInterruptionRequested()) {
+            break;
+        }
         auto spelling = (*it)->text(0);
         auto wordcard = WordCard::generateCardForWord(spelling);
         if (wordcard.get()) {
@@ -229,4 +245,6 @@ void TreeWidgetUpdater::updateTreeWidget()
 
         it ++;
     }
+
+    m_bw.unlockTree();
 }

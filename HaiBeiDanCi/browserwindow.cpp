@@ -18,6 +18,10 @@ BrowserWindow::BrowserWindow(QWidget *parent) :
     QStringList header;
     header.append(BrowserWindow::tr("Word"));
     header.append(BrowserWindow::tr("Expire"));
+    header.append(BrowserWindow::tr("Repetition"));
+    header.append(BrowserWindow::tr("Easiness"));
+    header.append(BrowserWindow::tr("Interval (day)"));
+    header.append(BrowserWindow::tr("Reviewed at"));
     ui->treeWidget->setHeaderLabels(header);
     connect(ui->treeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
@@ -61,16 +65,23 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         auto word = wordList.at(i);
         QStringList infoList;
 
-        // append spelling
+        // spelling
         infoList.append(word);
 
-        //
         auto card = WordCard::getCardForWord(word);
         if (card.get()) {
-            //infoList.append(card->getExpireTime().toString());
+            // expire
+            infoList.append(card->getExpireTime().toString("yyyy-MM-dd"));
+            // repetition
             infoList.append(QString::number(card->getRepitition()));
-        }else {
-            infoList.append("No card");
+            // easiness
+            infoList.append(QString::number(static_cast<double>(card->getEasiness())));
+            // interval
+            infoList.append(QString::number(card->getIntervalInMinute() / (24 * 60)));
+            // reviewed at
+            infoList.append(card->getLastStudyTime().toString("yyyy-MM-dd"));
+        } else {
+            //
         }
 
         // add the item to the tree widget

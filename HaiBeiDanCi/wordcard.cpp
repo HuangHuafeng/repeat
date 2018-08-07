@@ -129,6 +129,18 @@ const QDateTime WordCard::getExpireTime()
     return m_studyHistory.last().m_expire.toDateTime();
 }
 
+const QDateTime WordCard::getLastStudyTime()
+{
+    updateFromDatabase();
+
+    if (m_studyHistory.isEmpty())
+    {
+        return QDateTime::currentDateTime();
+    }
+
+    return m_studyHistory.last().m_studyDate.toDateTime();
+}
+
 void WordCard::setExpireTime(const QDateTime &expireTime)
 {
     // we need to make sure easiness, reptition, interval are ALREADY updated from the database

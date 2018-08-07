@@ -46,6 +46,7 @@ public:
     void dbsaveStudyRecord(const StudyRecord &sr);
     void setExpireTime(const QDateTime &expireTime);
     const QDateTime getExpireTime();
+    const QDateTime getLastStudyTime();
     QVector<StudyRecord> getStudyHistory();
 
     int getIntervalInMinute();

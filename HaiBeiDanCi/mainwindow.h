@@ -21,6 +21,8 @@ public:
     ~MainWindow();
 
 private slots:
+    void onItemSelectionChanged();
+
     void on_pushTest_clicked();
 
     void on_pushBrowseExpiredWords_clicked();

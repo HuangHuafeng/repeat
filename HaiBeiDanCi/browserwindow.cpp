@@ -15,6 +15,9 @@ BrowserWindow::BrowserWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->treeWidget->sortByColumn(1, Qt::SortOrder::AscendingOrder);
+    connect(ui->treeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
+
     QStringList header;
     header.append(BrowserWindow::tr("Word"));
     header.append(BrowserWindow::tr("Expire"));
@@ -23,7 +26,6 @@ BrowserWindow::BrowserWindow(QWidget *parent) :
     header.append(BrowserWindow::tr("Interval (day)"));
     header.append(BrowserWindow::tr("Reviewed at"));
     ui->treeWidget->setHeaderLabels(header);
-    connect(ui->treeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
     QSplitter *splitter = new QSplitter(Qt::Orientation::Vertical, this);
     splitter->addWidget(&m_wordView);
@@ -72,44 +74,38 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         if (card.get()) {
             // expire
             infoList.append(card->getExpireTime().toString("yyyy-MM-dd"));
+
             // repetition
-            infoList.append(QString::number(card->getRepitition()));
+            auto repetition = card->getRepitition();
+            if (repetition < 100) {
+                // less than 999 days, display number
+                QString repetitionText = QString("%1").arg(repetition, 2, 10, QChar('0'));
+                infoList.append(repetitionText);
+            } else {
+                infoList.append(BrowserWindow::tr(">99"));
+            }
+
             // easiness
             infoList.append(QString::number(static_cast<double>(card->getEasiness())));
+
             // interval
-            infoList.append(QString::number(card->getIntervalInMinute() / (24 * 60)));
+            auto im = card->getIntervalInMinute() / (60 * 24);
+            if (im < 999) {
+                // less than 999 days, display number
+                QString interval = QString("%1").arg(im, 3, 10, QChar('0'));
+                infoList.append(interval);
+            } else {
+                infoList.append(BrowserWindow::tr(">999"));
+            }
+
             // reviewed at
             infoList.append(card->getLastStudyTime().toString("yyyy-MM-dd"));
-        } else {
-            //
         }
 
         // add the item to the tree widget
         QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
         ui->treeWidget->addTopLevelItem(item);
     }
-    /*
-    auto it = cardList.begin();
-    while (it != cardList.end()) {
-        auto wordcard = *it;
-
-        if (wordcard.get()) {
-            QStringList infoList;
-
-            // append spelling
-            auto word = wordcard->getWord();
-            if (word.get()) {
-                infoList.append(word->getSpelling());
-            }
-
-            // add the item to the tree widget
-            QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
-            ui->treeWidget->addTopLevelItem(item);
-        }
-
-        it ++;
-    }
-    */
 }
 
 void BrowserWindow::onTreeWidgetUpdated()
@@ -146,24 +142,17 @@ bool BrowserWindow::setWordList(sptr<StudyList> studyList)
         return false;
     }
 
-    //stopUpdater();
-
-    lockTree();
     // remove all the items
     ui->treeWidget->clear();
     ui->treeWidget->setSortingEnabled(false);
     addWordsToTreeView(studyList);
     ui->treeWidget->setSortingEnabled(true);
-    ui->treeWidget->sortByColumn(1, Qt::SortOrder::AscendingOrder);
 
     // select the first item
     QTreeWidgetItemIterator it(ui->treeWidget);
     if (*it) {
         ui->treeWidget->setCurrentItem(*it);
     }
-    unlockTree();
-
-    //startUpdater();
 
     return true;
 }
@@ -281,4 +270,9 @@ void TreeWidgetUpdater::updateTreeWidget()
     }
 
     m_bw.unlockTree();
+}
+
+void BrowserWindow::on_checkShowDefinitionDirectly_stateChanged(int /*arg1*/)
+{
+    onItemSelectionChanged();
 }

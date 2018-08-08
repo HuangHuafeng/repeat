@@ -12,6 +12,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_browserWindow(nullptr)
 {
     ui->setupUi(this);
+    connect(ui->twBooks, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
+
     listBooks();
 }
 
@@ -23,9 +25,8 @@ MainWindow::~MainWindow()
 void MainWindow::listBooks()
 {
     QStringList header;
-    header.append(QObject::tr("Book Name"));
-    header.append(QObject::tr("Total Words"));
-    header.append(QObject::tr("Book Introduction"));
+    header.append(MainWindow::tr("Book Name"));
+    header.append(MainWindow::tr("Book Introduction"));
     ui->twBooks->setHeaderLabels(header);
 
     auto bookList = WordBook::getWordBooks();
@@ -38,14 +39,61 @@ void MainWindow::listBooks()
     }
 
     ui->twBooks->sortItems(0, Qt::SortOrder::AscendingOrder);
+
+    // select the first book
+    QTreeWidgetItemIterator it(ui->twBooks);
+    if (*it) {
+        ui->twBooks->setCurrentItem(*it);
+    }
+}
+
+void MainWindow::onItemSelectionChanged()
+{
+    // expired words
+    auto expired = expiredWordsFromCurrentBook();
+    int numOfWords = 0;
+    if (expired.get()) {
+        numOfWords = expired->size();
+    }
+    ui->labelExpired->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
+    ui->pushBrowseExpiredWords->setEnabled(numOfWords > 0);
+    ui->pushStudyExpiredWords->setEnabled(numOfWords > 0);
+
+    // old words
+    auto old = oldWordsFromCurrentBook();
+    numOfWords = 0;
+    if (old.get()) {
+        numOfWords = old->size();
+    }
+    ui->labelOld->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
+    ui->pushBrowseOldWords->setEnabled(numOfWords > 0);
+    ui->pushStudyOldWords->setEnabled(numOfWords > 0);
+
+    // new words
+    auto newWords = newWordsFromCurrentBook();
+    numOfWords = 0;
+    if (newWords.get()) {
+        numOfWords = newWords->size();
+    }
+    ui->labelNew->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
+    ui->pushBrowseNewWords->setEnabled(numOfWords > 0);
+    ui->pushStudyNewWords->setEnabled(numOfWords > 0);
+
+    // all words
+    auto all = allWordsFromCurrentBook();
+    numOfWords = 0;
+    if (all.get()) {
+        numOfWords = all->size();
+    }
+    ui->labelAll->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
+    ui->pushBrowseAllWords->setEnabled(numOfWords > 0);
+    ui->pushStudyAllWords->setEnabled(numOfWords > 0);
 }
 
 void MainWindow::addBookToTheView(WordBook &book)
 {
-    int totalWords = book.totalWords();
     QStringList infoList;
     infoList.append(book.getName());
-    infoList.append(QString::number(totalWords));
     infoList.append(book.getIntroduction());
     QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
     ui->twBooks->addTopLevelItem(item);
@@ -65,7 +113,7 @@ void MainWindow::on_pushTest_clicked()
 
 void MainWindow::startStudy(sptr<StudyList> studyList)
 {
-    if (studyList.get() == 0
+    if (studyList.get() == nullptr
             || studyList->size() == 0) {
         QMessageBox::information(this,
                                  MainWindow::tr(""),
@@ -87,7 +135,7 @@ void MainWindow::startStudy(sptr<StudyList> studyList)
 
 void MainWindow::startBrowse(sptr<StudyList> studyList)
 {
-    if (studyList.get() == 0
+    if (studyList.get() == nullptr
             || studyList->size() == 0) {
         QMessageBox::information(this,
                                  MainWindow::tr(""),

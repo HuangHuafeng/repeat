@@ -54,6 +54,7 @@ private slots:
     void on_pushNext_clicked();
     void on_pushShow_clicked();
     void onTreeWidgetUpdated();
+    void on_checkShowDefinitionDirectly_stateChanged(int arg1);
 };
 
 class TreeWidgetUpdater : public QThread {

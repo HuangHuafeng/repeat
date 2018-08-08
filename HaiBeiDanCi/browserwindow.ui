@@ -38,6 +38,9 @@
       </sizepolicy>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
       <item>
        <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
         <item row="1" column="0" colspan="4">
@@ -65,6 +68,9 @@
         </item>
         <item row="3" column="0" colspan="4">
          <widget class="QTreeWidget" name="treeWidget">
+          <property name="indentation">
+           <number>0</number>
+          </property>
           <property name="columnCount">
            <number>6</number>
           </property>

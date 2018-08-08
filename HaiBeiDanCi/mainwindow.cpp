@@ -4,6 +4,7 @@
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
+#include <QSettings>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -17,13 +18,38 @@ MainWindow::MainWindow(QWidget *parent) :
     listBooks();
 
     updateAllBooksData();
-    connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(updateAllBooksData()));
-    connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(updateCurrentBookData()));
+    connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(onWordStudied(QString)));
+
+    loadSetting();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    saveSettings();
+    event->accept();
+}
+
+void MainWindow::saveSettings()
+{
+    QSettings settings;
+    settings.beginGroup("MainWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.endGroup();
+}
+
+void MainWindow::loadSetting()
+{
+    QSettings settings;
+    settings.beginGroup("MainWindow");
+    resize(settings.value("size", QSize(640, 480)).toSize());
+    move(settings.value("pos", QPoint(200, 200)).toPoint());
+    settings.endGroup();
 }
 
 void MainWindow::listBooks()
@@ -53,6 +79,12 @@ void MainWindow::listBooks()
 
 void MainWindow::onItemSelectionChanged()
 {
+    updateCurrentBookData();
+}
+
+void MainWindow::onWordStudied(QString /*spelling*/)
+{
+    updateAllBooksData();
     updateCurrentBookData();
 }
 

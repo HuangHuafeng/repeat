@@ -17,13 +17,14 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
+
+    virtual void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void onItemSelectionChanged();
-    void updateAllBooksData();
-    void updateCurrentBookData();
+    void onWordStudied(QString spelling);
 
     void on_pushBrowseExpiredWords_clicked();
 
@@ -66,6 +67,12 @@ private:
     void addBookToTheView(WordBook &book);
     void startStudy(sptr<StudyList> studyList);
     void startBrowse(sptr<StudyList> studyList);
+
+    void updateAllBooksData();
+    void updateCurrentBookData();
+
+    void saveSettings();
+    void loadSetting();
 
     sptr<StudyList> expiredWordsFromCurrentBook();
     sptr<StudyList> oldWordsFromCurrentBook();

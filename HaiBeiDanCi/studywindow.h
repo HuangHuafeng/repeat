@@ -18,10 +18,12 @@ class StudyWindow : public QDialog
 
 public:
     explicit StudyWindow(QWidget *parent = nullptr);
-    ~StudyWindow();
+    ~StudyWindow() override;
 
     bool setStudyList(sptr<StudyList> studyList);
     void reloadView();
+
+    virtual void closeEvent(QCloseEvent *event) override;
 
 signals:
     void wordStudied(QString spelling);
@@ -60,6 +62,9 @@ private:
     void cleanTheWidgets();
     void updateButtons();
     void updateLabels(WordCard &card);
+
+    void saveSettings();
+    void loadSetting();
 
 };
 

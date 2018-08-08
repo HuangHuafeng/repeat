@@ -23,10 +23,12 @@ class BrowserWindow : public QDialog
 
 public:
     explicit BrowserWindow(QWidget *parent = nullptr);
-    ~BrowserWindow();
+    ~BrowserWindow() override;
 
     bool setWordList(sptr<StudyList> studyList);
     void reloadView();
+
+    virtual void closeEvent(QCloseEvent *event) override;
 
     void lockTree() {
         m_mutex.lock();
@@ -46,6 +48,9 @@ private:
 
     void stopUpdater();
     void startUpdater();
+
+    void saveSettings();
+    void loadSetting();
 
 private slots:
     void onItemSelectionChanged();

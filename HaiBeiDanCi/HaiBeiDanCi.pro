@@ -39,7 +39,8 @@ SOURCES += \
     ../golddict/gddebug.cc \
     databaseobject.cpp \
     temporaryfilemanager.cpp \
-    browserwindow.cpp
+    browserwindow.cpp \
+    mysettings.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -57,7 +58,8 @@ HEADERS += \
     ../golddict/sptr.hh \
     databaseobject.h \
     temporaryfilemanager.h \
-    browserwindow.h
+    browserwindow.h \
+    mysettings.h
 
 FORMS += \
         mainwindow.ui \

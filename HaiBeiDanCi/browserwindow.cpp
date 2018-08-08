@@ -5,6 +5,7 @@
 
 #include <QSplitter>
 #include <QMutex>
+#include <QSettings>
 
 BrowserWindow::BrowserWindow(QWidget *parent) :
     QDialog(parent),
@@ -14,9 +15,7 @@ BrowserWindow::BrowserWindow(QWidget *parent) :
     m_mutex()
 {
     ui->setupUi(this);
-
-    ui->treeWidget->sortByColumn(1, Qt::SortOrder::AscendingOrder);
-    connect(ui->treeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
+    loadSetting();
 
     QStringList header;
     header.append(BrowserWindow::tr("Word"));
@@ -26,12 +25,14 @@ BrowserWindow::BrowserWindow(QWidget *parent) :
     header.append(BrowserWindow::tr("Interval (day)"));
     header.append(BrowserWindow::tr("Reviewed at"));
     ui->treeWidget->setHeaderLabels(header);
+    ui->treeWidget->sortByColumn(1, Qt::SortOrder::AscendingOrder);
+    connect(ui->treeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
     QSplitter *splitter = new QSplitter(Qt::Orientation::Vertical, this);
     splitter->addWidget(&m_wordView);
     splitter->addWidget(ui->widgetBottom);
-
     ui->verticalLayout->addWidget(splitter);
+    ui->gridLayout->setSizeConstraint(QLayout::SetFixedSize);
 }
 
 BrowserWindow::~BrowserWindow()
@@ -40,9 +41,42 @@ BrowserWindow::~BrowserWindow()
     delete ui;
 }
 
+void BrowserWindow::closeEvent(QCloseEvent *event)
+{
+    saveSettings();
+    event->accept();
+}
+
+void BrowserWindow::saveSettings()
+{
+    QSettings settings;
+    settings.beginGroup("BrowserWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.setValue("wordListHide", ui->checkHideTreeview->isChecked());
+    settings.setValue("showDefinitionDirectly", ui->checkShowDefinitionDirectly->isChecked());
+    settings.endGroup();
+}
+
+void BrowserWindow::loadSetting()
+{
+    QSettings settings;
+    settings.beginGroup("BrowserWindow");
+    resize(settings.value("size", QSize(640, 480)).toSize());
+    move(settings.value("pos", QPoint(200, 200)).toPoint());
+    ui->checkHideTreeview->setChecked(settings.value("wordListHide", false).toBool());
+    ui->checkShowDefinitionDirectly->setChecked(settings.value("showDefinitionDirectly", true).toBool());
+    settings.endGroup();
+}
+
 void BrowserWindow::onItemSelectionChanged()
 {
-    auto spelling = ui->treeWidget->currentItem()->text(0);
+    auto ci = ui->treeWidget->currentItem();
+    if (ci == nullptr) {
+        return;
+    }
+
+    auto spelling = ci->text(0);
     auto word = Word::getWordFromDatabase(spelling);
     m_wordView.setWord(word);
 

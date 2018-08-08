@@ -2,6 +2,7 @@
 #include "../golddict/gddebug.hh"
 #include "worddb.h"
 #include "dictschemehandler.h"
+#include "mysettings.h"
 
 #include <QApplication>
 #include <QLibraryInfo>
@@ -11,6 +12,10 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    QCoreApplication::setOrganizationName(MySettings::orgName());
+    QCoreApplication::setOrganizationDomain(MySettings::orgDomain());
+    QCoreApplication::setApplicationName(MySettings::appName());
 
     WordDB appDb;
     if (appDb.connectDB() == false) {

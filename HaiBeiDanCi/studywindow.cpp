@@ -5,6 +5,7 @@
 
 #include <QLabel>
 #include <QMessageBox>
+#include <QSettings>
 
 StudyWindow::StudyWindow(QWidget *parent) :
     QDialog(parent),
@@ -15,11 +16,37 @@ StudyWindow::StudyWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->vlDefinition->addWidget(&m_wordView);
     //setStyleSheet("background-color:#c7edcc;");
+
+    loadSetting();
 }
 
 StudyWindow::~StudyWindow()
 {
     delete ui;
+}
+
+void StudyWindow::closeEvent(QCloseEvent *event)
+{
+    saveSettings();
+    event->accept();
+}
+
+void StudyWindow::saveSettings()
+{
+    QSettings settings;
+    settings.beginGroup("StudyWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.endGroup();
+}
+
+void StudyWindow::loadSetting()
+{
+    QSettings settings;
+    settings.beginGroup("StudyWindow");
+    resize(settings.value("size", QSize(640, 480)).toSize());
+    move(settings.value("pos", QPoint(200, 200)).toPoint());
+    settings.endGroup();
 }
 
 /**

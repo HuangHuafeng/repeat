@@ -22,8 +22,8 @@ public:
 
 private slots:
     void onItemSelectionChanged();
-
-    void on_pushTest_clicked();
+    void updateAllBooksData();
+    void updateCurrentBookData();
 
     void on_pushBrowseExpiredWords_clicked();
 
@@ -40,6 +40,22 @@ private slots:
     void on_pushBrowseNewWords_clicked();
 
     void on_pushBrowseAllWords_clicked();
+
+    void on_pushGlobalStudyAllWords_clicked();
+
+    void on_pushGlobalBrowseAllWords_clicked();
+
+    void on_pushGlobalStudyNewWords_clicked();
+
+    void on_pushGlobalBrowseNewWords_clicked();
+
+    void on_pushGlobalStudyOldWords_clicked();
+
+    void on_pushGlobalBrowseOldWords_clicked();
+
+    void on_pushGlobalStudyExpiredWords_clicked();
+
+    void on_pushGlobalBrowseExpiredWords_clicked();
 
 private:
     Ui::MainWindow *ui;

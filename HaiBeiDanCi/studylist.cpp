@@ -68,7 +68,43 @@ sptr<StudyList> StudyList::allWords()
 {
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
-        auto wordList = Word::getWords();
+        auto wordList = WordCard::getAllWords();
+        sl->setWordList(wordList);
+    }
+
+    return sl;
+}
+
+// static
+sptr<StudyList> StudyList::allNewWords()
+{
+    sptr<StudyList> sl = new StudyList();
+    if (sl.get()) {
+        auto wordList = WordCard::getNewWords();
+        sl->setWordList(wordList);
+    }
+
+    return sl;
+}
+
+// static
+sptr<StudyList> StudyList::allOldWords()
+{
+    sptr<StudyList> sl = new StudyList();
+    if (sl.get()) {
+        auto wordList = WordCard::getOldWords();
+        sl->setWordList(wordList);
+    }
+
+    return sl;
+}
+
+// static
+sptr<StudyList> StudyList::allExpiredWords(QDateTime expire)
+{
+    sptr<StudyList> sl = new StudyList();
+    if (sl.get()) {
+        auto wordList = WordCard::getExpiredWords(expire);
         sl->setWordList(wordList);
     }
 
@@ -99,7 +135,7 @@ sptr<StudyList> StudyList::allNewWordsInBook(const QString &bookName)
 }
 
 // static
-sptr<StudyList> StudyList::allStudiedWordsInBook(const QString &bookName)
+sptr<StudyList> StudyList::allOldWordsInBook(const QString &bookName)
 {
     auto book = WordBook::getBook(bookName);
     if (book.get() == nullptr) {
@@ -107,7 +143,7 @@ sptr<StudyList> StudyList::allStudiedWordsInBook(const QString &bookName)
         return sptr<StudyList>();
     }
 
-    auto wordList = book->getStudiedWords();
+    auto wordList = book->getOldWords();
     if (wordList.isEmpty()) {
         // no word
         return sptr<StudyList>();
@@ -162,37 +198,6 @@ sptr<StudyList> StudyList::allWordsInBook(const QString &bookName)
 
     sptr<StudyList> sl = new StudyList();
     if (sl.get()) {
-        sl->setWordList(wordList);
-    }
-
-    return sl;
-}
-
-sptr<StudyList> StudyList::allExpiredWords(QDateTime expire)
-{
-    sptr<StudyList> sl = new StudyList();
-    if (sl.get()) {
-        QVector<QString> wordList;
-        auto expireInt = MyTime(expire).toMinutes();
-
-        QSqlQuery query;
-        query.prepare(" SELECT word"
-                      " FROM wordcards AS card INNER JOIN words AS word ON card.word_id=word.id"
-                      " WHERE"
-                              " card.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
-                              " AND expire<:expire"
-                      " ORDER BY expire ASC;"
-                    );
-        query.bindValue(":expire", expireInt);
-        if (query.exec()) {
-            while (query.next()) {
-                QString spelling = query.value("word").toString();
-                wordList.append(spelling);
-            }
-        } else {
-            WordDB::databaseError(query, "fetching all expired words");
-        }
-
         sl->setWordList(wordList);
     }
 

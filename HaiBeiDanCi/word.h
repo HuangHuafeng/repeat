@@ -30,9 +30,6 @@ public:
     static bool createDatabaseTables();
     static bool isInDatabase(const QString &spelling);
     static sptr<Word> getWordFromDatabase(const QString &spelling);
-    static QVector<QString> getNewWords(int number = 0);
-    static QVector<QString> getWords(int number = 0);
-    static QVector<QString> getExpiredWords(int number);
     static int getWordId(const QString &spelling);
 
 protected:

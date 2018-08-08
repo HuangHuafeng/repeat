@@ -124,8 +124,12 @@ void StudyWindow::showWord(sptr<Word> word)
 
 void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)
 {
-    if (m_studyList.get()) {
+    if (m_studyList.get() && m_currentCard.get()) {
         m_studyList->responseToCurrent(m_currentCard, responseQulity);
+        auto word = m_currentCard->getWord();
+        if (word.get()) {
+            emit wordStudied(word->getSpelling());
+        }
         m_currentCard = m_studyList->nextCard();
         m_state = ShowSpell;
     }

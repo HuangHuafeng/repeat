@@ -20,12 +20,12 @@ public:
 
     static sptr<StudyList> allWords();
     static sptr<StudyList> allNewWords();
-    static sptr<StudyList> allStudiedWords();
+    static sptr<StudyList> allOldWords();
     static sptr<StudyList> allExpiredWords(QDateTime expire = QDateTime::currentDateTime());
 
     static sptr<StudyList> allWordsInBook(const QString &bookName);
     static sptr<StudyList> allNewWordsInBook(const QString &bookName);
-    static sptr<StudyList> allStudiedWordsInBook(const QString &bookName);
+    static sptr<StudyList> allOldWordsInBook(const QString &bookName);
     static sptr<StudyList> allExpiredWordsInBook(const QString &bookName, const QDateTime expire);
 
     sptr<WordCard> nextCard();

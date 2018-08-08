@@ -76,9 +76,14 @@ int WordBook::totalWords()
     return 0;
 }
 
-QVector<QString> WordBook::getAllWords()
+QVector<QString> WordBook::getAllWords(int number)
 {
-    return getStudiedWords() + getNewWords();
+    auto allWords = getOldWords(number) + getNewWords(number);
+    if (number > 0 && allWords.size() > number) {
+        allWords.resize(number);
+    }
+
+    return allWords;
 }
 
 /**
@@ -86,16 +91,22 @@ QVector<QString> WordBook::getAllWords()
  * @return a list of words ASC
  * A "studied word" is a word that has a record in table wordcards
  */
-QVector<QString> WordBook::getStudiedWords()
+QVector<QString> WordBook::getOldWords(int number)
 {
     QVector<QString> wordList;
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
-    query.prepare(" SELECT word"
-                  " FROM words AS w INNER JOIN wordcards as c ON w.id=c.word_id"
+    QString sql = " SELECT word"
+                  " FROM words AS w INNER JOIN wordcards AS c ON w.id=c.word_id"
                   " WHERE"
                             " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
                             " AND c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
-                  " ORDER BY c.expire ASC");
+                  " ORDER BY c.expire ASC";
+    if (number > 0) {
+        query.prepare(sql + " LIMIT :limit");
+        query.bindValue(":limit", number);
+    } else {
+        query.prepare(sql);
+    }
     query.bindValue(":book_id", getId());
     if (query.exec()) {
         while (query.next()) {
@@ -114,16 +125,22 @@ QVector<QString> WordBook::getStudiedWords()
  * @return a list of words ordered by word id ASC
  * A "new word" is a word that has NO record in table wordcards
  */
-QVector<QString> WordBook::getNewWords()
+QVector<QString> WordBook::getNewWords(int number)
 {
     QVector<QString> wordList;
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
-    query.prepare(" SELECT word"
+    QString sql = " SELECT word"
                   " FROM words AS w"
                   " WHERE"
                             " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
-                            " AND w.id NOT IN (SELECT word_id FROM wordcards GROUP BY word_id)"
-                  " ORDER BY w.id ASC");
+                            " AND w.id NOT IN (SELECT DISTINCT word_id FROM wordcards)"
+                  " ORDER BY w.id ASC";
+    if (number > 0) {
+        query.prepare(sql + " LIMIT :limit");
+        query.bindValue(":limit", number);
+    } else {
+        query.prepare(sql);
+    }
     query.bindValue(":book_id", getId());
     if (query.exec()) {
         while (query.next()) {
@@ -138,18 +155,24 @@ QVector<QString> WordBook::getNewWords()
 }
 
 
-QVector<QString> WordBook::getExpiredWords(const QDateTime expire)
+QVector<QString> WordBook::getExpiredWords(const QDateTime expire, int number)
 {
     auto expireInt = MyTime(expire).toMinutes();
     QVector<QString> wordList;
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
-    query.prepare(" SELECT word"
+    QString sql = " SELECT word"
                   " FROM words AS w INNER JOIN wordcards as c ON w.id=c.word_id"
                   " WHERE"
                             " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
                             " AND c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
                             " AND c.expire<:expireint"
-                  " ORDER BY c.expire ASC");
+                  " ORDER BY c.expire ASC";
+    if (number > 0) {
+        query.prepare(sql + " LIMIT :limit");
+        query.bindValue(":limit", number);
+    } else {
+        query.prepare(sql);
+    }
     query.bindValue(":book_id", getId());
     query.bindValue(":expireint", expireInt);
     if (query.exec()) {

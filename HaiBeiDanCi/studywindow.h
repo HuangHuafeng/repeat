@@ -17,11 +17,14 @@ class StudyWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit StudyWindow(QWidget *parent = 0);
+    explicit StudyWindow(QWidget *parent = nullptr);
     ~StudyWindow();
 
     bool setStudyList(sptr<StudyList> studyList);
     void reloadView();
+
+signals:
+    void wordStudied(QString spelling);
 
 private slots:
     void on_pushShow_clicked();

@@ -66,6 +66,11 @@ public:
     static sptr<WordCard> getCardForWord(const QString &spelling);
     static void readAllCardsFromDatabase();
 
+    static QVector<QString> getAllWords(int number = 0);
+    static QVector<QString> getNewWords(int number = 0);
+    static QVector<QString> getOldWords(int number = 0);
+    static QVector<QString> getExpiredWords(const QDateTime expire, int number = 0);
+
 protected:
     virtual void updateFromDatabase() override;
 

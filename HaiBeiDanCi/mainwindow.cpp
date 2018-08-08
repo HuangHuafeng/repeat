@@ -15,6 +15,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->twBooks, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
     listBooks();
+
+    updateAllBooksData();
+    connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(updateAllBooksData()));
+    connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(updateCurrentBookData()));
 }
 
 MainWindow::~MainWindow()
@@ -48,6 +52,11 @@ void MainWindow::listBooks()
 }
 
 void MainWindow::onItemSelectionChanged()
+{
+    updateCurrentBookData();
+}
+
+void MainWindow::updateCurrentBookData()
 {
     // expired words
     auto expired = expiredWordsFromCurrentBook();
@@ -90,6 +99,49 @@ void MainWindow::onItemSelectionChanged()
     ui->pushStudyAllWords->setEnabled(numOfWords > 0);
 }
 
+void MainWindow::updateAllBooksData()
+{
+    // expired words
+    auto expired = StudyList::allExpiredWords();
+    auto numOfWords = 0;
+    if (expired.get()) {
+        numOfWords = expired->size();
+    }
+    ui->labelGlobalExpired->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
+    ui->pushGlobalBrowseExpiredWords->setEnabled(numOfWords > 0);
+    ui->pushGlobalStudyExpiredWords->setEnabled(numOfWords > 0);
+
+    // old words
+    auto old = StudyList::allOldWords();
+    numOfWords = 0;
+    if (old.get()) {
+        numOfWords = old->size();
+    }
+    ui->labelGlobalOld->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
+    ui->pushGlobalBrowseOldWords->setEnabled(numOfWords > 0);
+    ui->pushGlobalStudyOldWords->setEnabled(numOfWords > 0);
+
+    // new words
+    auto newWords = StudyList::allNewWords();
+    numOfWords = 0;
+    if (newWords.get()) {
+        numOfWords = newWords->size();
+    }
+    ui->labelGlobalNew->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
+    ui->pushGlobalBrowseNewWords->setEnabled(numOfWords > 0);
+    ui->pushGlobalStudyNewWords->setEnabled(numOfWords > 0);
+
+    // all words
+    auto all = StudyList::allWords();
+    numOfWords = 0;
+    if (all.get()) {
+        numOfWords = all->size();
+    }
+    ui->labelGlobalAll->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
+    ui->pushGlobalBrowseAllWords->setEnabled(numOfWords > 0);
+    ui->pushGlobalStudyAllWords->setEnabled(numOfWords > 0);
+}
+
 void MainWindow::addBookToTheView(WordBook &book)
 {
     QStringList infoList;
@@ -97,18 +149,6 @@ void MainWindow::addBookToTheView(WordBook &book)
     infoList.append(book.getIntroduction());
     QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
     ui->twBooks->addTopLevelItem(item);
-}
-
-void MainWindow::on_pushTest_clicked()
-{
-    auto studyList = StudyList::allWords();
-    startStudy(studyList);
-
-    /* if the window is created on heap, when to delete it?!
-    auto sw = new StudyWindow(this);
-    sw->setStudyList(StudyList::allWords());
-    sw->show();
-    */
 }
 
 void MainWindow::startStudy(sptr<StudyList> studyList)
@@ -174,7 +214,7 @@ void MainWindow::on_pushBrowseExpiredWords_clicked()
 sptr<StudyList> MainWindow::oldWordsFromCurrentBook()
 {
     auto bookName = ui->twBooks->currentItem()->text(0);
-    return StudyList::allStudiedWordsInBook(bookName);
+    return StudyList::allOldWordsInBook(bookName);
 }
 
 void MainWindow::on_pushStudyOldWords_clicked()
@@ -218,3 +258,52 @@ void MainWindow::on_pushBrowseAllWords_clicked()
 {
     startBrowse(allWordsFromCurrentBook());
 }
+
+void MainWindow::on_pushGlobalStudyAllWords_clicked()
+{
+    auto studyList = StudyList::allWords();
+    startStudy(studyList);
+}
+
+void MainWindow::on_pushGlobalBrowseAllWords_clicked()
+{
+    auto studyList = StudyList::allWords();
+    startBrowse(studyList);
+}
+
+void MainWindow::on_pushGlobalStudyNewWords_clicked()
+{
+    auto studyList = StudyList::allNewWords();
+    startStudy(studyList);
+}
+
+void MainWindow::on_pushGlobalBrowseNewWords_clicked()
+{
+    auto studyList = StudyList::allNewWords();
+    startBrowse(studyList);
+}
+
+void MainWindow::on_pushGlobalStudyOldWords_clicked()
+{
+    auto studyList = StudyList::allOldWords();
+    startStudy(studyList);
+}
+
+void MainWindow::on_pushGlobalBrowseOldWords_clicked()
+{
+    auto studyList = StudyList::allOldWords();
+    startBrowse(studyList);
+}
+
+void MainWindow::on_pushGlobalStudyExpiredWords_clicked()
+{
+    auto studyList = StudyList::allExpiredWords();
+    startStudy(studyList);
+}
+
+void MainWindow::on_pushGlobalBrowseExpiredWords_clicked()
+{
+    auto studyList = StudyList::allExpiredWords();
+    startBrowse(studyList);
+}
+

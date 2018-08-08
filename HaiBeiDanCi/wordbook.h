@@ -26,10 +26,10 @@ public:
     bool addWord(QString spelling);
     bool dbsaveDeleteAllWords();
     int totalWords();
-    QVector<QString> getAllWords();
-    QVector<QString> getStudiedWords();
-    QVector<QString> getNewWords();
-    QVector<QString> getExpiredWords(const QDateTime expire);
+    QVector<QString> getAllWords(int number = 0);
+    QVector<QString> getOldWords(int number = 0);
+    QVector<QString> getNewWords(int number = 0);
+    QVector<QString> getExpiredWords(const QDateTime expire, int number = 0);
 
     static bool createDatabaseTables();
     static QVector<sptr<WordBook>> getWordBooks();
@@ -37,6 +37,7 @@ public:
     static bool isInDatabase(int bookId);
     static bool isInDatabase(const QString &name);
     static int getBookId(const QString &name);
+
     static QVector<QString> getWordsInBook(const QString &bookName);
 
 protected:

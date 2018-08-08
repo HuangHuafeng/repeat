@@ -89,34 +89,6 @@ void WordCard::dbgetStudyRecords()
     }
 }
 
-/*
-void WordCard::dbgetStudyRecords()
-{
-    int wordId = getId();
-    if (wordId == 0) {
-        return;
-    }
-    if (m_studyHistory.size() > 0) {
-        // it's already updated!
-        return;
-    }
-
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
-    query.prepare("SELECT expire, study_date FROM words_in_study WHERE word_id=:word_id");
-    query.bindValue(":word_id", wordId);
-    if (query.exec()) {
-        while (query.next()) {
-            qint64 expire = query.value("expire").toLongLong();
-            qint64 studyDate = query.value("study_date").toLongLong();
-            StudyRecord sr(expire, studyDate);
-            m_studyHistory.append(sr);
-        }
-    } else {
-        WordDB::databaseError(query, "fetching expire time of \"" + m_spelling + "\"");
-    }
-}
-*/
-
 const QDateTime WordCard::getExpireTime()
 {
     updateFromDatabase();
@@ -309,34 +281,6 @@ bool WordCard::doesWordHaveCard(const QString &spelling)
     WordCard::readAllCardsFromDatabase();
 
     return m_cards.value(spelling).get() != nullptr;
-    /*
-    sptr<WordCard> card = m_cards.value(spelling);
-    if (card.get()) {
-        // there is a card
-        return  true;
-    }
-
-    bool retVal = false;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
-    query.prepare(" SELECT *"
-                  " FROM wordcards"
-                  " WHERE word_id"
-                        " IN (SELECT id FROM words WHERE word=:word)"
-                  " LIMIT 1");
-    query.bindValue(":word", spelling);
-    if (query.exec()) {
-        if (query.first()) {
-            retVal = true;
-        } else {
-            retVal = false;
-        }
-    } else {
-        WordDB::databaseError(query, "checking if there's card for word \"" + spelling  + "\"");
-        retVal = false;
-    }
-
-    return retVal;
-    */
 }
 
 // static
@@ -363,4 +307,127 @@ bool WordCard::createDatabaseTables()
     }
 
     return true;
+}
+
+
+/**
+  get a list of words that is new (a new word has definition, but has no study record)
+  only spelling is added to the list, Word object should be created by the caller to
+  keep flexibility
+  */
+// static
+QVector<QString> WordCard::getNewWords(int number)
+{
+    QVector<QString> wordList;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    QString sql = "SELECT word"
+                  " FROM words"
+                  " WHERE id"
+                            " NOT IN (SELECT DISTINCT word_id FROM wordcards)"
+                  " ORDER BY id ASC";
+    if (number > 0) {
+        query.prepare(sql + " LIMIT :limit");
+        query.bindValue(":limit", number);
+    } else {
+        query.prepare(sql);
+    }
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            wordList.append(spelling);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching new words");
+    }
+
+    return wordList;
+}
+
+// static
+QVector<QString> WordCard::getOldWords(int number)
+{
+    QVector<QString> wordList;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    QString sql = " SELECT word"
+                  " FROM words AS w INNER JOIN wordcards as c ON w.id=c.word_id"
+                  " WHERE"
+                            " c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
+                  " ORDER BY c.expire ASC";
+    if (number > 0) {
+        query.prepare(sql + " LIMIT :limit");
+        query.bindValue(":limit", number);
+    } else {
+        query.prepare(sql);
+    }
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            wordList.append(spelling);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching new words");
+    }
+
+    return wordList;
+}
+
+// static
+QVector<QString> WordCard::getAllWords(int number)
+{
+    QVector<QString> wordList;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    QString sql = "SELECT word FROM words ORDER BY id ASC";
+    if (number > 0) {
+        query.prepare(sql + " LIMIT :limit");
+        query.bindValue(":limit", number);
+    } else {
+        query.prepare(sql);
+    }
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            wordList.append(spelling);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching new words");
+    }
+
+
+    return wordList;
+}
+
+/**
+  get a list of words that is new (a new word has definition, but has no study record)
+  only spelling is added to the list, Word object should be created by the caller to
+  keep flexibility
+  */
+// static
+QVector<QString> WordCard::getExpiredWords(const QDateTime expire, int number)
+{
+    auto expireInt = MyTime(expire).toMinutes();
+    QVector<QString> wordList;
+    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    QString sql = " SELECT word"
+                  " FROM words AS w INNER JOIN wordcards AS c ON w.id=c.word_id"
+                  " WHERE"
+                            " c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
+                            " AND c.expire<:expireint"
+                  " ORDER BY c.expire ASC";
+    if (number > 0) {
+        query.prepare(sql + " LIMIT :limit");
+        query.bindValue(":limit", number);
+    } else {
+        query.prepare(sql);
+    }
+    query.bindValue(":expireint", expireInt);
+    if (query.exec()) {
+        while (query.next()) {
+            QString spelling = query.value("word").toString();
+            wordList.append(spelling);
+        }
+    } else {
+        WordDB::databaseError(query, "fetching all expired words");
+    }
+
+    return wordList;
 }

@@ -11,11 +11,15 @@
 
 // m_baselineTime is my daughter's birth time
 const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
-const float WordCard::m_ratio[MemoryItem::Perfect + 1] = {0.1f, 0.1f, 0.1f, 0.64f, 0.8f, 1.0f};
 QMap<QString, sptr<WordCard>> WordCard::m_cards;
 
-WordCard::WordCard(sptr<Word> word, int interval, float easiness, int repition) :
-    MemoryItem(interval, easiness, repition)
+float WordCard::m_defaultEasiness = 2.5f;
+int WordCard::m_defaultIntervalForUnknownNewWord = 10;   // 10 minutes
+int WordCard::m_defaultInterval = 60 * 24;     // one day
+int WordCard::m_defaultIntervalForKnownNewWord = 60 * 24  * 3;  // three days
+
+WordCard::WordCard(sptr<Word> word) :
+    MemoryItem(m_defaultInterval, m_defaultEasiness, 0)
 {
     m_word = word;
 }
@@ -27,19 +31,49 @@ WordCard::~WordCard()
 
 void WordCard::update(ResponseQuality responseQuality)
 {
-    MemoryItem::update(responseQuality);
-
     // changes the interval with the ratio
-    int interval = static_cast<int>(getIntervalInMinute() * m_ratio[responseQuality]);
-    setInterval(interval);
+    //int interval = static_cast<int>(getIntervalInMinute());
+    //setInterval(interval);
+    int nextInterval;
+    float nextEasiness;
+    int nextRepetition;
+    if (responseQuality <= MemoryItem::IncorrectButCanRecall && isNew() == false) {
+        // set it relearn
+        nextInterval = estimatedInterval(responseQuality);
+        nextRepetition = 0;             // repetition reset to 0
+        nextEasiness = getEasiness();   // easiness don't change
+    } else {
+        nextInterval = estimatedInterval(responseQuality);
+        nextRepetition = getRepetition() + 1;
+        nextEasiness = estimatedEasiness(responseQuality);
+    }
 
+    setIntervalInMinute(nextInterval);
+    setEasiness(nextEasiness);
+    setRepetition(nextRepetition);
     dbsave();
+}
+
+bool WordCard::isNew()
+{
+    updateFromDatabase();
+
+    return m_studyHistory.isEmpty();
 }
 
 int WordCard::estimatedInterval(ResponseQuality responseQuality)
 {
     // we need to update the values from database before estimating
     updateFromDatabase();
+
+    int interval;
+    if (isNew()) {
+        interval = estimatedIntervalNewCard(responseQuality);
+    } else {
+        interval = estimatedIntervalOldCard(responseQuality);
+    }
+
+    return interval;
 
     /*
     如何计算下一次复习的时间？
@@ -48,8 +82,192 @@ int WordCard::estimatedInterval(ResponseQuality responseQuality)
     2、这次复习对这个单词的熟悉程度（“不认识”、“有点印象”、“想起来了”，“记住了”）
     3、上次复习到这次复习的时间间隔（通常来说，这个也就是上次复习时定下来的间隔【这个是不对的，因为这次复习的时候是间隔时长已经过去了，单词已经expire了】。但有些时候，我们可以提前复习，那么这两个值就不相等了。）
     */
+}
 
-    return MemoryItem::estimatedInterval(responseQuality) * m_ratio[responseQuality];
+int WordCard::estimatedIntervalNewCard(ResponseQuality responseQuality)
+{
+    if (responseQuality <= MemoryItem::IncorrectButCanRecall)
+    {
+        return defaultIntervalForUnknownNewWord();
+    } else if (responseQuality < MemoryItem::CorrectAfterHesitation)
+    {
+        // the user does not know the new word
+        return defaultInterval();
+    } else {
+        // the user knows the new word!
+        return defaultIntervalForKnownNewWord();
+    }
+}
+
+int WordCard::estimatedIntervalOldCard(ResponseQuality responseQuality)
+{
+    int estimatedInterval = 0;
+
+    if (responseQuality == MemoryItem::Perfect
+            || responseQuality == MemoryItem::CorrectAfterHesitation
+            || responseQuality == MemoryItem::CorrectWithDifficulty) {
+        int ci = getIntervalInMinute();
+        float ee = estimatedEasiness(responseQuality);
+        estimatedInterval = static_cast<int>(ci * ee);
+        // adjust the interval
+        estimatedInterval = adjustInterval(responseQuality, estimatedInterval);
+    } else {
+        estimatedInterval = defaultIntervalForRelearning();
+    }
+
+    return estimatedInterval;
+}
+
+int WordCard::adjustInterval(ResponseQuality responseQuality, int interval)
+{
+    if (isNew() == true) {
+        // the code should not reach here!
+        return interval;
+    }
+
+    int lastInterval = static_cast<int>(m_studyHistory.last().m_interval);
+    int minutesPast = static_cast<int>((MyTime(QDateTime::currentDateTime()).toMinutes() - m_studyHistory.last().m_studyDate.toMinutes()));
+
+    if (minutesPast < (lastInterval / 2)) {
+        // the user seems to review the wordcard again too soon!
+        // in this case, we use the last interval
+        //auto ee = estimatedEasiness(responseQuality);
+        //interval = static_cast<int>(interval / ee);
+        return interval;
+    }
+
+    int diff = minutesPast - lastInterval;
+
+    if (diff < 0) {
+        // the user reviews earlier than planned, so add penalty
+        if (responseQuality == MemoryItem::Perfect) {
+            diff = diff / 4;
+        } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
+            diff = diff / 2;
+        } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
+            diff = diff * 7 / 8;
+        } else {
+            // the code should NOT reach here!
+            diff = 0;
+        }
+    } else {
+        if (responseQuality == MemoryItem::Perfect) {
+            diff = diff * 7 / 8;
+        } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
+            diff = diff / 2;
+        } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
+            diff = diff / 4;
+        } else {
+            // the code should NOT reach here!
+            diff = 0;
+        }
+    }
+
+    if (diff < 60 * 24) {
+        // make it bigger than one day!!!
+    }
+
+    return interval + diff;
+}
+
+float WordCard::adjustEasiness(ResponseQuality responseQuality, float easiness)
+{
+    float adjusted = 0.0;
+    if (isNew() == true) {
+        if (responseQuality == MemoryItem::Perfect) {
+            adjusted = m_defaultEasiness * 1.15f;
+        } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
+            adjusted = m_defaultEasiness * 1.10f;
+        } else {
+            // do not decrease the ease if the user don't know the NEW word
+            adjusted = m_defaultEasiness;
+        }
+    } else {
+        if (responseQuality < MemoryItem::CorrectWithDifficulty) {
+            // the card going to relearning, so we don't change the easiness
+            adjusted = easiness;
+        } else {
+            int lastInterval = static_cast<int>(m_studyHistory.last().m_interval);
+            int minutesPast = static_cast<int>((MyTime(QDateTime::currentDateTime()).toMinutes() - m_studyHistory.last().m_studyDate.toMinutes()));
+
+            if (0 && minutesPast < (lastInterval / 2)) {
+                // the user seems to review the wordcard again too soon!
+                adjusted = getEasiness();
+            } else {
+                int diff = minutesPast - lastInterval;
+
+                if (diff < 0) {
+                    auto ratio = diff * 0.3f / lastInterval;    // maximum 15% adjustment
+                    // the user reviews earlier than planned, so add penalty
+                    if (responseQuality == MemoryItem::Perfect
+                            || responseQuality == MemoryItem::CorrectAfterHesitation
+                            || responseQuality == MemoryItem::CorrectWithDifficulty) {
+                        adjusted = easiness * (1 + ratio);
+                    } else {
+                        // the code should NOT reach here!
+                        adjusted = easiness;
+                    }
+                } else {
+                    float ratio = 0.0;    // maximum 15% adjustment
+                    if (responseQuality == MemoryItem::Perfect) {
+                        ratio = diff * 0.3f / lastInterval;
+                        if (ratio > 0.3f) {
+                            ratio = 0.3f;
+                        }
+                        adjusted = easiness * (1 + ratio);
+                    } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
+                        ratio = diff * 0.15f / lastInterval;
+                        if (ratio > 0.15f) {
+                            ratio = 0.15f;
+                        }
+                        adjusted = easiness * (1 + ratio);
+                    } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
+                        ratio = diff * 0.05f / lastInterval;
+                        if (ratio > 0.05f) {
+                            ratio = 0.05f;
+                        }
+                        adjusted = easiness * (1 + ratio);
+                    } else {
+                        // the code should NOT reach here!
+                        adjusted = easiness;
+                    }
+                }
+            }
+        }
+    }
+
+    return adjusted;
+}
+
+// static
+float WordCard::estimatedEasinessNoAdjustment(ResponseQuality responseQuality, float currentEasiness)
+{
+    float estimated = currentEasiness;
+
+    if (responseQuality == MemoryItem::Perfect) {
+        estimated = currentEasiness * 1.15f;    // add 15%
+    } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
+        estimated = currentEasiness;    // no change
+    } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
+        estimated = currentEasiness * 0.85f;
+    } else {
+        estimated = currentEasiness * 0.80f;
+    }
+
+    return estimated;
+}
+
+float WordCard::estimatedEasiness(ResponseQuality responseQuality)
+{
+    auto ce = getEasiness();
+    auto estimated = estimatedEasinessNoAdjustment(responseQuality, ce);
+    estimated = adjustEasiness(responseQuality, estimated);
+
+    if (estimated < 1.3f) {
+        estimated = 1.3f;
+    }
+
+    return estimated;
 }
 
 void WordCard::dbgetStudyRecords()
@@ -65,27 +283,31 @@ void WordCard::dbgetStudyRecords()
     }
 
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
-    query.prepare("SELECT interval, easiness, repitition, expire, study_date"
+    query.prepare("SELECT interval, easiness, repetition, expire, study_date"
                   " FROM wordcards WHERE word_id=:word_id");
     query.bindValue(":word_id", wordId);
     if (query.exec()) {
         while (query.next()) {
             int interval = query.value("interval").toInt();
             float easiness = query.value("easiness").toInt() / 100.0f;
-            int repitition = query.value("repitition").toInt();
+            int repetition = query.value("repetition").toInt();
             qint64 expire = query.value("expire").toLongLong();
             qint64 studyDate = query.value("study_date").toLongLong();
             StudyRecord sr(expire, studyDate);
             sr.m_easiness = easiness;
             sr.m_interval = interval;
-            sr.m_repition = repitition;
+            sr.m_repetition = repetition;
             m_studyHistory.append(sr);
-            setInterval(interval);
-            setEasiness(easiness);
-            setRepitition(repitition);
         }
     } else {
         WordDB::databaseError(query, "fetching card of \"" + m_word->getSpelling()  + "\"");
+    }
+
+    if (m_studyHistory.isEmpty() == false) {
+        auto sr = m_studyHistory.last();
+        setIntervalInMinute(sr.m_interval);
+        setEasiness(sr.m_easiness);
+        setRepetition(sr.m_repetition);
     }
 }
 
@@ -122,7 +344,7 @@ void WordCard::setExpireTime(const QDateTime &expireTime)
     StudyRecord newSR(expireTime, QDateTime::currentDateTime());
     newSR.m_easiness = getEasiness();
     newSR.m_interval = getIntervalInMinute();
-    newSR.m_repition = getRepitition();
+    newSR.m_repetition = getRepetition();
     m_studyHistory.append(newSR);
     dbsaveStudyRecord(newSR);
 }
@@ -155,12 +377,12 @@ void WordCard::dbsaveStudyRecord(const StudyRecord &sr)
     int easiness = static_cast<int>(sr.m_easiness * 100);
 
     auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
-    query.prepare("INSERT INTO wordcards(word_id, interval, easiness, repitition, expire, study_date)"
-                  " VALUES(:word_id, :interval, :easiness, :repitition, :expire, :study_date)");
+    query.prepare("INSERT INTO wordcards(word_id, interval, easiness, repetition, expire, study_date)"
+                  " VALUES(:word_id, :interval, :easiness, :repetition, :expire, :study_date)");
     query.bindValue(":word_id", wordId);
     query.bindValue(":interval", sr.m_interval);
     query.bindValue(":easiness", easiness);
-    query.bindValue(":repitition", sr.m_repition);
+    query.bindValue(":repetition", sr.m_repetition);
     query.bindValue(":expire", sr.m_expire.toMinutes());
     query.bindValue(":study_date", sr.m_studyDate.toMinutes());
     if (query.exec() == false)
@@ -193,11 +415,11 @@ float WordCard::getEasiness()
     return MemoryItem::getEasiness();
 }
 
-int WordCard::getRepitition()
+int WordCard::getRepetition()
 {
     updateFromDatabase();
 
-    return MemoryItem::getRepitition();
+    return MemoryItem::getRepetition();
 }
 
 // static
@@ -294,7 +516,7 @@ bool WordCard::createDatabaseTables()
                       "word_id INTEGER, "
                       "interval INTEGER, "
                       "easiness INTEGER, "
-                      "repitition INTEGER, "
+                      "repetition INTEGER, "
                       "expire INTEGER, "
                       "study_date INTEGER)") == false) {
             WordDB::databaseError(query, "creating table \"wordcards\"");

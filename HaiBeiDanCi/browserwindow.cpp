@@ -110,7 +110,7 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
             infoList.append(card->getExpireTime().toString("yyyy-MM-dd"));
 
             // repetition
-            auto repetition = card->getRepitition();
+            auto repetition = card->getRepetition();
             if (repetition < 100) {
                 // less than 999 days, display number
                 QString repetitionText = QString("%1").arg(repetition, 2, 10, QChar('0'));
@@ -124,7 +124,9 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
 
             // interval
             auto im = card->getIntervalInMinute() / (60 * 24);
-            if (im < 999) {
+            if (im == 0) {
+                infoList.append(BrowserWindow::tr("<1"));
+            } else if (im < 999) {
                 // less than 999 days, display number
                 QString interval = QString("%1").arg(im, 3, 10, QChar('0'));
                 infoList.append(interval);

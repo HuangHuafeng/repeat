@@ -66,11 +66,16 @@ bool StudyWindow::setStudyList(sptr<StudyList> studyList)
     cleanTheWidgets();
 
     m_studyList = studyList;
+    nextWord();
+
+    /*
+    m_studyList = studyList;
     m_currentCard = m_studyList->nextCard();
     if (m_currentCard) {
         m_state = StudyWindow::ShowSpell;
     }
     showCurrentCard();
+    */
 
     return true;
 }
@@ -105,7 +110,6 @@ void StudyWindow::cleanTheWidgets()
 
 void StudyWindow::showCard(WordCard &card)
 {
-    updateLabels(card);
     updateButtons();
 
     showWord(card.getWord());
@@ -151,14 +155,24 @@ void StudyWindow::showWord(sptr<Word> word)
 
 void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)
 {
-    if (m_studyList.get() && m_currentCard.get()) {
+    if (m_studyList.get() == nullptr) {
+        return;
+    }
+
+    if (m_currentCard.get()) {
         m_studyList->responseToCurrent(m_currentCard, responseQulity);
         auto word = m_currentCard->getWord();
         if (word.get()) {
             emit wordStudied(word->getSpelling());
         }
-        m_currentCard = m_studyList->nextCard();
-        m_state = ShowSpell;
+        m_currentCard = sptr<WordCard>();
+    }
+
+    m_currentCard = m_studyList->nextCard();
+    m_state = ShowSpell;
+
+    if (m_currentCard.get()) {
+        updateLabels(*m_currentCard);
     }
 
     showCurrentCard();
@@ -207,7 +221,7 @@ void StudyWindow::updateLabels(WordCard &card)
     ui->labelPerfect->setText(minuteToString(perfect));
 
     if (m_studyList.get()) {
-        auto numberOfCards = m_studyList->getWordList().size();
+        auto numberOfCards = m_studyList->size();
         ui->labelShow->setText("<html><span style=\"color:blue\">" + QString::number(numberOfCards) + "</span><html>");
     }
 }

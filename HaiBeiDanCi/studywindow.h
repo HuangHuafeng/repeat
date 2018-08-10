@@ -57,7 +57,7 @@ private:
     void showCard(WordCard &card);
     void showWord(sptr<Word> word);
     QString minuteToString(int minute);
-    void nextWord(MemoryItem::ResponseQuality responseQulity);
+    void nextWord(MemoryItem::ResponseQuality responseQulity = MemoryItem::Perfect);
     void allCardsFinished();
     void cleanTheWidgets();
     void updateButtons();

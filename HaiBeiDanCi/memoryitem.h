@@ -17,17 +17,16 @@ public:
         Perfect = 5
     } ResponseQuality;
 
-    MemoryItem(int interval = 24 * 60, float easiness = 2.5, int repition = 0);
-    virtual void update(ResponseQuality responseQuality);
-
-    virtual int estimatedInterval(ResponseQuality responseQuality = Perfect);
+    MemoryItem(int intervalInMinutes = 24 * 60, float easiness = 2.5, int repition = 0);
+    virtual ~MemoryItem();
+    virtual void update(ResponseQuality responseQuality) = 0;
 
     int getIntervalInMinute()
     {
         return m_interval;
     }
 
-    void setInterval(int interval)
+    void setIntervalInMinute(int interval)
     {
         m_interval = interval;
     }
@@ -42,22 +41,20 @@ public:
         m_easiness = easiness;
     }
 
-    int getRepitition()
+    int getRepetition()
     {
-        return m_repition;
+        return m_repetition;
     }
 
-    void setRepitition( int repitition)
+    void setRepetition( int repetition)
     {
-        m_repition = repitition;
+        m_repetition = repetition;
     }
 
 private:
-    int m_repition; //
+    int m_repetition; //
     int m_interval; // in minutes
     float m_easiness;
-
-    float estimatedEasiness(ResponseQuality responseQuality = Perfect) const;
 
 };
 

@@ -41,17 +41,20 @@ class WordCard : public MemoryItem, public DatabaseObject
 {
 public:
     virtual ~WordCard() override;
-    virtual void update(ResponseQuality responseQuality) override;
-    virtual int estimatedInterval(ResponseQuality responseQuality = Perfect) override;
     void dbsaveStudyRecord(const StudyRecord &sr);
     void setExpireTime(const QDateTime &expireTime);
     const QDateTime getExpireTime();
     const QDateTime getLastStudyTime();
     QVector<StudyRecord> getStudyHistory();
 
+    virtual void update(ResponseQuality responseQuality) override;
+    int estimatedInterval(ResponseQuality responseQuality = Perfect);
+
+    bool isNew();
+
     int getIntervalInMinute();
     float getEasiness();
-    int getRepitition();
+    int getRepetition();
 
     sptr<Word> getWord() const
     {
@@ -75,21 +78,48 @@ protected:
     virtual void updateFromDatabase() override;
 
 private:
-    WordCard(sptr<Word> word = sptr<Word>(), int interval = 24, float easiness = 2.5, int repition = 0);
-
-    static const float m_ratio[MemoryItem::Perfect + 1];
+    WordCard(sptr<Word> word = sptr<Word>());
     static QMap<QString, sptr<WordCard>> m_cards;
+
+    static int m_defaultInterval;
+    static int m_defaultIntervalForUnknownNewWord;
+    static int m_defaultIntervalForKnownNewWord;
+    static float m_defaultEasiness;
+
+    int defaultInterval() {
+        return m_defaultInterval;
+    }
+
+    int defaultIntervalForKnownNewWord() {
+        return m_defaultIntervalForKnownNewWord;
+    }
+
+    int defaultIntervalForUnknownNewWord() {
+        return m_defaultIntervalForUnknownNewWord;
+    }
+
+    int defaultIntervalForRelearning() {
+        return m_defaultIntervalForUnknownNewWord;
+    }
 
     sptr<Word> m_word;
     QVector<StudyRecord> m_studyHistory;
 
     void dbsave();
     void dbgetStudyRecords();
+
+    int estimatedIntervalNewCard(ResponseQuality responseQuality = Perfect);
+    int estimatedIntervalOldCard(ResponseQuality responseQuality = Perfect);
+    int adjustInterval(ResponseQuality responseQuality, int interval);
+
+    float estimatedEasiness(ResponseQuality responseQuality);
+    static float estimatedEasinessNoAdjustment(ResponseQuality responseQuality, float currentEasiness);
+    float adjustEasiness(ResponseQuality responseQuality, float easiness);
 };
 
 struct StudyRecord
 {
-    int m_repition; //
+    int m_repetition; //
     int m_interval; // in minutes
     float m_easiness;
     MyTime m_expire;

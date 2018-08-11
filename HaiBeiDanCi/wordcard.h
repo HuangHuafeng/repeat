@@ -86,6 +86,11 @@ private:
     static int m_defaultIntervalForKnownNewWord;
     static float m_defaultEasiness;
 
+    static float m_defaultPerfectIncrease;
+    static float m_defaultCorrectIncrease;
+    static float m_defaultKindRememberIncrease;
+    static float m_defaultIncorrectIncrease;
+
     int defaultInterval() {
         return m_defaultInterval;
     }
@@ -110,11 +115,11 @@ private:
 
     int estimatedIntervalNewCard(ResponseQuality responseQuality = Perfect);
     int estimatedIntervalOldCard(ResponseQuality responseQuality = Perfect);
-    int adjustInterval(ResponseQuality responseQuality, int interval);
+    float getAdjustProportion();
+    float getEasinessAdjustRatio(ResponseQuality responseQuality);
+    float getIntervalAdjustRatio(ResponseQuality responseQuality);
 
     float estimatedEasiness(ResponseQuality responseQuality);
-    static float estimatedEasinessNoAdjustment(ResponseQuality responseQuality, float currentEasiness);
-    float adjustEasiness(ResponseQuality responseQuality, float easiness);
 };
 
 struct StudyRecord

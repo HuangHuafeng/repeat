@@ -13,10 +13,19 @@
 const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
 QMap<QString, sptr<WordCard>> WordCard::m_cards;
 
-float WordCard::m_defaultEasiness = 2.5f;
 int WordCard::m_defaultIntervalForUnknownNewWord = 10;   // 10 minutes
 int WordCard::m_defaultInterval = 60 * 24;     // one day
 int WordCard::m_defaultIntervalForKnownNewWord = 60 * 24  * 3;  // three days
+
+float WordCard::m_defaultEasiness = 2.5f;
+// based on the response, adjust easiness and interval
+// so we have the following constraints logically
+// m_defaultPerfectIncrease > m_defaultCorrectIncrease >= 0
+// 0 > m_defaultKindRememberIncrease > m_defaultIncorrectIncrease
+float WordCard::m_defaultPerfectIncrease = 0.15f;
+float WordCard::m_defaultCorrectIncrease = 0.0f;
+float WordCard::m_defaultKindRememberIncrease = -0.15f;
+float WordCard::m_defaultIncorrectIncrease = -0.20f;
 
 WordCard::WordCard(sptr<Word> word) :
     MemoryItem(m_defaultInterval, m_defaultEasiness, 0)
@@ -37,6 +46,7 @@ void WordCard::update(ResponseQuality responseQuality)
     int nextInterval;
     float nextEasiness;
     int nextRepetition;
+
     if (responseQuality <= MemoryItem::IncorrectButCanRecall && isNew() == false) {
         // set it relearn
         nextInterval = estimatedInterval(responseQuality);
@@ -74,14 +84,6 @@ int WordCard::estimatedInterval(ResponseQuality responseQuality)
     }
 
     return interval;
-
-    /*
-    如何计算下一次复习的时间？
-    至少应和下面这些相关：
-    1、这个单词的难度，最小值1.3，最大值呢？
-    2、这次复习对这个单词的熟悉程度（“不认识”、“有点印象”、“想起来了”，“记住了”）
-    3、上次复习到这次复习的时间间隔（通常来说，这个也就是上次复习时定下来的间隔【这个是不对的，因为这次复习的时候是间隔时长已经过去了，单词已经expire了】。但有些时候，我们可以提前复习，那么这两个值就不相等了。）
-    */
 }
 
 int WordCard::estimatedIntervalNewCard(ResponseQuality responseQuality)
@@ -108,9 +110,22 @@ int WordCard::estimatedIntervalOldCard(ResponseQuality responseQuality)
             || responseQuality == MemoryItem::CorrectWithDifficulty) {
         int ci = getIntervalInMinute();
         float ee = estimatedEasiness(responseQuality);
-        estimatedInterval = static_cast<int>(ci * ee);
-        // adjust the interval
-        estimatedInterval = adjustInterval(responseQuality, estimatedInterval);
+        //auto proportion = getAdjustProportion();
+        //estimatedInterval = static_cast<int>(ci * (1.0f + (1.0f + proportion) * ee));
+        auto ia = getIntervalAdjustRatio(responseQuality);
+        auto tempInterval = ci * ee * ia;
+
+        // make it greater than defaultInterval()
+        if (tempInterval  < defaultInterval()) {
+            if (responseQuality == MemoryItem::Perfect) {
+                tempInterval = defaultInterval() * (1.0f + m_defaultPerfectIncrease) / (1.0f + m_defaultIncorrectIncrease);
+            } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
+                tempInterval = defaultInterval() * (1.0f + m_defaultCorrectIncrease) / (1.0f + m_defaultIncorrectIncrease);
+            } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
+                tempInterval = defaultInterval();
+            }
+        }
+        estimatedInterval = static_cast<int>(tempInterval);
     } else {
         estimatedInterval = defaultIntervalForRelearning();
     }
@@ -118,150 +133,88 @@ int WordCard::estimatedIntervalOldCard(ResponseQuality responseQuality)
     return estimatedInterval;
 }
 
-int WordCard::adjustInterval(ResponseQuality responseQuality, int interval)
+/**
+ * @brief WordCard::getAdjustProportion
+ * @return -1.0 < proportion < 1.0
+ */
+float WordCard::getAdjustProportion()
 {
-    if (isNew() == true) {
-        // the code should not reach here!
-        return interval;
+    if (isNew()) {
+        return 0.0f;
     }
 
     int lastInterval = static_cast<int>(m_studyHistory.last().m_interval);
     int minutesPast = static_cast<int>((MyTime(QDateTime::currentDateTime()).toMinutes() - m_studyHistory.last().m_studyDate.toMinutes()));
-
-    if (minutesPast < (lastInterval / 2)) {
-        // the user seems to review the wordcard again too soon!
-        // in this case, we use the last interval
-        //auto ee = estimatedEasiness(responseQuality);
-        //interval = static_cast<int>(interval / ee);
-        return interval;
-    }
-
     int diff = minutesPast - lastInterval;
-
-    if (diff < 0) {
-        // the user reviews earlier than planned, so add penalty
-        if (responseQuality == MemoryItem::Perfect) {
-            diff = diff / 4;
-        } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
-            diff = diff / 2;
-        } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
-            diff = diff * 7 / 8;
-        } else {
-            // the code should NOT reach here!
-            diff = 0;
-        }
-    } else {
-        if (responseQuality == MemoryItem::Perfect) {
-            diff = diff * 7 / 8;
-        } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
-            diff = diff / 2;
-        } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
-            diff = diff / 4;
-        } else {
-            // the code should NOT reach here!
-            diff = 0;
-        }
+    float proportion = diff * 1.0f / lastInterval;
+    if (proportion > 1.0f) {
+        proportion = 1.0f;
     }
 
-    if (diff < 60 * 24) {
-        // make it bigger than one day!!!
-    }
-
-    return interval + diff;
+    return proportion;
 }
 
-float WordCard::adjustEasiness(ResponseQuality responseQuality, float easiness)
+/**
+ * @brief WordCard::getEasinessAdjustRatio
+ * @param responseQuality
+ * @return
+ * assumes:
+ * 1.0f > m_defaultPerfectIncrease >= 0
+ * 1.0f > m_defaultCorrectIncrease >= 0
+ * -1.0f < m_defaultKindRememberIncrease <= 0
+ */
+float WordCard::getEasinessAdjustRatio(ResponseQuality responseQuality)
 {
-    float adjusted = 0.0;
-    if (isNew() == true) {
-        if (responseQuality == MemoryItem::Perfect) {
-            adjusted = m_defaultEasiness * 1.15f;
-        } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
-            adjusted = m_defaultEasiness * 1.10f;
-        } else {
-            // do not decrease the ease if the user don't know the NEW word
-            adjusted = m_defaultEasiness;
-        }
-    } else {
-        if (responseQuality < MemoryItem::CorrectWithDifficulty) {
-            // the card going to relearning, so we don't change the easiness
-            adjusted = easiness;
-        } else {
-            int lastInterval = static_cast<int>(m_studyHistory.last().m_interval);
-            int minutesPast = static_cast<int>((MyTime(QDateTime::currentDateTime()).toMinutes() - m_studyHistory.last().m_studyDate.toMinutes()));
-
-            if (0 && minutesPast < (lastInterval / 2)) {
-                // the user seems to review the wordcard again too soon!
-                adjusted = getEasiness();
-            } else {
-                int diff = minutesPast - lastInterval;
-
-                if (diff < 0) {
-                    auto ratio = diff * 0.3f / lastInterval;    // maximum 15% adjustment
-                    // the user reviews earlier than planned, so add penalty
-                    if (responseQuality == MemoryItem::Perfect
-                            || responseQuality == MemoryItem::CorrectAfterHesitation
-                            || responseQuality == MemoryItem::CorrectWithDifficulty) {
-                        adjusted = easiness * (1 + ratio);
-                    } else {
-                        // the code should NOT reach here!
-                        adjusted = easiness;
-                    }
-                } else {
-                    float ratio = 0.0;    // maximum 15% adjustment
-                    if (responseQuality == MemoryItem::Perfect) {
-                        ratio = diff * 0.3f / lastInterval;
-                        if (ratio > 0.3f) {
-                            ratio = 0.3f;
-                        }
-                        adjusted = easiness * (1 + ratio);
-                    } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
-                        ratio = diff * 0.15f / lastInterval;
-                        if (ratio > 0.15f) {
-                            ratio = 0.15f;
-                        }
-                        adjusted = easiness * (1 + ratio);
-                    } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
-                        ratio = diff * 0.05f / lastInterval;
-                        if (ratio > 0.05f) {
-                            ratio = 0.05f;
-                        }
-                        adjusted = easiness * (1 + ratio);
-                    } else {
-                        // the code should NOT reach here!
-                        adjusted = easiness;
-                    }
-                }
-            }
-        }
-    }
-
-    return adjusted;
-}
-
-// static
-float WordCard::estimatedEasinessNoAdjustment(ResponseQuality responseQuality, float currentEasiness)
-{
-    float estimated = currentEasiness;
-
+    auto proportion = getAdjustProportion();
+    float ratio = 0.0f;
     if (responseQuality == MemoryItem::Perfect) {
-        estimated = currentEasiness * 1.15f;    // add 15%
+        ratio = 1.0f + m_defaultPerfectIncrease * (1.0f + proportion);
     } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
-        estimated = currentEasiness;    // no change
+        ratio = 1.0f + m_defaultCorrectIncrease * (1.0f + proportion);
     } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
-        estimated = currentEasiness * 0.85f;
+        ratio = 1.0f + m_defaultKindRememberIncrease * (1.0f - proportion);
     } else {
-        estimated = currentEasiness * 0.80f;
+        ratio = 1.0f + m_defaultIncorrectIncrease * (1.0f - proportion);
     }
 
-    return estimated;
+    return ratio;
+}
+
+
+float WordCard::getIntervalAdjustRatio(ResponseQuality responseQuality)
+{
+    auto proportion = getAdjustProportion();
+    float ratio = 0.0f;
+
+    if (proportion > -0.5f) {
+        ratio = 1.0f + proportion;
+    } else {
+        auto currentEasiness = getEasiness();
+        ratio = 1.0f / currentEasiness ;
+    }
+
+    // make it related to responseQuality
+    float r1 = 0.0f;
+    if (responseQuality == MemoryItem::Perfect) {
+        r1 = 1.0f + m_defaultPerfectIncrease;
+    } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
+        r1 = 1.0f + m_defaultCorrectIncrease;
+    } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
+        r1 = 1.0f + m_defaultKindRememberIncrease;
+    } else {
+        // the code should NOT reach here!
+        r1 = 1.0f + m_defaultIncorrectIncrease;
+    }
+    ratio *= r1;
+
+    return ratio;
 }
 
 float WordCard::estimatedEasiness(ResponseQuality responseQuality)
 {
-    auto ce = getEasiness();
-    auto estimated = estimatedEasinessNoAdjustment(responseQuality, ce);
-    estimated = adjustEasiness(responseQuality, estimated);
+    auto currentEasiness = getEasiness();
+    auto ratio = getEasinessAdjustRatio(responseQuality);
+    float estimated =  currentEasiness * ratio;
 
     if (estimated < 1.3f) {
         estimated = 1.3f;

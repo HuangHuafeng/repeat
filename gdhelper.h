@@ -22,6 +22,7 @@ public:
     void loadDict(QString const & dictFileFullName);
     QString getWordDefinitionPage(QString word);
     bool saveWord(const QString &spelling);
+    bool saveWord(const QString &spelling, const QString &lemma);
 
 private:
     void modifyHtml(QString &html);

@@ -33,6 +33,7 @@ private:
 
     void addWordsToBook(WordBook &book, const QString fileName);
     void addWordListToBook(WordBook &book, const QStringList wordList);
+    bool addWord(QString spelling);
     QString lemmaWord(QString spelling);
     void loadLemmas();
     void load_e_lemma();

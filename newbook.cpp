@@ -79,20 +79,11 @@ void NewBook::addWordListToBook(WordBook &book, const QStringList wordList)
 
     for (int i = 0;i < wordList.size();i ++) {
         auto spelling = wordList.at(i);
-        auto repd = spelling.replace(QRegExp("[\\(\\)]"), "");
-        if (m_gdhelper.saveWord(repd) == false) {
-            auto lemma = lemmaWord(repd);
-            if (lemma.isEmpty() == false) {
-                if (m_gdhelper.saveWord(lemma) == false) {
-                    failedWords.append(spelling);
-                    //gdDebug("still failed after using lemma \"%s\"", lemma.toStdString().c_str());
-                } else {
-                    //gdDebug("added using lemma \"%s\"", lemma.toStdString().c_str());
-                }
-            } else {
-                failedWords.append(spelling);
-                //gdDebug("no leamma!");
-            }
+        // replace "(", ")"
+        spelling = spelling.replace(QRegExp("[\\(\\)]"), "");
+
+        if (addWord(spelling) == false) {
+            failedWords.append(spelling);
         } else {
             if (book.addWord(spelling) == false) {
                 failedWords.append(spelling);
@@ -115,6 +106,109 @@ void NewBook::addWordListToBook(WordBook &book, const QStringList wordList)
             gdDebug("FAILED WORD:%s", fw.toStdString().c_str());
         }
     }
+}
+
+bool NewBook::addWord(QString spelling)
+{
+    bool added = false;
+
+    // try it
+    if (added == false) {
+        if (m_gdhelper.saveWord(spelling)) {
+            added = true;
+        }
+    }
+
+    // try lemma
+    if (added == false) {
+        auto lemma = lemmaWord(spelling);
+        if (lemma.isEmpty() == false && m_gdhelper.saveWord(spelling, lemma)) {
+            added = true;
+        }
+    }
+
+    // try replacing "-" with " "
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("-", " ");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    // try replacing "-" with ""
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("-", "");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    // try replacing "vor" with "vour"
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("vor", "vour");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    // try replacing "bor" with "bour"
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("bor", "bour");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    // try replacing "lor" with "lour"
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("lor", "lour");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    // try replacing "nor" with "nour"
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("nor", "nour");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    // try replacing "mor" with "mour"
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("mor", "mour");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    // try replacing "fill" with "fil"
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("fill", "fil");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    // try replacing "up" with "-up"
+    if (added == false) {
+        QString varied = spelling;
+        varied.replace("up", "-up");
+        if (varied != spelling && m_gdhelper.saveWord(spelling, varied)) {
+            added = true;
+        }
+    }
+
+    return added;
 }
 
 void NewBook::loadLemmas()

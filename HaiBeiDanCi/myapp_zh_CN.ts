@@ -86,7 +86,7 @@
     <message>
         <location filename="browserwindow.cpp" line="322"/>
         <source>browse words</source>
-        <translation type="unfinished"></translation>
+        <translation>浏览单词</translation>
     </message>
 </context>
 <context>
@@ -305,7 +305,7 @@ Click OK to exit.</source>
     <message>
         <location filename="studywindow.cpp" line="281"/>
         <source>study words</source>
-        <translation type="unfinished"></translation>
+        <translation>学习单词</translation>
     </message>
 </context>
 <context>

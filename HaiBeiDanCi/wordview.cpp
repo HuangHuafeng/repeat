@@ -109,7 +109,19 @@ QString WordView::getDefinition()
 
 void WordView::contextMenuEvent(QContextMenuEvent *event)
 {
-    QWebEngineView::contextMenuEvent(event);
+    QMenu *menu = page()->createStandardContextMenu();
+    const QList<QAction *> actions = menu->actions();
+
+    auto it = actions.begin();
+    while (it != actions.end()) {
+        if (*it != page()->action(QWebEnginePage::Copy)) {
+            (*it)->setVisible(false);
+        }
+
+        it ++;
+    }
+
+    menu->popup(event->globalPos());
 }
 
 void WordView::toHtmlCallback(QString html)

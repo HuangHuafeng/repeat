@@ -61,7 +61,25 @@ bool GDHelper::saveWord(const QString &spelling)
     }
 
     QString html = getWordDefinitionPage(spelling);
-    if (html.contains("<p>No translation for <b>")) {
+    if (html.contains("<p>No translation ")) {
+        // cannot find the word in the dictionary
+        return false;
+    }
+
+    Word word(spelling);
+    word.setDefinition(html);
+    return true;
+}
+
+bool GDHelper::saveWord(const QString &spelling, const QString &lemma)
+{
+    if (Word::getWordId(spelling) != 0) {
+        // already in database
+        return true;
+    }
+
+    QString html = getWordDefinitionPage(lemma);
+    if (html.contains("<p>No translation ")) {
         // cannot find the word in the dictionary
         return false;
     }

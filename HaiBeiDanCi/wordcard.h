@@ -50,7 +50,11 @@ public:
     virtual void update(ResponseQuality responseQuality) override;
     int estimatedInterval(ResponseQuality responseQuality = Perfect);
 
+    // card status: new, learning, reviewing
+    // a new card is a learning card
     bool isNew();
+    bool isLearning();
+    bool isReviewing();
 
     int getIntervalInMinute();
     float getEasiness();

@@ -105,7 +105,7 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         infoList.append(word);
 
         auto card = WordCard::getCardForWord(word);
-        if (card.get()) {
+        if (card.get() && card->isNew() == false) {
             // expire
             infoList.append(card->getExpireTime().toString("yyyy-MM-dd"));
 
@@ -120,7 +120,9 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
             }
 
             // easiness
-            infoList.append(QString::number(static_cast<double>(card->getEasiness())));
+            double easiness = static_cast<double>(card->getEasiness());
+            QString easinessText = QString("%1").arg(easiness, 0, 'f', 2);
+            infoList.append(easinessText);
 
             // interval
             auto im = card->getIntervalInMinute() / (60 * 24);

@@ -71,6 +71,16 @@ bool WordCard::isNew()
     return m_studyHistory.isEmpty();
 }
 
+bool WordCard::isLearning()
+{
+    return getRepetition() < 3;
+}
+
+bool WordCard::isReviewing()
+{
+    return isLearning() == false;
+}
+
 int WordCard::estimatedInterval(ResponseQuality responseQuality)
 {
     // we need to update the values from database before estimating
@@ -165,6 +175,10 @@ float WordCard::getAdjustProportion()
  */
 float WordCard::getEasinessAdjustRatio(ResponseQuality responseQuality)
 {
+    // set a factor so we don't punish too much
+    // don't expose it to the user, avoid making this too complicated
+    const auto punishmentFactor = 0.4f;
+
     auto proportion = getAdjustProportion();
     float ratio = 0.0f;
     if (responseQuality == MemoryItem::Perfect) {
@@ -172,9 +186,17 @@ float WordCard::getEasinessAdjustRatio(ResponseQuality responseQuality)
     } else if (responseQuality == MemoryItem::CorrectAfterHesitation) {
         ratio = 1.0f + m_defaultCorrectIncrease * (1.0f + proportion);
     } else if (responseQuality == MemoryItem::CorrectWithDifficulty) {
-        ratio = 1.0f + m_defaultKindRememberIncrease * (1.0f - proportion);
+        if (isLearning()) {
+            ratio = 1.0f;
+        } else {
+            ratio = 1.0f + m_defaultKindRememberIncrease * (1.0f - punishmentFactor * proportion);
+        }
     } else {
-        ratio = 1.0f + m_defaultIncorrectIncrease * (1.0f - proportion);
+        if (isLearning()) {
+            ratio = 1.0f;
+        } else {
+            ratio = 1.0f + m_defaultIncorrectIncrease * (1.0f - punishmentFactor * proportion);
+        }
     }
 
     return ratio;

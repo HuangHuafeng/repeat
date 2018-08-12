@@ -2,6 +2,7 @@
 #include "ui_studywindow.h"
 #include "wordcard.h"
 #include "../golddict/gddebug.hh"
+#include "mysettings.h"
 
 #include <QLabel>
 #include <QMessageBox>
@@ -16,6 +17,8 @@ StudyWindow::StudyWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->vlDefinition->addWidget(&m_wordView);
     //setStyleSheet("background-color:#c7edcc;");
+
+    setMyTitle();
 
     loadSetting();
 }
@@ -271,4 +274,10 @@ void StudyWindow::updateButtons()
     ui->labelCorrect3->setVisible(m_state == ShowDefinition);
     ui->labelCorrect4->setVisible(m_state == ShowDefinition);
     ui->labelPerfect->setVisible(m_state == ShowDefinition);
+}
+
+void StudyWindow::setMyTitle()
+{
+    QString title = MySettings::appName() + " - " + StudyWindow::tr("study words");
+    setWindowTitle(title);
 }

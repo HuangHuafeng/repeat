@@ -25,7 +25,7 @@ NewBook::~NewBook()
 void NewBook::on_buttonBox_accepted()
 {
     auto name = ui->leName->text();
-    auto intro = ui->teIntroduction->toPlainText();
+    auto intro = ui->teIntroduction->toHtml();
     auto wordFile = ui->lineSelectedFile->text();
 
     if (name.isEmpty() || wordFile.isEmpty()) {

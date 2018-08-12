@@ -5,6 +5,7 @@
 #include "wordbook.h"
 #include "studylist.h"
 #include "browserwindow.h"
+#include "introductionview.h"
 
 #include <QMainWindow>
 
@@ -62,6 +63,7 @@ private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;
     BrowserWindow m_browserWindow;
+    IntroductionView m_bookIntro;
 
     void listBooks();
     void addBookToTheView(WordBook &book);
@@ -70,6 +72,7 @@ private:
 
     void updateAllBooksData();
     void updateCurrentBookData();
+    void setMyTitle();
 
     void saveSettings();
     void loadSetting();
@@ -78,6 +81,7 @@ private:
     sptr<StudyList> oldWordsFromCurrentBook();
     sptr<StudyList> newWordsFromCurrentBook();
     sptr<StudyList> allWordsFromCurrentBook();
+    void showCurrentBookIntroduction();
 };
 
 #endif // MAINWINDOW_H

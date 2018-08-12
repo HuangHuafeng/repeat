@@ -40,7 +40,9 @@ SOURCES += \
     databaseobject.cpp \
     temporaryfilemanager.cpp \
     browserwindow.cpp \
-    mysettings.cpp
+    mysettings.cpp \
+    introductionpage.cpp \
+    introductionview.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -59,7 +61,9 @@ HEADERS += \
     databaseobject.h \
     temporaryfilemanager.h \
     browserwindow.h \
-    mysettings.h
+    mysettings.h \
+    introductionpage.h \
+    introductionview.h
 
 FORMS += \
         mainwindow.ui \
@@ -71,3 +75,5 @@ SUBDIRS += \
 
 RESOURCES += \
     haibeidanci.qrc
+
+TRANSLATIONS = myapp_zh_CN.ts

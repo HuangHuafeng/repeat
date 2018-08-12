@@ -51,6 +51,7 @@ private:
 
     void saveSettings();
     void loadSetting();
+    void setMyTitle();
 
 private slots:
     void onItemSelectionChanged();

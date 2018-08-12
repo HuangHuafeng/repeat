@@ -62,6 +62,7 @@ private:
     void cleanTheWidgets();
     void updateButtons();
     void updateLabels(WordCard &card);
+    void setMyTitle();
 
     void saveSettings();
     void loadSetting();

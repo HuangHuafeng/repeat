@@ -124,7 +124,7 @@ void WordView::toHtmlCallback(QString html)
 
     QString word(m_word.get() ? m_word->getSpelling() : "nullptr");
     QTemporaryFile tmp(QDir::temp().filePath( "XXXXXX-" + word + ".html" ));
-    qint64 len = html.toStdString().length();
+    qint64 len = static_cast<qint64>(html.toStdString().length());
 
     if ( !tmp.open() || tmp.write( html.toStdString().c_str(), len ) != len )
     {

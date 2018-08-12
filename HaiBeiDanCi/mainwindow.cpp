@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "../golddict/gddebug.hh"
+#include "mysettings.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -10,9 +11,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_studyWindow(nullptr),
-    m_browserWindow(nullptr)
+    m_browserWindow(nullptr),
+    m_bookIntro(nullptr)
 {
     ui->setupUi(this);
+    setMyTitle();
+
+    m_bookIntro.resize(0, 200);
+    ui->verticalLayout->addWidget(&m_bookIntro);
+
     connect(ui->twBooks, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
     listBooks();
@@ -56,7 +63,6 @@ void MainWindow::listBooks()
 {
     QStringList header;
     header.append(MainWindow::tr("Book Name"));
-    header.append(MainWindow::tr("Book Introduction"));
     ui->twBooks->setHeaderLabels(header);
 
     auto bookList = WordBook::getWordBooks();
@@ -77,8 +83,17 @@ void MainWindow::listBooks()
     }
 }
 
+void MainWindow::addBookToTheView(WordBook &book)
+{
+    QStringList infoList;
+    infoList.append(book.getName());
+    QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
+    ui->twBooks->addTopLevelItem(item);
+}
+
 void MainWindow::onItemSelectionChanged()
 {
+    showCurrentBookIntroduction();
     updateCurrentBookData();
 }
 
@@ -174,15 +189,6 @@ void MainWindow::updateAllBooksData()
     ui->pushGlobalStudyAllWords->setEnabled(numOfWords > 0);
 }
 
-void MainWindow::addBookToTheView(WordBook &book)
-{
-    QStringList infoList;
-    infoList.append(book.getName());
-    infoList.append(book.getIntroduction());
-    QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
-    ui->twBooks->addTopLevelItem(item);
-}
-
 void MainWindow::startStudy(sptr<StudyList> studyList)
 {
     if (studyList.get() == nullptr
@@ -275,6 +281,17 @@ void MainWindow::on_pushBrowseNewWords_clicked()
     startBrowse(newWordsFromCurrentBook());
 }
 
+
+void MainWindow::showCurrentBookIntroduction()
+{
+    auto bookName = ui->twBooks->currentItem()->text(0);
+    auto book = WordBook::getBook(bookName);
+    if (book.get()) {
+        //ui->textEditBookIntroduction->setHtml(book->getIntroduction());
+        m_bookIntro.setHtml(book->getIntroduction());
+    }
+}
+
 sptr<StudyList> MainWindow::allWordsFromCurrentBook()
 {
     auto bookName = ui->twBooks->currentItem()->text(0);
@@ -339,3 +356,9 @@ void MainWindow::on_pushGlobalBrowseExpiredWords_clicked()
     startBrowse(studyList);
 }
 
+
+void MainWindow::setMyTitle()
+{
+    QString title = MySettings::appName();
+    setWindowTitle(title);
+}

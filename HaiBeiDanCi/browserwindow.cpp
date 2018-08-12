@@ -2,6 +2,7 @@
 #include "ui_browserwindow.h"
 #include "../golddict/gddebug.hh"
 #include "worddb.h"
+#include "mysettings.h"
 
 #include <QSplitter>
 #include <QMutex>
@@ -15,6 +16,7 @@ BrowserWindow::BrowserWindow(QWidget *parent) :
     m_mutex()
 {
     ui->setupUi(this);
+    setMyTitle();
     loadSetting();
 
     QStringList header;
@@ -313,4 +315,10 @@ void TreeWidgetUpdater::updateTreeWidget()
 void BrowserWindow::on_checkShowDefinitionDirectly_stateChanged(int /*arg1*/)
 {
     onItemSelectionChanged();
+}
+
+void BrowserWindow::setMyTitle()
+{
+    QString title = MySettings::appName() + " - " + BrowserWindow::tr("browse words");
+    setWindowTitle(title);
 }

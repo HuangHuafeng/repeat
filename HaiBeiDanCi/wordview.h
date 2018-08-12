@@ -18,7 +18,7 @@ class WordView : public QWebEngineView
     Q_PROPERTY(QString definition READ getDefinition NOTIFY wordChanged)
 
 public:
-    WordView(QWidget *parent = Q_NULLPTR);
+    WordView(QWidget *parent = nullptr);
 
     typedef enum {
         ShowSpell = 1,

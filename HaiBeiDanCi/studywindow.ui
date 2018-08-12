@@ -144,6 +144,9 @@
          <property name="text">
           <string>Show</string>
          </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -181,6 +184,9 @@
          </property>
          <property name="text">
           <string>Correct(4)</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
          </property>
         </widget>
        </item>

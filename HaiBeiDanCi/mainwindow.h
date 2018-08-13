@@ -8,6 +8,8 @@
 #include "introductionview.h"
 
 #include <QMainWindow>
+#include <QFuture>
+#include <QFutureWatcher>
 
 namespace Ui {
 class MainWindow;
@@ -26,6 +28,7 @@ public:
 private slots:
     void onItemSelectionChanged();
     void onWordStudied(QString spelling);
+    void onAllCardsLoaded();
 
     void on_pushBrowseExpiredWords_clicked();
 
@@ -64,6 +67,8 @@ private:
     StudyWindow m_studyWindow;
     BrowserWindow m_browserWindow;
     IntroductionView m_bookIntro;
+    QFuture<bool> m_loadAllCardsFuture;
+    QFutureWatcher<bool> m_loadAllCardsWatcher;
 
     void listBooks();
     void addBookToTheView(WordBook &book);
@@ -76,6 +81,9 @@ private:
 
     void saveSettings();
     void loadSetting();
+
+    void loadAllCards();
+    static bool loadAllCardsThreadCall();
 
     sptr<StudyList> expiredWordsFromCurrentBook();
     sptr<StudyList> oldWordsFromCurrentBook();

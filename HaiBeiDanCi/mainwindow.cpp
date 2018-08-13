@@ -6,6 +6,9 @@
 #include <QTreeWidgetItem>
 #include <QMessageBox>
 #include <QSettings>
+#include <QtConcurrent>
+#include <QFuture>
+#include <QFutureWatcher>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,11 +31,38 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(onWordStudied(QString)));
 
     loadSetting();
+    loadAllCards();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+bool MainWindow::loadAllCardsThreadCall()
+{
+    QDateTime start = QDateTime::currentDateTime();
+    WordDB::prepareDatabaseForThisThread();
+    WordCard::readAllCardsFromDatabase();
+    WordDB::removeDatabaseForThisThread();
+    QDateTime end = QDateTime::currentDateTime();
+
+    auto elasped = start.msecsTo(end);
+    gdDebug("used %lld ms", elasped);
+
+    return true;
+}
+
+void MainWindow::loadAllCards()
+{
+    connect(&m_loadAllCardsWatcher, SIGNAL(finished()), this, SLOT(onAllCardsLoaded()));
+    m_loadAllCardsFuture = QtConcurrent::run(MainWindow::loadAllCardsThreadCall);
+    m_loadAllCardsWatcher.setFuture(m_loadAllCardsFuture);
+}
+
+void MainWindow::onAllCardsLoaded()
+{
+    WordCard::readAllCardsFromDatabaseUsingThreads();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

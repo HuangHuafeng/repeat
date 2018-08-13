@@ -5,6 +5,9 @@
 #include "memoryitem.h"
 #include "word.h"
 
+#include <QFuture>
+#include <QMutex>
+
 struct StudyRecord;
 
 class MyTime
@@ -41,7 +44,7 @@ class WordCard : public MemoryItem, public DatabaseObject
 {
 public:
     virtual ~WordCard() override;
-    void dbsaveStudyRecord(const StudyRecord &sr);
+    bool dbsaveStudyRecord(const StudyRecord &sr);
     void setExpireTime(const QDateTime &expireTime);
     const QDateTime getExpireTime();
     const QDateTime getLastStudyTime();
@@ -71,7 +74,9 @@ public:
     static bool doesWordHaveCard(const QString &spelling);
     static sptr<WordCard> generateCardForWord(const QString &spelling);
     static sptr<WordCard> getCardForWord(const QString &spelling);
-    static void readAllCardsFromDatabase();
+    static bool readAllCardsFromDatabase();
+    static QFuture<void> readAllCardsFromDatabaseUsingThreads();
+    static void dbgetCard(sptr<WordCard> &card);
 
     static QVector<QString> getAllWords(int number = 0);
     static QVector<QString> getNewWords(int number = 0);
@@ -84,6 +89,8 @@ protected:
 private:
     WordCard(sptr<Word> word = sptr<Word>());
     static QMap<QString, sptr<WordCard>> m_cards;
+    static QMap<QString, QString> m_wordsHasCard;
+    static QMutex m_cardsMutex;
 
     static int m_defaultInterval;
     static int m_defaultIntervalForUnknownNewWord;
@@ -115,7 +122,7 @@ private:
     QVector<StudyRecord> m_studyHistory;
 
     void dbsave();
-    void dbgetStudyRecords();
+    bool dbgetStudyRecords();
 
     int estimatedIntervalNewCard(ResponseQuality responseQuality = Perfect);
     int estimatedIntervalOldCard(ResponseQuality responseQuality = Perfect);
@@ -124,6 +131,8 @@ private:
     float getIntervalAdjustRatio(ResponseQuality responseQuality);
 
     float estimatedEasiness(ResponseQuality responseQuality);
+
+    static bool readCardForWordUsingThread(QString spelling);
 };
 
 struct StudyRecord

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml network webenginewidgets multimedia sql
+QT       += core gui xml network webenginewidgets multimedia sql concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

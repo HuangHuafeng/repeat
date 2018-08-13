@@ -8,10 +8,13 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QVariant>
+#include <QtConcurrent>
 
 // m_baselineTime is my daughter's birth time
 const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
 QMap<QString, sptr<WordCard>> WordCard::m_cards;
+QMap<QString, QString> WordCard::m_wordsHasCard;
+QMutex WordCard::m_cardsMutex;
 
 int WordCard::m_defaultIntervalForUnknownNewWord = 10;   // 10 minutes
 int WordCard::m_defaultInterval = 60 * 24;     // one day
@@ -245,19 +248,19 @@ float WordCard::estimatedEasiness(ResponseQuality responseQuality)
     return estimated;
 }
 
-void WordCard::dbgetStudyRecords()
+bool WordCard::dbgetStudyRecords()
 {
     if (!m_word.get()) {
-        return;
+        return false;
     }
 
     int wordId = m_word->getId();
     if (wordId == 0) {
         assert(false);
-        return;
+        return false;
     }
 
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT interval, easiness, repetition, expire, study_date"
                   " FROM wordcards WHERE word_id=:word_id");
     query.bindValue(":word_id", wordId);
@@ -276,6 +279,7 @@ void WordCard::dbgetStudyRecords()
         }
     } else {
         WordDB::databaseError(query, "fetching card of \"" + m_word->getSpelling()  + "\"");
+        return false;
     }
 
     if (m_studyHistory.isEmpty() == false) {
@@ -284,6 +288,8 @@ void WordCard::dbgetStudyRecords()
         setEasiness(sr.m_easiness);
         setRepetition(sr.m_repetition);
     }
+
+    return true;
 }
 
 const QDateTime WordCard::getExpireTime()
@@ -337,21 +343,21 @@ QVector<StudyRecord> WordCard::getStudyHistory()
     return m_studyHistory;
 }
 
-void WordCard::dbsaveStudyRecord(const StudyRecord &sr)
+bool WordCard::dbsaveStudyRecord(const StudyRecord &sr)
 {
     if (!m_word.get()) {
-        return;
+        return false;
     }
 
     int wordId = m_word->getId();
     if (wordId == 0) {
         assert(false);
-        return;
+        return false;
     }
 
     int easiness = static_cast<int>(sr.m_easiness * 100);
 
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("INSERT INTO wordcards(word_id, interval, easiness, repetition, expire, study_date)"
                   " VALUES(:word_id, :interval, :easiness, :repetition, :expire, :study_date)");
     query.bindValue(":word_id", wordId);
@@ -363,7 +369,10 @@ void WordCard::dbsaveStudyRecord(const StudyRecord &sr)
     if (query.exec() == false)
     {
         WordDB::databaseError(query, "saving card of \"" + m_word->getSpelling()  + "\"");
+        return false;
     }
+
+    return true;
 }
 
 void WordCard::updateFromDatabase()
@@ -372,8 +381,9 @@ void WordCard::updateFromDatabase()
         return;
     }
 
-    DatabaseObject::updateFromDatabase();
-    dbgetStudyRecords();
+    if (dbgetStudyRecords() == true) {
+        DatabaseObject::updateFromDatabase();
+    }
 }
 
 int WordCard::getIntervalInMinute()
@@ -404,16 +414,60 @@ QDateTime WordCard::defaultExpireTime()
 }
 
 // static
-void WordCard::readAllCardsFromDatabase()
+void WordCard::dbgetCard(sptr<WordCard> &card)
+{
+    if (card.get()) {
+        if (card->hasUpdatedFromDatabase()) {
+            return;
+        }
+    }
+
+    WordDB::prepareDatabaseForThisThread();
+
+    if (card.get()) {
+        card->getIntervalInMinute();
+    }
+}
+
+// static
+bool WordCard::readCardForWordUsingThread(QString spelling)
+{
+    bool retVal = false;
+    WordDB::prepareDatabaseForThisThread();
+
+    sptr<Word> word = Word::getWordFromDatabase(spelling);
+    sptr<WordCard> card = new WordCard(word);
+    if (card.get() && word.get()) {
+        card->getIntervalInMinute();
+        m_cardsMutex.lock();
+        if (m_cards.contains(spelling) == false) {
+            m_cards.insert(spelling, card);
+            retVal = true;
+        }
+        m_cardsMutex.unlock();
+    }
+
+    //WordDB::removeDatabaseForThisThread();
+    return retVal;
+}
+
+// static
+QFuture<void> WordCard::readAllCardsFromDatabaseUsingThreads()
+{
+    return QtConcurrent::map(m_wordsHasCard, WordCard::readCardForWordUsingThread);
+}
+
+// static
+bool WordCard::readAllCardsFromDatabase()
 {
     static bool allCardsCreated = false;
     if (allCardsCreated == true) {
-        return;
+        return true;
     }
 
     allCardsCreated = true;
 
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare(" SELECT word"
                   " FROM wordcards AS c"
                   " INNER JOIN words AS w"
@@ -423,13 +477,14 @@ void WordCard::readAllCardsFromDatabase()
     if (query.exec()) {
         while (query.next()) {
             QString spelling = query.value("word").toString();
-            sptr<Word> word = Word::getWordFromDatabase(spelling);
-            sptr<WordCard> card = new WordCard(word);
-            m_cards.insert(spelling, card);
+            m_wordsHasCard.insert(spelling, spelling);
         }
     } else {
         WordDB::databaseError(query, "fetching all cards from database");
+        return false;
     }
+
+    return true;
 }
 
 // static
@@ -441,18 +496,16 @@ void WordCard::readAllCardsFromDatabase()
  */
 sptr<WordCard> WordCard::generateCardForWord(const QString &spelling)
 {
-    WordCard::readAllCardsFromDatabase();
-
-    sptr<WordCard> card = getCardForWord(spelling);
-    if (card.get()) {
-        return  card;
-    }
-
-    sptr<Word> word = Word::getWordFromDatabase(spelling);
-    if (word.get()) {
+    m_cardsMutex.lock();
+    auto card = m_cards.value(spelling);
+    if (card.get() == nullptr) {
+        sptr<Word> word = Word::getWordFromDatabase(spelling);
         card = new WordCard(word);
-        m_cards.insert(spelling, card);
+        if (card.get() && word.get()) {
+            m_cards.insert(spelling, card);
+        }
     }
+    m_cardsMutex.unlock();
 
     return card;
 }
@@ -467,23 +520,23 @@ sptr<WordCard> WordCard::generateCardForWord(const QString &spelling)
  */
 sptr<WordCard> WordCard::getCardForWord(const QString &spelling)
 {
-    WordCard::readAllCardsFromDatabase();
+    m_cardsMutex.lock();
+    auto card = m_cards.value(spelling);
+    m_cardsMutex.unlock();
 
-    return m_cards.value(spelling);
+    return card;
 }
 
 // static
 bool WordCard::doesWordHaveCard(const QString &spelling)
 {
-    WordCard::readAllCardsFromDatabase();
-
-    return m_cards.value(spelling).get() != nullptr;
+    return m_wordsHasCard.value(spelling) == spelling;
 }
 
 // static
 bool WordCard::createDatabaseTables()
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     if (query.exec("SELECT * FROM wordcards LIMIT 1") == false)
     {
         // table "wordcards" does not exist
@@ -497,10 +550,6 @@ bool WordCard::createDatabaseTables()
             WordDB::databaseError(query, "creating table \"wordcards\"");
             return false;
         }
-    } else {
-        // table already exist
-        QString msg( "Table \"wordcards\" already exists, doing nothing in WordCard::createDatabaseTables()." );
-        gdDebug("%s", msg.toStdString().c_str());
     }
 
     return true;
@@ -516,7 +565,7 @@ bool WordCard::createDatabaseTables()
 QVector<QString> WordCard::getNewWords(int number)
 {
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
     QString sql = "SELECT word"
                   " FROM words"
                   " WHERE id"
@@ -544,7 +593,7 @@ QVector<QString> WordCard::getNewWords(int number)
 QVector<QString> WordCard::getOldWords(int number)
 {
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
     QString sql = " SELECT word"
                   " FROM words AS w INNER JOIN wordcards as c ON w.id=c.word_id"
                   " WHERE"
@@ -572,7 +621,7 @@ QVector<QString> WordCard::getOldWords(int number)
 QVector<QString> WordCard::getAllWords(int number)
 {
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
     QString sql = "SELECT word FROM words ORDER BY id ASC";
     if (number > 0) {
         query.prepare(sql + " LIMIT :limit");
@@ -601,9 +650,9 @@ QVector<QString> WordCard::getAllWords(int number)
 // static
 QVector<QString> WordCard::getExpiredWords(const QDateTime expire, int number)
 {
-    auto expireInt = MyTime(expire).toMinutes();
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
+    auto expireInt = MyTime(expire).toMinutes();
     QString sql = " SELECT word"
                   " FROM words AS w INNER JOIN wordcards AS c ON w.id=c.word_id"
                   " WHERE"

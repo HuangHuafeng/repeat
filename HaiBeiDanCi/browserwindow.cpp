@@ -107,7 +107,7 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         infoList.append(word);
 
         auto card = WordCard::getCardForWord(word);
-        if (card.get() && card->isNew() == false) {
+        if (card.get() && card->hasUpdatedFromDatabase()) {
             // expire
             infoList.append(card->getExpireTime().toString("yyyy-MM-dd"));
 

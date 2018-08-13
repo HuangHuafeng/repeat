@@ -9,14 +9,15 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QTemporaryFile>
+#include <QCoreApplication>
 
 WordView::WordView(QWidget *parent) : QWebEngineView(parent),
     m_channel(parent),
     m_tfm(parent)
 {
     m_showSetting = WordView::ShowAll;
-    setWord();
     loadHtml();
+    setWord();
 
     //auto action = page()->action(QWebEnginePage::ViewSource);
     auto action = pageAction(QWebEnginePage::ViewSource);
@@ -32,7 +33,7 @@ QSize WordView::sizeHint() const
 
 void WordView::loadHtml()
 {
-    QFileInfo wordHtmlFile(QDir::currentPath() + "/wordview.html");
+    QFileInfo wordHtmlFile(QCoreApplication::applicationDirPath() + "/wordview.html");
 
     if (!wordHtmlFile.exists())
     {
@@ -47,11 +48,11 @@ void WordView::loadHtml()
         return;
     }
 
-    QUrl baseUrl("file:///Users/huafeng/Documents/GitHub/TextFinder/build-Repeat-Desktop_Qt_5_11_1_clang_64bit-Debug/Repeat.app/Contents/MacOS/");
-    setHtml(htmlFile.readAll().data(), baseUrl);
-
     m_channel.registerObject(QString("wordview"), this);
     page()->setWebChannel(&m_channel);
+
+    QUrl baseUrl("file:///Users/huafeng/Documents/GitHub/TextFinder/build-Repeat-Desktop_Qt_5_11_1_clang_64bit-Debug/Repeat.app/Contents/MacOS/");
+    setHtml(htmlFile.readAll().data(), baseUrl);
 }
 
 void WordView::setWord(sptr<Word> word)

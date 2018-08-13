@@ -32,6 +32,8 @@ private slots:
 
     void on_pushNewBook_clicked();
 
+    void on_pushTest_clicked();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;

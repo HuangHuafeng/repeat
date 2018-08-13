@@ -93,3 +93,18 @@ void MainWindow::on_pushNewBook_clicked()
 {
     m_newbookWindow.show();
 }
+
+void MainWindow::on_pushTest_clicked()
+{
+    auto sl = StudyList::allWords();
+    if (sl.get() != nullptr) {
+        auto wordList = sl->getWordList();
+        for (int i = 0; i < wordList.size();i ++) {
+            auto spelling = wordList.at(i);
+            auto card = WordCard::generateCardForWord(spelling);
+            if (card.get()) {
+                card->update(static_cast<MemoryItem::ResponseQuality>(i % 5));
+            }
+        }
+    }
+}

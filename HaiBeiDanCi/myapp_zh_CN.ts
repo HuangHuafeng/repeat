@@ -56,7 +56,7 @@
     <message>
         <location filename="browserwindow.cpp" line="27"/>
         <source>Interval (day)</source>
-        <translation>间隔</translation>
+        <translation>间隔(天)</translation>
     </message>
     <message>
         <location filename="browserwindow.cpp" line="28"/>

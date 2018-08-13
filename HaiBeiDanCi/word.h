@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include <QSqlQuery>
 #include <QVector>
+#include <QMutex>
 
 class Word : public DatabaseObject
 {
@@ -36,11 +37,13 @@ protected:
     virtual void updateFromDatabase() override;
 
 private:
-    void dbsaveDefinition();
-    void dbgetDefinition();
+    bool dbsaveDefinition();
+    bool dbgetDefinition();
 
 private:
     static QMap<QString, sptr<Word>> m_words;
+    static QMutex m_wordsMutex;
+
     int m_id;   // id in database
     QString m_spelling;
     QString m_definition;

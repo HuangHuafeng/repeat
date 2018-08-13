@@ -6,6 +6,7 @@
 #include <QRegularExpressionMatch>
 
 QMap<QString, sptr<Word>> Word::m_words;
+QMutex Word::m_wordsMutex;
 
 Word::Word(QString word) :
     m_spelling(word)
@@ -20,9 +21,9 @@ void Word::setDefinition(const QString &definition)
     dbsaveDefinition();
 }
 
-void Word::dbsaveDefinition()
+bool Word::dbsaveDefinition()
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     if (Word::isInDatabase(m_spelling)) {
         // update
         query.prepare("UPDATE words SET definition=:definition WHERE word=:word");
@@ -35,12 +36,15 @@ void Word::dbsaveDefinition()
     if (query.exec() == false)
     {
         WordDB::databaseError(query, "saving word \"" + m_spelling + "\"");
+        return false;
     }
+
+    return true;
 }
 
-void Word::dbgetDefinition()
+bool Word::dbgetDefinition()
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT id, definition FROM words WHERE word=:word COLLATE NOCASE");
     query.bindValue(":word", m_spelling);
     if (query.exec()) {
@@ -51,14 +55,17 @@ void Word::dbgetDefinition()
         }
     } else {
         WordDB::databaseError(query, "fetching defintion of \"" + m_spelling + "\"");
+        return false;
     }
+
+    return true;
 }
 
 // return 0 if not saved
 // id of the word if saved
 int Word::isDefintionSaved() const
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT id FROM words WHERE word=:word");
     query.bindValue(":word", m_spelling);
     if (query.exec()) {
@@ -112,14 +119,16 @@ void Word::updateFromDatabase()
         return;
     }
 
-    DatabaseObject::updateFromDatabase();
-    dbgetDefinition();
+
+    if (dbgetDefinition() == true) {
+        DatabaseObject::updateFromDatabase();
+    }
 }
 
 // static
 int Word::getWordId(const QString &spelling)
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT id FROM words WHERE word=:word  COLLATE NOCASE");
     query.bindValue(":word", spelling);
     if (query.exec()) {
@@ -145,7 +154,7 @@ bool Word::isInDatabase(const QString &spelling)
 // static
 bool Word::createDatabaseTables()
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     if (query.exec("SELECT * FROM words LIMIT 1") == false)
     {
         // table "words" does not exist
@@ -155,20 +164,6 @@ bool Word::createDatabaseTables()
             WordDB::databaseError(query, "creating table \"words\"");
             return false;
         }
-
-        /*
-        if (query.exec("CREATE TABLE words_in_study (id INTEGER primary key, "
-                   "word_id INTEGER, "
-                   "expire INTEGER, "
-                   "study_date INTEGER)") == false) {
-            WordDB::databaseError(query, "creating table \"words_in_study\"");
-            return false;
-        }
-        */
-    } else {
-        // table already exist, ignore
-        QString msg( "Table \"words\" already exists, doing nothing in Word::createDatabaseTables()." );
-        gdDebug("%s", msg.toStdString().c_str());
     }
 
     return true;
@@ -177,17 +172,17 @@ bool Word::createDatabaseTables()
 // static
 sptr<Word> Word::getWordFromDatabase(const QString &spelling)
 {
+    m_wordsMutex.lock();
     sptr<Word> word = m_words.value(spelling);
-    if (word.get()) {
-        return word;
+    if (word.get() == nullptr) {
+        if (Word::isInDatabase(spelling) == false) {
+            word = sptr<Word>();
+        } else {
+            word = new Word(spelling);
+            m_words.insert(spelling, word);
+        }
     }
-
-    if (Word::isInDatabase(spelling) == false) {
-        return sptr<Word>();
-    }
-
-    word = new Word(spelling);
-    m_words.insert(spelling, word);
+    m_wordsMutex.unlock();
 
     return word;
 }

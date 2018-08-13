@@ -34,7 +34,7 @@ const QString WordBook::getIntroduction()
 
 bool WordBook::dbsave()
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     if (WordBook::isInDatabase(getId())) {
         // update
         query.prepare("UPDATE wordbooks SET name=:name, introduction=:introduction WHERE id=:id");
@@ -60,7 +60,7 @@ bool WordBook::dbsave()
 
 int WordBook::totalWords()
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT count(*) FROM words_in_books WHERE book_id=:book_id");
     query.bindValue(":book_id", getId());
     if (query.exec()) {
@@ -94,7 +94,7 @@ QVector<QString> WordBook::getAllWords(int number)
 QVector<QString> WordBook::getOldWords(int number)
 {
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
     QString sql = " SELECT word"
                   " FROM words AS w INNER JOIN wordcards AS c ON w.id=c.word_id"
                   " WHERE"
@@ -128,7 +128,7 @@ QVector<QString> WordBook::getOldWords(int number)
 QVector<QString> WordBook::getNewWords(int number)
 {
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
     QString sql = " SELECT word"
                   " FROM words AS w"
                   " WHERE"
@@ -157,9 +157,9 @@ QVector<QString> WordBook::getNewWords(int number)
 
 QVector<QString> WordBook::getExpiredWords(const QDateTime expire, int number)
 {
-    auto expireInt = MyTime(expire).toMinutes();
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
+    auto expireInt = MyTime(expire).toMinutes();
     QString sql = " SELECT word"
                   " FROM words AS w INNER JOIN wordcards as c ON w.id=c.word_id"
                   " WHERE"
@@ -201,7 +201,7 @@ bool WordBook::hasWord(QString spelling)
 bool WordBook::hasWord(int wordId)
 {
     bool retVal = false;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT * FROM words_in_books WHERE word_id=:word_id AND book_id=:book_id");
     query.bindValue(":word_id", wordId);
     query.bindValue(":book_id", getId());
@@ -232,7 +232,7 @@ bool WordBook::addWord(QString spelling)
         return true;
     }
 
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("INSERT INTO words_in_books(word_id, book_id) VALUES(:word_id, :book_id)");
     query.bindValue(":word_id", wordId);
     query.bindValue(":book_id", getId());
@@ -281,7 +281,7 @@ bool WordBook::dbgetNameAndIntro()
 {
     bool retVal = false;
     int bookId = getId();
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT name, introduction FROM wordbooks WHERE id=:id");
     query.bindValue(":id", bookId);
     if (query.exec()) {
@@ -330,7 +330,7 @@ QVector<QString> WordBook::getWordsInBook(const QString &bookName)
 QVector<sptr<WordBook>> WordBook::getWordBooks()
 {
     QVector<sptr<WordBook>> books;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return books;}auto query = *ptrQuery;
     query.prepare("SELECT id, name, introduction FROM wordbooks");
     if (query.exec()) {
         while (query.next()) {
@@ -350,7 +350,7 @@ QVector<sptr<WordBook>> WordBook::getWordBooks()
 // static
 bool WordBook::createDatabaseTables()
 {
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     if (query.exec("SELECT * FROM wordbooks LIMIT 1") == false)
     {
         // table "wordbooks" does not exist
@@ -366,10 +366,6 @@ bool WordBook::createDatabaseTables()
             WordDB::databaseError(query, "creating table \"words_in_books\"");
             return false;
         }
-    } else {
-        // table already exist, ignore
-        QString msg( "Table \"wordbooks\" already exists, doing nothing in WordBook::createDatabaseTables()." );
-        gdDebug("%s", msg.toStdString().c_str());
     }
 
     return true;
@@ -383,7 +379,7 @@ bool WordBook::isInDatabase(int bookId)
     }
 
     bool retVal = false;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT * FROM wordbooks WHERE id=:book_id");
     query.bindValue(":book_id", bookId);
     if (query.exec()) {
@@ -404,7 +400,7 @@ bool WordBook::isInDatabase(int bookId)
 bool WordBook::isInDatabase(const QString &name)
 {
     bool retVal = false;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT * FROM wordbooks WHERE name=:name");
     query.bindValue(":name", name);
     if (query.exec()) {
@@ -425,7 +421,7 @@ bool WordBook::isInDatabase(const QString &name)
 int WordBook::getBookId(const QString &name)
 {
     int retVal = 0;
-    auto ptrQuery = WordDB::createSqlQuery();auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT id FROM wordbooks WHERE name=:name  COLLATE NOCASE");
     query.bindValue(":name", name);
     if (query.exec()) {

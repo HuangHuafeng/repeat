@@ -7,8 +7,9 @@
 
 class MemoryItem
 {
-public:
-    typedef enum {
+  public:
+    typedef enum
+    {
         Blackout = 0,
         Incorrect = 1,
         IncorrectButCanRecall = 2,
@@ -46,16 +47,15 @@ public:
         return m_repetition;
     }
 
-    void setRepetition( int repetition)
+    void setRepetition(int repetition)
     {
         m_repetition = repetition;
     }
 
-private:
+  private:
     int m_repetition; //
-    int m_interval; // in minutes
+    int m_interval;   // in minutes
     float m_easiness;
-
 };
 
 #endif // MEMORYITEM_H

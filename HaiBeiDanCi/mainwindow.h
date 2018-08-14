@@ -11,7 +11,8 @@
 #include <QFuture>
 #include <QFutureWatcher>
 
-namespace Ui {
+namespace Ui
+{
 class MainWindow;
 }
 
@@ -19,13 +20,13 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-public:
+  public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
     virtual void closeEvent(QCloseEvent *event) override;
 
-private slots:
+  private slots:
     void onItemSelectionChanged();
     void onWordStudied(QString spelling);
 
@@ -61,7 +62,7 @@ private slots:
 
     void on_pushGlobalBrowseExpiredWords_clicked();
 
-private:
+  private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;
     BrowserWindow m_browserWindow;

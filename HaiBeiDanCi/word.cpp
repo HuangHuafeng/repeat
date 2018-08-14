@@ -8,20 +8,27 @@
 QMap<QString, sptr<Word>> Word::m_allWords;
 QMutex Word::m_allWordsMutex;
 
-Word::Word(QString word, QString definition, int id) :
-    m_spelling(word),
-    m_definition(definition),
-    m_id(id)
+Word::Word(QString word, QString definition, int id) : m_spelling(word),
+                                                       m_definition(definition),
+                                                       m_id(id)
 {
 }
 
 bool Word::dbsaveDefinition()
 {
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
-    if (m_id != 0 || Word::isInDatabase(m_spelling)) {
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
+    if (m_id != 0 || Word::isInDatabase(m_spelling))
+    {
         // update
         query.prepare("UPDATE words SET definition=:definition WHERE word=:word");
-    } else {
+    }
+    else
+    {
         // insert
         query.prepare("INSERT INTO words(word, definition) VALUES(:word, :definition)");
     }
@@ -33,7 +40,8 @@ bool Word::dbsaveDefinition()
         return false;
     }
 
-    if (m_id == 0) {
+    if (m_id == 0)
+    {
         // update the id
         m_id = query.lastInsertId().toInt();
     }
@@ -41,7 +49,7 @@ bool Word::dbsaveDefinition()
     return true;
 }
 
-const QString & Word::getDefinition()
+const QString &Word::getDefinition()
 {
     return m_definition;
 }
@@ -52,7 +60,8 @@ QString Word::getDefinitionDIV()
 
     const QRegularExpression body("<body>(?<wanted_div>(.|\\n)*)</body>");
     QRegularExpressionMatch match = body.match(div, 0);
-    if (match.hasMatch()) {
+    if (match.hasMatch())
+    {
         div = match.captured("wanted_div");
     }
 
@@ -80,7 +89,8 @@ QList<QString> Word::getAllWords()
 int Word::getWordId(const QString &spelling)
 {
     auto word = Word::getWord(spelling);
-    if (word.get() != nullptr) {
+    if (word.get() != nullptr)
+    {
         return word->m_id;
     }
 
@@ -112,13 +122,19 @@ bool Word::isInDatabase(const QString &spelling)
 // static
 bool Word::createDatabaseTables()
 {
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
     if (query.exec("SELECT * FROM words LIMIT 1") == false)
     {
         // table "words" does not exist
-        if(query.exec("CREATE TABLE words (id INTEGER primary key, "
-                      "word TEXT, "
-                      "definition TEXT)") == false) {
+        if (query.exec("CREATE TABLE words (id INTEGER primary key, "
+                       "word TEXT, "
+                       "definition TEXT)") == false)
+        {
             WordDB::databaseError(query, "creating table \"words\"");
             return false;
         }
@@ -132,21 +148,25 @@ void Word::readAllWordsFromDatabase()
     m_allWordsMutex.lock();
     bool alreadyRead = m_allWords.isEmpty() == false;
     m_allWordsMutex.unlock();
-    if (alreadyRead == true) {
+    if (alreadyRead == true)
+    {
         return;
     }
 
     auto ptrQuery = WordDB::createSqlQuery();
-    if (ptrQuery.get() == nullptr) {
+    if (ptrQuery.get() == nullptr)
+    {
         return;
     }
     auto query = *ptrQuery;
     query.prepare(" SELECT *"
                   " FROM words"
                   " ORDER BY id ASC");
-    if (query.exec()) {
+    if (query.exec())
+    {
         m_allWordsMutex.lock();
-        while (query.next()) {
+        while (query.next())
+        {
             int id = query.value("id").toInt();
             QString spelling = query.value("word").toString();
             QString definition = query.value("definition").toString();
@@ -154,7 +174,9 @@ void Word::readAllWordsFromDatabase()
             m_allWords.insert(spelling, word);
         }
         m_allWordsMutex.unlock();
-    } else {
+    }
+    else
+    {
         WordDB::databaseError(query, "fetching all cards from database");
     }
 }
@@ -164,9 +186,11 @@ sptr<Word> Word::getWord(const QString &spelling, bool create)
 {
     m_allWordsMutex.lock();
     sptr<Word> word = m_allWords.value(spelling);
-    if (word.get() == nullptr && create == true) {
+    if (word.get() == nullptr && create == true)
+    {
         word = new Word(spelling);
-        if (word.get()) {
+        if (word.get())
+        {
             m_allWords.insert(spelling, word);
         }
     }

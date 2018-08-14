@@ -11,20 +11,18 @@ struct StudyRecord;
 
 class MyTime
 {
-private:
+  private:
     static const QDateTime m_baselineTime;
 
-private:
+  private:
     QDateTime m_datetime;
 
-public:
-    MyTime(qint64 minutes) :
-         m_datetime(m_baselineTime.addSecs(minutes * 60))
+  public:
+    MyTime(qint64 minutes) : m_datetime(m_baselineTime.addSecs(minutes * 60))
     {
     }
 
-    MyTime(QDateTime aTime) :
-         m_datetime(aTime)
+    MyTime(QDateTime aTime) : m_datetime(aTime)
     {
     }
 
@@ -41,7 +39,7 @@ public:
 
 class WordCard : public MemoryItem
 {
-public:
+  public:
     virtual ~WordCard() override;
 
     bool dbsaveStudyRecord(const StudyRecord &sr);
@@ -77,23 +75,27 @@ public:
     static QVector<QString> getOldWords(int number = 0);
     static QVector<QString> getExpiredWords(const QDateTime expire, int number = 0);
 
-private:
+  private:
     WordCard(const QString &spelling);
     WordCard(const QString &spelling, const StudyRecord &sr);
 
-    int defaultInterval() {
+    int defaultInterval()
+    {
         return m_defaultInterval;
     }
 
-    int defaultIntervalForKnownNewWord() {
+    int defaultIntervalForKnownNewWord()
+    {
         return m_defaultIntervalForKnownNewWord;
     }
 
-    int defaultIntervalForUnknownNewWord() {
+    int defaultIntervalForUnknownNewWord()
+    {
         return m_defaultIntervalForUnknownNewWord;
     }
 
-    int defaultIntervalForRelearning() {
+    int defaultIntervalForRelearning()
+    {
         return m_defaultIntervalForUnknownNewWord;
     }
 
@@ -107,7 +109,7 @@ private:
 
     float estimatedEasiness(ResponseQuality responseQuality);
 
-private:
+  private:
     QString m_wordSpelling;
     QVector<StudyRecord> m_studyHistory;
 
@@ -128,26 +130,23 @@ private:
 struct StudyRecord
 {
     int m_repetition; //
-    int m_interval; // in minutes
+    int m_interval;   // in minutes
     float m_easiness;
     MyTime m_expire;
     MyTime m_studyDate;
 
-    StudyRecord(QDateTime expire, QDateTime studyDate) :
-        m_expire(expire),
-        m_studyDate(studyDate)
+    StudyRecord(QDateTime expire, QDateTime studyDate) : m_expire(expire),
+                                                         m_studyDate(studyDate)
     {
     }
 
-    StudyRecord(qint64 expireInMinutes, qint64 studyDateInMinutes) :
-        m_expire(expireInMinutes),
-        m_studyDate(studyDateInMinutes)
+    StudyRecord(qint64 expireInMinutes, qint64 studyDateInMinutes) : m_expire(expireInMinutes),
+                                                                     m_studyDate(studyDateInMinutes)
     {
     }
 
-    StudyRecord() :
-        m_expire(WordCard::defaultExpireTime()),
-        m_studyDate(QDateTime::currentDateTime())
+    StudyRecord() : m_expire(WordCard::defaultExpireTime()),
+                    m_studyDate(QDateTime::currentDateTime())
     {
     }
 };

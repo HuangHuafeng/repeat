@@ -8,12 +8,10 @@
 QMap<QString, sptr<WordBook>> WordBook::m_allBooks;
 QMutex WordBook::m_allBooksMutex;
 
-WordBook::WordBook(QString name, QString introduction, int id) :
-    m_name(name),
-    m_introduction(introduction),
-    m_id(id)
+WordBook::WordBook(QString name, QString introduction, int id) : m_name(name),
+                                                                 m_introduction(introduction),
+                                                                 m_id(id)
 {
-
 }
 
 int WordBook::getId()
@@ -31,17 +29,25 @@ QString WordBook::getIntroduction()
     return m_introduction;
 }
 
-
 bool WordBook::dbsave()
 {
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
-    if (m_id != 0) {
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
+    if (m_id != 0)
+    {
         // update
         query.prepare("UPDATE wordbooks SET name=:name, introduction=:introduction WHERE id=:id");
         query.bindValue(":id", m_id);
-    } else {
+    }
+    else
+    {
         // dont save this book if there's already a book with name "m_name"
-        if (WordBook::isInDatabase(m_name)) {
+        if (WordBook::isInDatabase(m_name))
+        {
             return false;
         }
         // insert
@@ -55,7 +61,8 @@ bool WordBook::dbsave()
         return false;
     }
 
-    if (m_id == 0) {
+    if (m_id == 0)
+    {
         // update the id
         m_id = query.lastInsertId().toInt();
     }
@@ -66,7 +73,8 @@ bool WordBook::dbsave()
 QVector<QString> WordBook::getAllWords(int number)
 {
     auto allWords = getOldWords(number) + getNewWords(number);
-    if (number > 0 && allWords.size() > number) {
+    if (number > 0 && allWords.size() > number)
+    {
         allWords.resize(number);
     }
 
@@ -81,26 +89,38 @@ QVector<QString> WordBook::getAllWords(int number)
 QVector<QString> WordBook::getOldWords(int number)
 {
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return wordList;
+    }
+    auto query = *ptrQuery;
     QString sql = " SELECT word"
                   " FROM words AS w INNER JOIN wordcards AS c ON w.id=c.word_id"
                   " WHERE"
-                            " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
-                            " AND c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
+                  " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
+                  " AND c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
                   " ORDER BY c.expire ASC";
-    if (number > 0) {
+    if (number > 0)
+    {
         query.prepare(sql + " LIMIT :limit");
         query.bindValue(":limit", number);
-    } else {
+    }
+    else
+    {
         query.prepare(sql);
     }
     query.bindValue(":book_id", getId());
-    if (query.exec()) {
-        while (query.next()) {
+    if (query.exec())
+    {
+        while (query.next())
+        {
             QString spelling = query.value("word").toString();
             wordList.append(spelling);
         }
-    } else {
+    }
+    else
+    {
         WordDB::databaseError(query, "fetching words in book \"" + getName() + "\"");
     }
 
@@ -115,59 +135,82 @@ QVector<QString> WordBook::getOldWords(int number)
 QVector<QString> WordBook::getNewWords(int number)
 {
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return wordList;
+    }
+    auto query = *ptrQuery;
     QString sql = " SELECT word"
                   " FROM words AS w"
                   " WHERE"
-                            " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
-                            " AND w.id NOT IN (SELECT DISTINCT word_id FROM wordcards)"
+                  " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
+                  " AND w.id NOT IN (SELECT DISTINCT word_id FROM wordcards)"
                   " ORDER BY w.id ASC";
-    if (number > 0) {
+    if (number > 0)
+    {
         query.prepare(sql + " LIMIT :limit");
         query.bindValue(":limit", number);
-    } else {
+    }
+    else
+    {
         query.prepare(sql);
     }
     query.bindValue(":book_id", getId());
-    if (query.exec()) {
-        while (query.next()) {
+    if (query.exec())
+    {
+        while (query.next())
+        {
             QString spelling = query.value("word").toString();
             wordList.append(spelling);
         }
-    } else {
+    }
+    else
+    {
         WordDB::databaseError(query, "fetching words in book \"" + getName() + "\"");
     }
 
     return wordList;
 }
 
-
 QVector<QString> WordBook::getExpiredWords(const QDateTime expire, int number)
 {
     QVector<QString> wordList;
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return wordList;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return wordList;
+    }
+    auto query = *ptrQuery;
     auto expireInt = MyTime(expire).toMinutes();
     QString sql = " SELECT word"
                   " FROM words AS w INNER JOIN wordcards as c ON w.id=c.word_id"
                   " WHERE"
-                            " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
-                            " AND c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
-                            " AND c.expire<:expireint"
+                  " w.id in (SELECT word_id FROM words_in_books WHERE book_id=:book_id)"
+                  " AND c.id IN (SELECT MAX(id) FROM wordcards GROUP BY word_id)"
+                  " AND c.expire<:expireint"
                   " ORDER BY c.expire ASC";
-    if (number > 0) {
+    if (number > 0)
+    {
         query.prepare(sql + " LIMIT :limit");
         query.bindValue(":limit", number);
-    } else {
+    }
+    else
+    {
         query.prepare(sql);
     }
     query.bindValue(":book_id", getId());
     query.bindValue(":expireint", expireInt);
-    if (query.exec()) {
-        while (query.next()) {
+    if (query.exec())
+    {
+        while (query.next())
+        {
             QString spelling = query.value("word").toString();
             wordList.append(spelling);
         }
-    } else {
+    }
+    else
+    {
         WordDB::databaseError(query, "fetching expired words in book \"" + getName() + "\"");
     }
 
@@ -177,7 +220,8 @@ QVector<QString> WordBook::getExpiredWords(const QDateTime expire, int number)
 bool WordBook::hasWord(QString spelling)
 {
     int wordId = Word::getWordId(spelling);
-    if (wordId == 0) {
+    if (wordId == 0)
+    {
         // the word does not exist in the database
         return false;
     }
@@ -188,17 +232,28 @@ bool WordBook::hasWord(QString spelling)
 bool WordBook::hasWord(int wordId)
 {
     bool retVal = false;
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
     query.prepare("SELECT * FROM words_in_books WHERE word_id=:word_id AND book_id=:book_id");
     query.bindValue(":word_id", wordId);
     query.bindValue(":book_id", getId());
-    if (query.exec()) {
-        if (query.first()) {
+    if (query.exec())
+    {
+        if (query.first())
+        {
             retVal = true;
-        } else {
+        }
+        else
+        {
             retVal = false;
         }
-    } else {
+    }
+    else
+    {
         WordDB::databaseError(query, "checking if word with id \"" + QString::number(wordId) + "\" is in book \"" + m_name + "\"");
         retVal = false;
     }
@@ -209,17 +264,24 @@ bool WordBook::hasWord(int wordId)
 bool WordBook::addWord(QString spelling)
 {
     int wordId = Word::getWordId(spelling);
-    if (wordId == 0) {
+    if (wordId == 0)
+    {
         // the word does not exist in the database
         return false;
     }
 
-    if (hasWord(wordId)) {
+    if (hasWord(wordId))
+    {
         // word is already in this book
         return true;
     }
 
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
     query.prepare("INSERT INTO words_in_books(word_id, book_id) VALUES(:word_id, :book_id)");
     query.bindValue(":word_id", wordId);
     query.bindValue(":book_id", getId());
@@ -236,8 +298,10 @@ bool WordBook::addWord(QString spelling)
 bool WordBook::dbsaveAddWords(const QVector<QString> &words)
 {
     bool retValue = true;
-    for (int i = 0;i < words.size();i ++) {
-        if (addWord(words.at(i)) == false) {
+    for (int i = 0; i < words.size(); i++)
+    {
+        if (addWord(words.at(i)) == false)
+        {
             retValue = false;
         }
     }
@@ -249,18 +313,29 @@ bool WordBook::dbgetNameAndIntro()
 {
     bool retVal = false;
     int bookId = getId();
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
     query.prepare("SELECT name, introduction FROM wordbooks WHERE id=:id");
     query.bindValue(":id", bookId);
-    if (query.exec()) {
-        if (query.first()) {
+    if (query.exec())
+    {
+        if (query.first())
+        {
             m_name = query.value("name").toString();
             m_introduction = query.value("introduction").toString();
             retVal = true;
-        } else {
+        }
+        else
+        {
             retVal = false;
         }
-    } else {
+    }
+    else
+    {
         WordDB::databaseError(query, "fetching word books");
         retVal = false;
     }
@@ -273,9 +348,11 @@ sptr<WordBook> WordBook::getBook(QString bookName, bool create)
 {
     m_allBooksMutex.lock();
     auto book = m_allBooks.value(bookName);
-    if (book.get() == nullptr && create == true) {
+    if (book.get() == nullptr && create == true)
+    {
         book = new WordBook(bookName);
-        if (book.get()) {
+        if (book.get())
+        {
             m_allBooks.insert(bookName, book);
         }
     }
@@ -289,7 +366,8 @@ QVector<QString> WordBook::getWordsInBook(QString bookName)
 {
     QVector<QString> wordList;
     auto book = WordBook::getBook(bookName);
-    if (book.get()) {
+    if (book.get())
+    {
         wordList = book->getAllWords();
     }
 
@@ -302,15 +380,23 @@ void WordBook::readAllBooksFromDatabase()
     m_allBooksMutex.lock();
     bool alreadyRead = m_allBooks.isEmpty() == false;
     m_allBooksMutex.unlock();
-    if (alreadyRead == true) {
+    if (alreadyRead == true)
+    {
         return;
     }
 
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return;
+    }
+    auto query = *ptrQuery;
     query.prepare("SELECT id, name, introduction FROM wordbooks");
-    if (query.exec()) {
+    if (query.exec())
+    {
         m_allBooksMutex.lock();
-        while (query.next()) {
+        while (query.next())
+        {
             int id = query.value("id").toInt();
             QString name = query.value("name").toString();
             QString introduction = query.value("introduction").toString();
@@ -318,7 +404,9 @@ void WordBook::readAllBooksFromDatabase()
             m_allBooks.insert(name, abook);
         }
         m_allBooksMutex.unlock();
-    } else {
+    }
+    else
+    {
         WordDB::databaseError(query, "fetching word books");
     }
 }
@@ -332,19 +420,26 @@ const QList<QString> WordBook::getAllBooks()
 // static
 bool WordBook::createDatabaseTables()
 {
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
     if (query.exec("SELECT * FROM wordbooks LIMIT 1") == false)
     {
         // table "wordbooks" does not exist
-        if(query.exec("CREATE TABLE wordbooks (id INTEGER primary key, "
-                      "name TEXT, "
-                      "introduction TEXT)") == false) {
+        if (query.exec("CREATE TABLE wordbooks (id INTEGER primary key, "
+                       "name TEXT, "
+                       "introduction TEXT)") == false)
+        {
             WordDB::databaseError(query, "creating table \"wordbooks\"");
             return false;
         }
 
         if (query.exec("CREATE TABLE words_in_books (word_id INTEGER, "
-                       "book_id INTEGER)") == false) {
+                       "book_id INTEGER)") == false)
+        {
             WordDB::databaseError(query, "creating table \"words_in_books\"");
             return false;
         }
@@ -357,16 +452,27 @@ bool WordBook::createDatabaseTables()
 bool WordBook::isInDatabase(const QString &name)
 {
     bool retVal = false;
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
     query.prepare("SELECT name FROM wordbooks WHERE name=:name");
     query.bindValue(":name", name);
-    if (query.exec()) {
-        if (query.first()) {
+    if (query.exec())
+    {
+        if (query.first())
+        {
             retVal = true;
-        } else {
+        }
+        else
+        {
             retVal = false;
         }
-    } else {
+    }
+    else
+    {
         WordDB::databaseError(query, "checking existence of word book \"" + name + "\"");
         retVal = false;
     }

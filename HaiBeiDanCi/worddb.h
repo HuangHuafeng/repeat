@@ -15,7 +15,7 @@
 
 class WordDB
 {
-public:
+  public:
     virtual ~WordDB();
 
     static bool initialize();
@@ -25,7 +25,7 @@ public:
     static void databaseError(QSqlQuery &query, const QString what);
     static sptr<QSqlDatabase> connectedDatabase();
 
-private:
+  private:
     WordDB();
 
     static bool connectDB(const QString &connectionName = "");
@@ -33,7 +33,7 @@ private:
     static sptr<QSqlDatabase> getConn(QThread *ptrThread);
     static void rememberDatabase(sptr<QSqlDatabase> database);
 
-private:
+  private:
     static QMutex m_mapConnMutex;
     static QMap<QThread *, sptr<QSqlDatabase>> m_mapConns;
 };

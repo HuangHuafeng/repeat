@@ -12,8 +12,8 @@
 #include <QCoreApplication>
 
 WordView::WordView(QWidget *parent) : QWebEngineView(parent),
-    m_channel(parent),
-    m_tfm(parent)
+                                      m_channel(parent),
+                                      m_tfm(parent)
 {
     m_showSetting = WordView::ShowAll;
     loadHtml();
@@ -21,8 +21,9 @@ WordView::WordView(QWidget *parent) : QWebEngineView(parent),
 
     //auto action = page()->action(QWebEnginePage::ViewSource);
     auto action = pageAction(QWebEnginePage::ViewSource);
-    if (action) {
-        connect( action, SIGNAL( triggered() ), this, SLOT( inspect() ) );
+    if (action)
+    {
+        connect(action, SIGNAL(triggered()), this, SLOT(inspect()));
     }
 }
 
@@ -85,7 +86,8 @@ QString WordView::getSpelling()
 {
     QString spelling = "";
 
-    if (m_word.get()) {
+    if (m_word.get())
+    {
         spelling = m_word->getSpelling();
     }
 
@@ -101,7 +103,8 @@ QString WordView::getDefinition()
 {
     QString definition = "";
 
-    if (m_word.get()) {
+    if (m_word.get())
+    {
         definition = m_word->getDefinitionDIV();
     }
 
@@ -114,12 +117,14 @@ void WordView::contextMenuEvent(QContextMenuEvent *event)
     const QList<QAction *> actions = menu->actions();
 
     auto it = actions.begin();
-    while (it != actions.end()) {
-        if (*it != page()->action(QWebEnginePage::Copy)) {
+    while (it != actions.end())
+    {
+        if (*it != page()->action(QWebEnginePage::Copy))
+        {
             (*it)->setVisible(false);
         }
 
-        it ++;
+        it++;
     }
 
     menu->popup(event->globalPos());
@@ -136,19 +141,20 @@ void WordView::toHtmlCallback(QString html)
     */
 
     QString word(m_word.get() ? m_word->getSpelling() : "nullptr");
-    QTemporaryFile tmp(QDir::temp().filePath( "XXXXXX-" + word + ".html" ));
+    QTemporaryFile tmp(QDir::temp().filePath("XXXXXX-" + word + ".html"));
     qint64 len = static_cast<qint64>(html.toStdString().length());
 
-    if ( !tmp.open() || tmp.write( html.toStdString().c_str(), len ) != len )
+    if (!tmp.open() || tmp.write(html.toStdString().c_str(), len) != len)
     {
         gdDebug("failed to write temporary file inWordView::toHtmlCallback()");
-    } else {
+    }
+    else
+    {
         tmp.setAutoRemove(false);
         m_tfm.addTemporaryFile(tmp);
         const QUrl tempUrl("view-source:file://" + tmp.fileName());
         setUrl(tempUrl);
     }
-
 }
 
 void WordView::inspect()

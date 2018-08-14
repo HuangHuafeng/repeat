@@ -1,15 +1,15 @@
 #include "temporaryfilemanager.h"
 
 TemporaryFileManager::TemporaryFileManager(QObject *parent) : QObject(parent),
-    m_files()
+                                                              m_files()
 {
-
 }
 
 TemporaryFileManager::~TemporaryFileManager()
 {
     // delete the temporary files
-    for (int i = 0; i < m_files.size(); ++i) {
+    for (int i = 0; i < m_files.size(); ++i)
+    {
         QString fileName = m_files.at(i);
         if (QFile::exists(fileName))
         {

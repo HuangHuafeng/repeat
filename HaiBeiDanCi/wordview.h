@@ -17,10 +17,11 @@ class WordView : public QWebEngineView
     Q_PROPERTY(QString spelling READ getSpelling NOTIFY wordChanged)
     Q_PROPERTY(QString definition READ getDefinition NOTIFY wordChanged)
 
-public:
+  public:
     WordView(QWidget *parent = nullptr);
 
-    typedef enum {
+    typedef enum
+    {
         ShowSpell = 1,
         ShowDefinition = 2,
         ShowAll = 3,
@@ -44,21 +45,19 @@ public:
 
     Q_INVOKABLE int updateSizeHint(int w, int h);
 
-
-
-signals:
+  signals:
     void wordChanged();
     void showSettingChanged(int showSetting);
 
-private slots:
+  private slots:
 
     /// Inspect element
     void inspect();
 
-protected:
+  protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
-private:
+  private:
     QWebChannel m_channel;
     sptr<Word> m_word;
     QSize m_sizeHint;

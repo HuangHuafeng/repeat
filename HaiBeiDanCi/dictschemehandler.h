@@ -12,14 +12,15 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
 
     MediaPlayer m_mediaPlayer;
 
-private:
-    void  handleSchemeHhfaudio(QWebEngineUrlRequestJob *request);
+  private:
+    void handleSchemeHhfaudio(QWebEngineUrlRequestJob *request);
 
-    QString getMediaDir() const {
+    QString getMediaDir() const
+    {
         return "media";
     }
 
-public:
+  public:
     DictSchemeHandler(QObject *parent = Q_NULLPTR);
     ~DictSchemeHandler();
 

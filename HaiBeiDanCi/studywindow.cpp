@@ -8,10 +8,9 @@
 #include <QMessageBox>
 #include <QSettings>
 
-StudyWindow::StudyWindow(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::StudyWindow),
-    m_wordView(parent)
+StudyWindow::StudyWindow(QWidget *parent) : QDialog(parent),
+                                            ui(new Ui::StudyWindow),
+                                            m_wordView(parent)
 {
     m_state = NoCard;
     ui->setupUi(this);
@@ -61,8 +60,8 @@ void StudyWindow::loadSetting()
  */
 bool StudyWindow::setStudyList(sptr<StudyList> studyList)
 {
-    if (studyList.get() == nullptr
-            || studyList->size() == 0) {
+    if (studyList.get() == nullptr || studyList->size() == 0)
+    {
         return false;
     }
 
@@ -90,9 +89,12 @@ void StudyWindow::reloadView()
 
 void StudyWindow::showCurrentCard()
 {
-    if (m_currentCard.get()) {
+    if (m_currentCard.get())
+    {
         showCard(*m_currentCard);
-    } else {
+    }
+    else
+    {
         allCardsFinished();
     }
 }
@@ -120,21 +122,25 @@ void StudyWindow::showCard(WordCard &card)
 
 QString StudyWindow::minuteToString(int minute)
 {
-    if (minute < 60) {
+    if (minute < 60)
+    {
         return QString::number(minute) + QObject::tr("minute");
     }
 
-    if (minute < 60 * 24) {
+    if (minute < 60 * 24)
+    {
         auto hour = minute / 60.0;
         return QString::number(hour, 'f', 1) + QObject::tr("hour");
     }
 
-    if (minute <= 60 * 24 * 30) {
+    if (minute <= 60 * 24 * 30)
+    {
         auto day = minute / (60.0 * 24);
         return QString::number(day, 'f', 1) + QObject::tr("day");
     }
 
-    if (minute <= 60 * 24 * 365) {
+    if (minute <= 60 * 24 * 365)
+    {
         auto month = minute / (60.0 * 24 * 30);
         return QString::number(month, 'f', 1) + QObject::tr("month");
     }
@@ -144,32 +150,40 @@ QString StudyWindow::minuteToString(int minute)
 
 void StudyWindow::showWord(sptr<Word> word)
 {
-    if (word.get() == nullptr) {
+    if (word.get() == nullptr)
+    {
         return;
     }
 
-    if (m_wordView.getSpelling() != word->getSpelling()) {
+    if (m_wordView.getSpelling() != word->getSpelling())
+    {
         // set the word ONLY when its spelling is different
         m_wordView.setWord(word);
     }
 
-    if (m_state == ShowDefinition) {
+    if (m_state == ShowDefinition)
+    {
         m_wordView.setShowSetting(WordView::ShowAll);
-    } else {
+    }
+    else
+    {
         m_wordView.setShowSetting(WordView::ShowSpell);
     }
 }
 
 void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)
 {
-    if (m_studyList.get() == nullptr) {
+    if (m_studyList.get() == nullptr)
+    {
         return;
     }
 
-    if (m_currentCard.get()) {
+    if (m_currentCard.get())
+    {
         m_studyList->responseToCurrent(m_currentCard, responseQulity);
         auto word = m_currentCard->getWord();
-        if (word.get()) {
+        if (word.get())
+        {
             emit wordStudied(word->getSpelling());
         }
         m_currentCard = sptr<WordCard>();
@@ -178,7 +192,8 @@ void StudyWindow::nextWord(MemoryItem::ResponseQuality responseQulity)
     m_currentCard = m_studyList->nextCard();
     m_state = ShowSpell;
 
-    if (m_currentCard.get()) {
+    if (m_currentCard.get())
+    {
         updateLabels(*m_currentCard);
     }
 
@@ -227,12 +242,12 @@ void StudyWindow::updateLabels(WordCard &card)
     ui->labelCorrect4->setText(minuteToString(cah));
     ui->labelPerfect->setText(minuteToString(perfect));
 
-    if (m_studyList.get()) {
+    if (m_studyList.get())
+    {
         auto numberOfCards = m_studyList->size();
         ui->labelShow->setText("<html><span style=\"color:blue\">" + QString::number(numberOfCards) + "</span><html>");
     }
 }
-
 
 void StudyWindow::updateButtons()
 {

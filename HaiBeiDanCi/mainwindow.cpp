@@ -14,12 +14,11 @@
 #include <QFuture>
 #include <QFutureWatcher>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    m_studyWindow(nullptr),
-    m_browserWindow(nullptr),
-    m_bookIntro(nullptr)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
+                                          ui(new Ui::MainWindow),
+                                          m_studyWindow(nullptr),
+                                          m_browserWindow(nullptr),
+                                          m_bookIntro(nullptr)
 {
     ui->setupUi(this);
     setMyTitle();
@@ -27,8 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_bookIntro.setHtml("<html></html>");
     ui->verticalLayout->addWidget(&m_bookIntro);
 
-
-    if (WordDB::initialize() == false) {
+    if (WordDB::initialize() == false)
+    {
         QMessageBox::critical(this, MySettings::appName(), MainWindow::tr("database error"));
     }
 
@@ -79,9 +78,11 @@ void MainWindow::listBooks()
 
     auto bookList = WordBook::getAllBooks();
 
-    for (int i = 0;i < bookList.size();i ++) {
+    for (int i = 0; i < bookList.size(); i++)
+    {
         auto book = WordBook::getBook(bookList.at(i));
-        if (book.get()) {
+        if (book.get())
+        {
             addBookToTheView(*book);
         }
     }
@@ -90,9 +91,12 @@ void MainWindow::listBooks()
 
     // select the first book
     QTreeWidgetItemIterator it(ui->twBooks);
-    if (*it) {
+    if (*it)
+    {
         ui->twBooks->setCurrentItem(*it);
-    } else {
+    }
+    else
+    {
         // no book, call onItemSelectionChanged() manually
         onItemSelectionChanged();
     }
@@ -123,7 +127,8 @@ void MainWindow::updateCurrentBookData()
     // expired words
     auto expired = expiredWordsFromCurrentBook();
     int numOfWords = 0;
-    if (expired.get()) {
+    if (expired.get())
+    {
         numOfWords = expired->size();
     }
     ui->labelExpired->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
@@ -133,7 +138,8 @@ void MainWindow::updateCurrentBookData()
     // old words
     auto old = oldWordsFromCurrentBook();
     numOfWords = 0;
-    if (old.get()) {
+    if (old.get())
+    {
         numOfWords = old->size();
     }
     ui->labelOld->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
@@ -143,7 +149,8 @@ void MainWindow::updateCurrentBookData()
     // new words
     auto newWords = newWordsFromCurrentBook();
     numOfWords = 0;
-    if (newWords.get()) {
+    if (newWords.get())
+    {
         numOfWords = newWords->size();
     }
     ui->labelNew->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
@@ -153,7 +160,8 @@ void MainWindow::updateCurrentBookData()
     // all words
     auto all = allWordsFromCurrentBook();
     numOfWords = 0;
-    if (all.get()) {
+    if (all.get())
+    {
         numOfWords = all->size();
     }
     ui->labelAll->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
@@ -166,7 +174,8 @@ void MainWindow::updateAllBooksData()
     // expired words
     auto expired = StudyList::allExpiredWords();
     auto numOfWords = 0;
-    if (expired.get()) {
+    if (expired.get())
+    {
         numOfWords = expired->size();
     }
     ui->labelGlobalExpired->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
@@ -176,7 +185,8 @@ void MainWindow::updateAllBooksData()
     // old words
     auto old = StudyList::allOldWords();
     numOfWords = 0;
-    if (old.get()) {
+    if (old.get())
+    {
         numOfWords = old->size();
     }
     ui->labelGlobalOld->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
@@ -186,7 +196,8 @@ void MainWindow::updateAllBooksData()
     // new words
     auto newWords = StudyList::allNewWords();
     numOfWords = 0;
-    if (newWords.get()) {
+    if (newWords.get())
+    {
         numOfWords = newWords->size();
     }
     ui->labelGlobalNew->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
@@ -196,7 +207,8 @@ void MainWindow::updateAllBooksData()
     // all words
     auto all = StudyList::allWords();
     numOfWords = 0;
-    if (all.get()) {
+    if (all.get())
+    {
         numOfWords = all->size();
     }
     ui->labelGlobalAll->setText(QString::number(numOfWords) + MainWindow::tr(" words"));
@@ -206,8 +218,8 @@ void MainWindow::updateAllBooksData()
 
 void MainWindow::startStudy(sptr<StudyList> studyList)
 {
-    if (studyList.get() == nullptr
-            || studyList->size() == 0) {
+    if (studyList.get() == nullptr || studyList->size() == 0)
+    {
         QMessageBox::information(this,
                                  MainWindow::tr(""),
                                  MainWindow::tr("No word to study!"));
@@ -215,21 +227,23 @@ void MainWindow::startStudy(sptr<StudyList> studyList)
     }
 
     auto setRestul = m_studyWindow.setStudyList(studyList);
-    if (setRestul) {
+    if (setRestul)
+    {
         m_studyWindow.reloadView();
         m_studyWindow.show();
-    } else {
+    }
+    else
+    {
         QMessageBox::critical(this,
-                                 MainWindow::tr(""),
-                                 MainWindow::tr("failed to set the word list to study!"));
+                              MainWindow::tr(""),
+                              MainWindow::tr("failed to set the word list to study!"));
     }
 }
 
-
 void MainWindow::startBrowse(sptr<StudyList> studyList)
 {
-    if (studyList.get() == nullptr
-            || studyList->size() == 0) {
+    if (studyList.get() == nullptr || studyList->size() == 0)
+    {
         QMessageBox::information(this,
                                  MainWindow::tr(""),
                                  MainWindow::tr("No word to Browse!"));
@@ -237,20 +251,24 @@ void MainWindow::startBrowse(sptr<StudyList> studyList)
     }
 
     auto setRestul = m_browserWindow.setWordList(studyList);
-    if (setRestul) {
+    if (setRestul)
+    {
         m_browserWindow.reloadView();
         m_browserWindow.show();
-    } else {
+    }
+    else
+    {
         QMessageBox::critical(this,
-                                 MainWindow::tr(""),
-                                 MainWindow::tr("failed to set the word list to browse!"));
+                              MainWindow::tr(""),
+                              MainWindow::tr("failed to set the word list to browse!"));
     }
 }
 
 sptr<StudyList> MainWindow::expiredWordsFromCurrentBook()
 {
     auto ci = ui->twBooks->currentItem();
-    if (ci == nullptr) {
+    if (ci == nullptr)
+    {
         return sptr<StudyList>();
     }
 
@@ -272,7 +290,8 @@ void MainWindow::on_pushBrowseExpiredWords_clicked()
 sptr<StudyList> MainWindow::oldWordsFromCurrentBook()
 {
     auto ci = ui->twBooks->currentItem();
-    if (ci == nullptr) {
+    if (ci == nullptr)
+    {
         return sptr<StudyList>();
     }
 
@@ -293,7 +312,8 @@ void MainWindow::on_pushBrowseOldWords_clicked()
 sptr<StudyList> MainWindow::newWordsFromCurrentBook()
 {
     auto ci = ui->twBooks->currentItem();
-    if (ci == nullptr) {
+    if (ci == nullptr)
+    {
         return sptr<StudyList>();
     }
 
@@ -311,17 +331,18 @@ void MainWindow::on_pushBrowseNewWords_clicked()
     startBrowse(newWordsFromCurrentBook());
 }
 
-
 void MainWindow::showCurrentBookIntroduction()
 {
     auto ci = ui->twBooks->currentItem();
-    if (ci == nullptr) {
+    if (ci == nullptr)
+    {
         return;
     }
 
     auto bookName = ci->text(0);
     auto book = WordBook::getBook(bookName);
-    if (book.get()) {
+    if (book.get())
+    {
         m_bookIntro.setHtml(book->getIntroduction());
     }
 }
@@ -329,7 +350,8 @@ void MainWindow::showCurrentBookIntroduction()
 sptr<StudyList> MainWindow::allWordsFromCurrentBook()
 {
     auto ci = ui->twBooks->currentItem();
-    if (ci == nullptr) {
+    if (ci == nullptr)
+    {
         return sptr<StudyList>();
     }
 
@@ -394,7 +416,6 @@ void MainWindow::on_pushGlobalBrowseExpiredWords_clicked()
     auto studyList = StudyList::allExpiredWords();
     startBrowse(studyList);
 }
-
 
 void MainWindow::setMyTitle()
 {

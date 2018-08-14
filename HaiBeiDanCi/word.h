@@ -11,8 +11,8 @@
 
 class Word
 {
-public:
-    const QString & getSpelling() const
+  public:
+    const QString &getSpelling() const
     {
         return m_spelling;
     }
@@ -20,7 +20,7 @@ public:
     void setDefinition(const QString &definition);
 
     int getId();
-    const QString & getDefinition();
+    const QString &getDefinition();
     QString getDefinitionDIV();
 
     static bool createDatabaseTables();
@@ -31,15 +31,15 @@ public:
     static int getWordId(const QString &spelling);
     static bool isInDatabase(const QString &spelling);
 
-private:
+  private:
     Word(QString word, QString definition = "", int id = 0);
 
     bool dbsaveDefinition();
 
-private:
+  private:
     QString m_spelling;
     QString m_definition;
-    int m_id;   // id in database
+    int m_id; // id in database
 
     static QMap<QString, sptr<Word>> m_allWords;
     static QMutex m_allWordsMutex;

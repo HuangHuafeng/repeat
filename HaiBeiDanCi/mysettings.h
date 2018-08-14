@@ -6,21 +6,23 @@
 
 class MySettings
 {
-public:
+  public:
     MySettings();
 
-    static QString orgName() {
+    static QString orgName()
+    {
         return "AniujSoft";
     }
 
-    static QString orgDomain() {
+    static QString orgDomain()
+    {
         return "aniujsoft.com";
     }
 
-    static QString appName() {
+    static QString appName()
+    {
         return QObject::tr("HaiBeiDanCi");
     }
-
 };
 
 #endif // MYSETTINGS_H

@@ -11,15 +11,15 @@ class TemporaryFileManager : public QObject
 
     QVector<QString> m_files;
 
-public:
+  public:
     explicit TemporaryFileManager(QObject *parent = nullptr);
     ~TemporaryFileManager();
 
-    void addTemporaryFile(const QTemporaryFile & temporaryFile);
+    void addTemporaryFile(const QTemporaryFile &temporaryFile);
 
-signals:
+  signals:
 
-public slots:
+  public slots:
 };
 
 #endif // TEMPORARYFILEMANAGER_H

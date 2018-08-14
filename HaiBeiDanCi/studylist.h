@@ -14,7 +14,7 @@
  */
 class StudyList
 {
-public:
+  public:
     StudyList();
     ~StudyList();
 
@@ -31,15 +31,17 @@ public:
     sptr<WordCard> nextCard();
     bool responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQuality responseQulity);
 
-    const QVector<QString> & getWordList() const {
+    const QVector<QString> &getWordList() const
+    {
         return m_words;
     }
 
-    int size() const {
+    int size() const
+    {
         return m_words.size();
     }
 
-private:
+  private:
     QVector<QString> m_words;
     sptr<WordCard> m_current;
 

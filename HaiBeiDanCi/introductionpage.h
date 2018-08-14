@@ -9,10 +9,10 @@ class IntroductionPage : public QWebEnginePage
 {
     Q_OBJECT
 
-public:
-    IntroductionPage(QObject* parent = nullptr);
+  public:
+    IntroductionPage(QObject *parent = nullptr);
 
-    virtual bool acceptNavigationRequest(const QUrl & url, QWebEnginePage::NavigationType type, bool /*isMainFrame*/) override
+    virtual bool acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool /*isMainFrame*/) override
     {
         if (type == QWebEnginePage::NavigationTypeLinkClicked)
         {

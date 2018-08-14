@@ -8,7 +8,8 @@
 #include <QDialog>
 #include <QVector>
 
-namespace Ui {
+namespace Ui
+{
 class StudyWindow;
 }
 
@@ -16,7 +17,7 @@ class StudyWindow : public QDialog
 {
     Q_OBJECT
 
-public:
+  public:
     explicit StudyWindow(QWidget *parent = nullptr);
     ~StudyWindow() override;
 
@@ -25,10 +26,10 @@ public:
 
     virtual void closeEvent(QCloseEvent *event) override;
 
-signals:
+  signals:
     void wordStudied(QString spelling);
 
-private slots:
+  private slots:
     void on_pushShow_clicked();
 
     void on_pushIncorrect_clicked();
@@ -39,8 +40,9 @@ private slots:
 
     void on_pushPerfect_clicked();
 
-private:
-    typedef enum {
+  private:
+    typedef enum
+    {
         ShowSpell = 1,
         ShowDefinition = 2,
         NoCard = 3
@@ -66,7 +68,6 @@ private:
 
     void saveSettings();
     void loadSetting();
-
 };
 
 #endif // STUDYWINDOW_H

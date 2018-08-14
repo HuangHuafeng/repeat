@@ -8,13 +8,11 @@
 
 class IntroductionView : public QWebEngineView
 {
-public:
+  public:
     IntroductionView(QWidget *parent = nullptr);
 
-protected:
+  protected:
     virtual void contextMenuEvent(QContextMenuEvent *event) override;
 };
-
-
 
 #endif // INTRODUCTIONVIEW_H

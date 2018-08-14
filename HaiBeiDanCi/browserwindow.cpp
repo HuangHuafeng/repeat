@@ -8,11 +8,10 @@
 #include <QMutex>
 #include <QSettings>
 
-BrowserWindow::BrowserWindow(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::BrowserWindow),
-    m_wordView(parent),
-    m_mutex()
+BrowserWindow::BrowserWindow(QWidget *parent) : QDialog(parent),
+                                                ui(new Ui::BrowserWindow),
+                                                m_wordView(parent),
+                                                m_mutex()
 {
     ui->setupUi(this);
     setMyTitle();
@@ -72,7 +71,8 @@ void BrowserWindow::loadSetting()
 void BrowserWindow::onItemSelectionChanged()
 {
     auto ci = ui->treeWidget->currentItem();
-    if (ci == nullptr) {
+    if (ci == nullptr)
+    {
         return;
     }
 
@@ -81,10 +81,13 @@ void BrowserWindow::onItemSelectionChanged()
     m_wordView.setWord(word);
 
     auto showDefinitionDirectly = ui->checkShowDefinitionDirectly->isChecked();
-    if (showDefinitionDirectly) {
+    if (showDefinitionDirectly)
+    {
         m_wordView.setShowSetting(WordView::ShowAll);
         showHideButtons(true);
-    } else {
+    }
+    else
+    {
         m_wordView.setShowSetting(WordView::ShowSpell);
         showHideButtons(false);
     }
@@ -92,12 +95,14 @@ void BrowserWindow::onItemSelectionChanged()
 
 void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
 {
-    if (studyList.get() == nullptr) {
+    if (studyList.get() == nullptr)
+    {
         return;
     }
 
     auto wordList = studyList->getWordList();
-    for (int i = 0;i < wordList.size();i ++) {
+    for (int i = 0; i < wordList.size(); i++)
+    {
         auto word = wordList.at(i);
         QStringList infoList;
 
@@ -105,17 +110,21 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         infoList.append(word);
 
         auto card = WordCard::getCard(word);
-        if (card.get()) {
+        if (card.get())
+        {
             // expire
             infoList.append(card->getExpireTime().toString("yyyy-MM-dd"));
 
             // repetition
             auto repetition = card->getRepetition();
-            if (repetition < 100) {
+            if (repetition < 100)
+            {
                 // less than 999 days, display number
                 QString repetitionText = QString("%1").arg(repetition, 2, 10, QChar('0'));
                 infoList.append(repetitionText);
-            } else {
+            }
+            else
+            {
                 infoList.append(BrowserWindow::tr(">99"));
             }
 
@@ -126,13 +135,18 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
 
             // interval
             auto im = card->getIntervalInMinute() / (60 * 24);
-            if (im == 0) {
+            if (im == 0)
+            {
                 infoList.append(BrowserWindow::tr("<1"));
-            } else if (im < 999) {
+            }
+            else if (im < 999)
+            {
                 // less than 999 days, display number
                 QString interval = QString("%1").arg(im, 3, 10, QChar('0'));
                 infoList.append(interval);
-            } else {
+            }
+            else
+            {
                 infoList.append(BrowserWindow::tr(">999"));
             }
 
@@ -148,8 +162,8 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
 
 bool BrowserWindow::setWordList(sptr<StudyList> studyList)
 {
-    if (studyList.get() == nullptr
-            || studyList->size() == 0) {
+    if (studyList.get() == nullptr || studyList->size() == 0)
+    {
         return false;
     }
 
@@ -161,7 +175,8 @@ bool BrowserWindow::setWordList(sptr<StudyList> studyList)
 
     // select the first item
     QTreeWidgetItemIterator it(ui->treeWidget);
-    if (*it) {
+    if (*it)
+    {
         ui->treeWidget->setCurrentItem(*it);
     }
 
@@ -176,9 +191,12 @@ void BrowserWindow::reloadView()
 void BrowserWindow::on_checkHideTreeview_stateChanged(int /* arg1 */)
 {
     auto hideTreeWidget = ui->checkHideTreeview->isChecked();
-    if (hideTreeWidget) {
+    if (hideTreeWidget)
+    {
         ui->treeWidget->hide();
-    } else {
+    }
+    else
+    {
         ui->treeWidget->show();
     }
 }
@@ -187,7 +205,8 @@ void BrowserWindow::on_pushPrevious_clicked()
 {
     auto current = ui->treeWidget->currentItem();
     auto previous = ui->treeWidget->itemAbove(current);
-    if (previous) {
+    if (previous)
+    {
         ui->treeWidget->setCurrentItem(previous);
     }
 }
@@ -196,7 +215,8 @@ void BrowserWindow::on_pushNext_clicked()
 {
     auto current = ui->treeWidget->currentItem();
     auto next = ui->treeWidget->itemBelow(current);
-    if (next) {
+    if (next)
+    {
         ui->treeWidget->setCurrentItem(next);
     }
 }
@@ -209,11 +229,14 @@ void BrowserWindow::on_pushShow_clicked()
 
 void BrowserWindow::showHideButtons(bool definitionIsShown)
 {
-    if (definitionIsShown) {
+    if (definitionIsShown)
+    {
         ui->pushShow->hide();
         ui->pushNext->show();
         ui->pushPrevious->show();
-    } else {
+    }
+    else
+    {
         ui->pushNext->hide();
         ui->pushPrevious->hide();
         ui->pushShow->show();

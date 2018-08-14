@@ -12,12 +12,12 @@ class MediaPlayer : public QObject
 
     void playNextFile();
 
-public:
+  public:
     MediaPlayer();
 
     void play(QString fileName);
 
-public slots:
+  public slots:
     void stateChanged(QMediaPlayer::State state);
     void error(QMediaPlayer::Error error);
 };

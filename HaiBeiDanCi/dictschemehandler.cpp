@@ -7,9 +7,8 @@
 #include <QWebEngineProfile>
 #include <QMessageBox>
 
-DictSchemeHandler::DictSchemeHandler(QObject *parent) :
-    QWebEngineUrlSchemeHandler(parent),
-    m_mediaPlayer()
+DictSchemeHandler::DictSchemeHandler(QObject *parent) : QWebEngineUrlSchemeHandler(parent),
+                                                        m_mediaPlayer()
 {
     installSchemeHandler();
 }
@@ -23,10 +22,13 @@ void DictSchemeHandler::installSchemeHandler()
     // just use the default profile, we are not going to be complicated
     // to the situation that pages use different profiles
     QWebEngineProfile *defaultProfile = QWebEngineProfile::defaultProfile();
-    if (defaultProfile->urlSchemeHandler(QByteArray("hhfaudio"))) {
+    if (defaultProfile->urlSchemeHandler(QByteArray("hhfaudio")))
+    {
         // already installed
         gdDebug("We should not run to this line in DictSchemeHandler::installSchemeHandler()!");
-    } else {
+    }
+    else
+    {
         defaultProfile->installUrlSchemeHandler(QByteArray("hhfaudio"), this);
     }
 }
@@ -35,9 +37,12 @@ void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 {
     QUrl requestUrl = request->requestUrl();
 
-    if (requestUrl.scheme().compare("hhfaudio") == 0) {
+    if (requestUrl.scheme().compare("hhfaudio") == 0)
+    {
         return handleSchemeHhfaudio(request);
-    } else {
+    }
+    else
+    {
         // impossible as we only register hhfaudio
         gdDebug("scheme %s is unknown in DictSchemeHandler::requestStarted()", requestUrl.scheme().toStdString().c_str());
     }
@@ -49,4 +54,3 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
     //QString audioFile = QCoreApplication::applicationDirPath() + request->requestUrl().path();
     m_mediaPlayer.play(audioFile);
 }
-

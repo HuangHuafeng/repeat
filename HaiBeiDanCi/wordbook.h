@@ -11,7 +11,7 @@
 
 class WordBook
 {
-public:
+  public:
     WordBook(QString name = QObject::tr("new book"), QString introduction = QObject::tr("no introduction"), int id = 0);
 
     int getId();
@@ -38,10 +38,10 @@ public:
     static bool isInDatabase(const QString &name);
     static QVector<QString> getWordsInBook(QString bookName);
 
-private:
+  private:
     QString m_name;
     QString m_introduction;
-    int m_id;   // id in database
+    int m_id; // id in database
 
     static QMap<QString, sptr<WordBook>> m_allBooks;
     static QMutex m_allBooksMutex;

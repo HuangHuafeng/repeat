@@ -11,8 +11,8 @@
 #include <QThread>
 #include <QTreeWidget>
 
-
-namespace Ui {
+namespace Ui
+{
 class BrowserWindow;
 }
 
@@ -20,7 +20,7 @@ class BrowserWindow : public QDialog
 {
     Q_OBJECT
 
-public:
+  public:
     explicit BrowserWindow(QWidget *parent = nullptr);
     ~BrowserWindow() override;
 
@@ -29,14 +29,16 @@ public:
 
     virtual void closeEvent(QCloseEvent *event) override;
 
-    void lockTree() {
+    void lockTree()
+    {
         m_mutex.lock();
     }
-    void unlockTree() {
+    void unlockTree()
+    {
         m_mutex.unlock();
     }
 
-private:
+  private:
     Ui::BrowserWindow *ui;
     WordView m_wordView;
     QMutex m_mutex;
@@ -48,7 +50,7 @@ private:
     void loadSetting();
     void setMyTitle();
 
-private slots:
+  private slots:
     void onItemSelectionChanged();
     void on_checkHideTreeview_stateChanged(int);
     void on_pushPrevious_clicked();

@@ -2,5 +2,4 @@
 
 MySettings::MySettings()
 {
-
 }

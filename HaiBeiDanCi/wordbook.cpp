@@ -5,6 +5,9 @@
 
 #include <QMessageBox>
 
+QMap<QString, sptr<WordBook>> WordBook::m_books;
+QMutex WordBook::m_booksMutex;
+
 WordBook::WordBook(QString name, QString introduction, int id) :
     m_name(name),
     m_introduction(introduction),
@@ -15,19 +18,16 @@ WordBook::WordBook(QString name, QString introduction, int id) :
 
 int WordBook::getId()
 {
-    updateFromDatabase();
     return m_id;
 }
 
-const QString WordBook::getName()
+QString WordBook::getName()
 {
-    updateFromDatabase();
     return m_name;
 }
 
-const QString WordBook::getIntroduction()
+QString WordBook::getIntroduction()
 {
-    updateFromDatabase();
     return m_introduction;
 }
 
@@ -35,10 +35,10 @@ const QString WordBook::getIntroduction()
 bool WordBook::dbsave()
 {
     auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
-    if (WordBook::isInDatabase(getId())) {
+    if (m_id != 0) {
         // update
         query.prepare("UPDATE wordbooks SET name=:name, introduction=:introduction WHERE id=:id");
-        query.bindValue(":id", getId());
+        query.bindValue(":id", m_id);
     } else {
         // dont save this book if there's already a book with name "m_name"
         if (WordBook::isInDatabase(m_name)) {
@@ -56,24 +56,6 @@ bool WordBook::dbsave()
     }
 
     return true;
-}
-
-int WordBook::totalWords()
-{
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
-    query.prepare("SELECT count(*) FROM words_in_books WHERE book_id=:book_id");
-    query.bindValue(":book_id", getId());
-    if (query.exec()) {
-        if (query.first()) {
-            return query.value(0).toInt();
-        } else {
-            return 0;
-        }
-    } else {
-        WordDB::databaseError(query, "fetching word books");
-    }
-
-    return 0;
 }
 
 QVector<QString> WordBook::getAllWords(int number)
@@ -258,25 +240,6 @@ bool WordBook::dbsaveAddWords(const QVector<QString> &words)
     return retValue;
 }
 
-void WordBook::updateFromDatabase()
-{
-    m_id = WordBook::getBookId(m_name);
-    if (m_id == 0) {
-        // the book does NOT exist in the database
-        return;
-    }
-
-    if (hasUpdatedFromDatabase() == true) {
-        return;
-    }
-
-    DatabaseObject::updateFromDatabase();
-
-    if (dbgetNameAndIntro() == false) {
-        QMessageBox::critical(nullptr, "", "something wrong when updating book information from database");
-    }
-}
-
 bool WordBook::dbgetNameAndIntro()
 {
     bool retVal = false;
@@ -301,21 +264,23 @@ bool WordBook::dbgetNameAndIntro()
 }
 
 // static
-sptr<WordBook> WordBook::getBook(const QString &bookName)
+sptr<WordBook> WordBook::getBook(QString bookName, bool create)
 {
-    sptr<WordBook> book = new WordBook(bookName);
-    if (book.get()) {
-        if (book->getId() == 0) {
-            // the book does not exist in the database
-            return sptr<WordBook>();
+    m_booksMutex.lock();
+    auto book = m_books.value(bookName);
+    if (book.get() == nullptr && create == true) {
+        book = new WordBook(bookName);
+        if (book.get()) {
+            m_books.insert(bookName, book);
         }
     }
+    m_booksMutex.unlock();
 
     return book;
 }
 
 // static
-QVector<QString> WordBook::getWordsInBook(const QString &bookName)
+QVector<QString> WordBook::getWordsInBook(QString bookName)
 {
     QVector<QString> wordList;
     auto book = WordBook::getBook(bookName);
@@ -327,24 +292,29 @@ QVector<QString> WordBook::getWordsInBook(const QString &bookName)
 }
 
 // static
-QVector<sptr<WordBook>> WordBook::getWordBooks()
+void WordBook::readAllBooksFromDatabase()
 {
-    QVector<sptr<WordBook>> books;
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return books;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return;}auto query = *ptrQuery;
     query.prepare("SELECT id, name, introduction FROM wordbooks");
     if (query.exec()) {
+        m_booksMutex.lock();
         while (query.next()) {
             int id = query.value("id").toInt();
             QString name = query.value("name").toString();
             QString introduction = query.value("introduction").toString();
             auto abook = new WordBook(name, introduction, id);
-            books.append(abook);
+            m_books.insert(name, abook);
         }
+        m_booksMutex.unlock();
     } else {
         WordDB::databaseError(query, "fetching word books");
     }
+}
 
-    return books;
+// static
+const QList<QString> WordBook::getAllBooks()
+{
+    return m_books.keys();
 }
 
 // static
@@ -372,36 +342,11 @@ bool WordBook::createDatabaseTables()
 }
 
 // static
-bool WordBook::isInDatabase(int bookId)
-{
-    if (bookId == 0) {
-        return false;
-    }
-
-    bool retVal = false;
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
-    query.prepare("SELECT * FROM wordbooks WHERE id=:book_id");
-    query.bindValue(":book_id", bookId);
-    if (query.exec()) {
-        if (query.first()) {
-            retVal = true;
-        } else {
-            retVal = false;
-        }
-    } else {
-        WordDB::databaseError(query, "checking existence of word book with id \"" + QString::number(bookId) + "\"");
-        retVal = false;
-    }
-
-    return retVal;
-}
-
-// static
 bool WordBook::isInDatabase(const QString &name)
 {
     bool retVal = false;
     auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
-    query.prepare("SELECT * FROM wordbooks WHERE name=:name");
+    query.prepare("SELECT name FROM wordbooks WHERE name=:name");
     query.bindValue(":name", name);
     if (query.exec()) {
         if (query.first()) {
@@ -412,27 +357,6 @@ bool WordBook::isInDatabase(const QString &name)
     } else {
         WordDB::databaseError(query, "checking existence of word book \"" + name + "\"");
         retVal = false;
-    }
-
-    return retVal;
-}
-
-// static
-int WordBook::getBookId(const QString &name)
-{
-    int retVal = 0;
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
-    query.prepare("SELECT id FROM wordbooks WHERE name=:name  COLLATE NOCASE");
-    query.bindValue(":name", name);
-    if (query.exec()) {
-        if (query.first()) {
-            retVal = query.value("id").toInt();
-        } else {
-            retVal = 0;
-        }
-    } else {
-        WordDB::databaseError(query, "checking id of book \"" + name + "\"");
-        retVal = 0;
     }
 
     return retVal;

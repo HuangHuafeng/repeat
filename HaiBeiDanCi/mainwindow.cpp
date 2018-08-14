@@ -2,6 +2,10 @@
 #include "ui_mainwindow.h"
 #include "../golddict/gddebug.hh"
 #include "mysettings.h"
+#include "wordcard.h"
+#include "word.h"
+#include "worddb.h"
+#include "wordbook.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -20,12 +24,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     setMyTitle();
 
-    m_bookIntro.resize(0, 200);
+    m_bookIntro.setHtml("<html></html>");
     ui->verticalLayout->addWidget(&m_bookIntro);
 
     connect(ui->twBooks, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
-
-    listBooks();
 
     updateAllBooksData();
     connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(onWordStudied(QString)));
@@ -43,7 +45,11 @@ bool MainWindow::loadAllCardsThreadCall()
 {
     QDateTime start = QDateTime::currentDateTime();
     WordDB::prepareDatabaseForThisThread();
+
+    Word::readAllWordsFromDatabase();
     WordCard::readAllCardsFromDatabase();
+    WordBook::readAllBooksFromDatabase();
+
     WordDB::removeDatabaseForThisThread();
     QDateTime end = QDateTime::currentDateTime();
 
@@ -56,13 +62,14 @@ bool MainWindow::loadAllCardsThreadCall()
 void MainWindow::loadAllCards()
 {
     connect(&m_loadAllCardsWatcher, SIGNAL(finished()), this, SLOT(onAllCardsLoaded()));
-    m_loadAllCardsFuture = QtConcurrent::run(MainWindow::loadAllCardsThreadCall);
-    m_loadAllCardsWatcher.setFuture(m_loadAllCardsFuture);
+    auto f = QtConcurrent::run(MainWindow::loadAllCardsThreadCall);
+    m_loadAllCardsWatcher.setFuture(f);
 }
 
 void MainWindow::onAllCardsLoaded()
 {
-    WordCard::readAllCardsFromDatabaseUsingThreads();
+    listBooks();
+    gdDebug("finished");
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -95,10 +102,10 @@ void MainWindow::listBooks()
     header.append(MainWindow::tr("Book Name"));
     ui->twBooks->setHeaderLabels(header);
 
-    auto bookList = WordBook::getWordBooks();
+    auto bookList = WordBook::getAllBooks();
 
     for (int i = 0;i < bookList.size();i ++) {
-        auto book = bookList.at(i);
+        auto book = WordBook::getBook(bookList.at(i));
         if (book.get()) {
             addBookToTheView(*book);
         }
@@ -317,7 +324,6 @@ void MainWindow::showCurrentBookIntroduction()
     auto bookName = ui->twBooks->currentItem()->text(0);
     auto book = WordBook::getBook(bookName);
     if (book.get()) {
-        //ui->textEditBookIntroduction->setHtml(book->getIntroduction());
         m_bookIntro.setHtml(book->getIntroduction());
     }
 }

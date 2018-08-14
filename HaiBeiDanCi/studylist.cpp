@@ -51,7 +51,7 @@ sptr<WordCard> StudyList::nextCard()
     if (m_current.get() == nullptr)
     {
         if (m_words.isEmpty() == false) {
-            m_current = WordCard::generateCardForWord(m_words.first());
+            m_current = WordCard::getCard(m_words.first(), true);
         }
     }
 

@@ -1,7 +1,6 @@
 #ifndef WORDCARD_H
 #define WORDCARD_H
 
-#include "databaseobject.h"
 #include "memoryitem.h"
 #include "word.h"
 
@@ -40,10 +39,11 @@ public:
     }
 };
 
-class WordCard : public MemoryItem, public DatabaseObject
+class WordCard : public MemoryItem
 {
 public:
     virtual ~WordCard() override;
+
     bool dbsaveStudyRecord(const StudyRecord &sr);
     void setExpireTime(const QDateTime &expireTime);
     const QDateTime getExpireTime();
@@ -59,48 +59,27 @@ public:
     bool isLearning();
     bool isReviewing();
 
-    int getIntervalInMinute();
-    float getEasiness();
-    int getRepetition();
-
     sptr<Word> getWord() const
     {
-        return m_word;
+        return Word::getWord(m_wordSpelling);
     }
 
-public:
-    static QDateTime defaultExpireTime();
     static bool createDatabaseTables();
-    static bool doesWordHaveCard(const QString &spelling);
-    static sptr<WordCard> generateCardForWord(const QString &spelling);
-    static sptr<WordCard> getCardForWord(const QString &spelling);
     static bool readAllCardsFromDatabase();
-    static QFuture<void> readAllCardsFromDatabaseUsingThreads();
-    static void dbgetCard(sptr<WordCard> &card);
+
+    static bool doesWordHaveCard(const QString &spelling);
+    static sptr<WordCard> getCard(const QString &spelling, bool create = false);
+
+    static QDateTime defaultExpireTime();
 
     static QVector<QString> getAllWords(int number = 0);
     static QVector<QString> getNewWords(int number = 0);
     static QVector<QString> getOldWords(int number = 0);
     static QVector<QString> getExpiredWords(const QDateTime expire, int number = 0);
 
-protected:
-    virtual void updateFromDatabase() override;
-
 private:
-    WordCard(sptr<Word> word = sptr<Word>());
-    static QMap<QString, sptr<WordCard>> m_cards;
-    static QMap<QString, QString> m_wordsHasCard;
-    static QMutex m_cardsMutex;
-
-    static int m_defaultInterval;
-    static int m_defaultIntervalForUnknownNewWord;
-    static int m_defaultIntervalForKnownNewWord;
-    static float m_defaultEasiness;
-
-    static float m_defaultPerfectIncrease;
-    static float m_defaultCorrectIncrease;
-    static float m_defaultKindRememberIncrease;
-    static float m_defaultIncorrectIncrease;
+    WordCard(const QString &spelling);
+    WordCard(const QString &spelling, const StudyRecord &sr);
 
     int defaultInterval() {
         return m_defaultInterval;
@@ -118,11 +97,7 @@ private:
         return m_defaultIntervalForUnknownNewWord;
     }
 
-    sptr<Word> m_word;
-    QVector<StudyRecord> m_studyHistory;
-
     void dbsave();
-    bool dbgetStudyRecords();
 
     int estimatedIntervalNewCard(ResponseQuality responseQuality = Perfect);
     int estimatedIntervalOldCard(ResponseQuality responseQuality = Perfect);
@@ -132,7 +107,22 @@ private:
 
     float estimatedEasiness(ResponseQuality responseQuality);
 
-    static bool readCardForWordUsingThread(QString spelling);
+private:
+    QString m_wordSpelling;
+    QVector<StudyRecord> m_studyHistory;
+
+    static QMap<QString, sptr<WordCard>> m_cards;
+    static QMutex m_cardsMutex;
+
+    static int m_defaultInterval;
+    static int m_defaultIntervalForUnknownNewWord;
+    static int m_defaultIntervalForKnownNewWord;
+    static float m_defaultEasiness;
+
+    static float m_defaultPerfectIncrease;
+    static float m_defaultCorrectIncrease;
+    static float m_defaultKindRememberIncrease;
+    static float m_defaultIncorrectIncrease;
 };
 
 struct StudyRecord

@@ -11,7 +11,6 @@
 #include <QThread>
 #include <QTreeWidget>
 
-class TreeWidgetUpdater;
 
 namespace Ui {
 class BrowserWindow;
@@ -40,14 +39,10 @@ public:
 private:
     Ui::BrowserWindow *ui;
     WordView m_wordView;
-    TreeWidgetUpdater *m_updaterThread;
     QMutex m_mutex;
 
     void addWordsToTreeView(sptr<StudyList> studyList);
     void showHideButtons(bool definitionIsShown);
-
-    void stopUpdater();
-    void startUpdater();
 
     void saveSettings();
     void loadSetting();
@@ -59,24 +54,7 @@ private slots:
     void on_pushPrevious_clicked();
     void on_pushNext_clicked();
     void on_pushShow_clicked();
-    void onTreeWidgetUpdated();
     void on_checkShowDefinitionDirectly_stateChanged(int arg1);
-};
-
-class TreeWidgetUpdater : public QThread {
-    Q_OBJECT
-    void run() override;
-    void updateTreeWidget();
-
-    BrowserWindow &m_bw;
-    QTreeWidget *m_treeWidget;
-
-public:
-    TreeWidgetUpdater(BrowserWindow &bw, QTreeWidget *treeWidget, QObject *parent = nullptr);
-
-signals:
-    void updateFinished();
-
 };
 
 #endif // BROWSERWINDOW_H

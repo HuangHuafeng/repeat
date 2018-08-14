@@ -37,7 +37,6 @@ SOURCES += \
     wordview.cpp \
     dictschemehandler.cpp \
     ../golddict/gddebug.cc \
-    databaseobject.cpp \
     temporaryfilemanager.cpp \
     browserwindow.cpp \
     mysettings.cpp \
@@ -58,7 +57,6 @@ HEADERS += \
     dictschemehandler.h \
     ../golddict/gddebug.hh \
     ../golddict/sptr.hh \
-    databaseobject.h \
     temporaryfilemanager.h \
     browserwindow.h \
     mysettings.h \

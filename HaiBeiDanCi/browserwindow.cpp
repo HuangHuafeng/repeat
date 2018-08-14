@@ -12,7 +12,6 @@ BrowserWindow::BrowserWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BrowserWindow),
     m_wordView(parent),
-    m_updaterThread(nullptr),
     m_mutex()
 {
     ui->setupUi(this);
@@ -39,7 +38,6 @@ BrowserWindow::BrowserWindow(QWidget *parent) :
 
 BrowserWindow::~BrowserWindow()
 {
-    stopUpdater();
     delete ui;
 }
 
@@ -79,7 +77,7 @@ void BrowserWindow::onItemSelectionChanged()
     }
 
     auto spelling = ci->text(0);
-    auto word = Word::getWordFromDatabase(spelling);
+    auto word = Word::getWord(spelling);
     m_wordView.setWord(word);
 
     auto showDefinitionDirectly = ui->checkShowDefinitionDirectly->isChecked();
@@ -106,8 +104,8 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         // spelling
         infoList.append(word);
 
-        auto card = WordCard::getCardForWord(word);
-        if (card.get() && card->hasUpdatedFromDatabase()) {
+        auto card = WordCard::getCard(word);
+        if (card.get()) {
             // expire
             infoList.append(card->getExpireTime().toString("yyyy-MM-dd"));
 
@@ -146,33 +144,6 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
         ui->treeWidget->addTopLevelItem(item);
     }
-}
-
-void BrowserWindow::onTreeWidgetUpdated()
-{
-    m_updaterThread = nullptr;
-}
-
-void BrowserWindow::stopUpdater()
-{
-    if (m_updaterThread != nullptr && m_updaterThread->isRunning()) {
-        m_updaterThread->requestInterruption();
-        m_updaterThread->wait();
-        m_updaterThread = nullptr;
-    }
-}
-
-void BrowserWindow::startUpdater()
-{
-    if (m_updaterThread != nullptr)
-    {
-        return;
-    }
-
-    m_updaterThread = new TreeWidgetUpdater(*this, ui->treeWidget, this);
-    connect(m_updaterThread, SIGNAL(updateFinished()), this, SLOT(onTreeWidgetUpdated()));
-    connect(m_updaterThread, SIGNAL(finished()), m_updaterThread, SLOT(deleteLater()));
-    m_updaterThread->start();
 }
 
 bool BrowserWindow::setWordList(sptr<StudyList> studyList)
@@ -249,67 +220,6 @@ void BrowserWindow::showHideButtons(bool definitionIsShown)
     }
 
     //ui->widgetBottom->adjustSize();
-}
-
-TreeWidgetUpdater::TreeWidgetUpdater(BrowserWindow &bw, QTreeWidget *treeWidget, QObject *parent) :
-    QThread (parent),
-    m_bw(bw),
-    m_treeWidget(treeWidget)
-{
-
-}
-
-void TreeWidgetUpdater::run()
-{
-    // https://stackoverflow.com/questions/20793689/correctly-using-qsqldatabase-in-multi-threaded-programs
-    WordDB appDb;
-    QString dbConnName = "TreeWidgetUpdater" + QDateTime::currentDateTime().toString();
-    if (appDb.connectDB(dbConnName)) {
-        updateTreeWidget();
-    }
-
-    emit updateFinished();
-}
-
-void TreeWidgetUpdater::updateTreeWidget()
-{
-    if (m_treeWidget == nullptr) {
-        return;
-    }
-
-    m_bw.lockTree();
-
-    int updatedItems = 0;
-    QTreeWidgetItemIterator it(m_treeWidget);
-    while (*it) {
-        updatedItems ++;
-        if (updatedItems % 100 == 0) {
-            // can this help the thread to be interrupted eaiser???
-            //msleep(50);
-            break;
-        }
-
-        if (isInterruptionRequested()) {
-            break;
-        }
-        auto spelling = (*it)->text(0);
-        auto wordcard = WordCard::generateCardForWord(spelling);
-        if (wordcard.get()) {
-            QString newText;
-            if (wordcard->getStudyHistory().isEmpty() == false) {
-                auto expire = wordcard->getExpireTime().toLocalTime();
-                newText = expire.toString("yyyy/MM/dd");
-            } else {
-                newText = BrowserWindow::tr("Not set");
-            }
-
-            (*it)->setText(1, newText);
-        }
-
-        it ++;
-    }
-
-    m_bw.unlockTree();
 }
 
 void BrowserWindow::on_checkShowDefinitionDirectly_stateChanged(int /*arg1*/)

@@ -67,7 +67,6 @@ private:
     StudyWindow m_studyWindow;
     BrowserWindow m_browserWindow;
     IntroductionView m_bookIntro;
-    QFuture<bool> m_loadAllCardsFuture;
     QFutureWatcher<bool> m_loadAllCardsWatcher;
 
     void listBooks();

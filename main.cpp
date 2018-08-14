@@ -10,11 +10,6 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    WordDB appDb;
-    if (appDb.connectDB() == false) {
-        return 1;
-    }
-
     QTranslator qtTranslator;
     qtTranslator.load("qt_" + QLocale::system().name(),
             QLibraryInfo::location(QLibraryInfo::TranslationsPath));

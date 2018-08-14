@@ -27,49 +27,24 @@ MainWindow::MainWindow(QWidget *parent) :
     m_bookIntro.setHtml("<html></html>");
     ui->verticalLayout->addWidget(&m_bookIntro);
 
+
+    if (WordDB::initialize() == false) {
+        QMessageBox::critical(this, MySettings::appName(), MainWindow::tr("database error"));
+    }
+
     connect(ui->twBooks, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
     updateAllBooksData();
     connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(onWordStudied(QString)));
 
     loadSetting();
-    loadAllCards();
+    listBooks();
 }
 
 MainWindow::~MainWindow()
 {
+    WordDB::shutdown();
     delete ui;
-}
-
-bool MainWindow::loadAllCardsThreadCall()
-{
-    QDateTime start = QDateTime::currentDateTime();
-    WordDB::prepareDatabaseForThisThread();
-
-    Word::readAllWordsFromDatabase();
-    WordCard::readAllCardsFromDatabase();
-    WordBook::readAllBooksFromDatabase();
-
-    WordDB::removeDatabaseForThisThread();
-    QDateTime end = QDateTime::currentDateTime();
-
-    auto elasped = start.msecsTo(end);
-    gdDebug("used %lld ms", elasped);
-
-    return true;
-}
-
-void MainWindow::loadAllCards()
-{
-    connect(&m_loadAllCardsWatcher, SIGNAL(finished()), this, SLOT(onAllCardsLoaded()));
-    auto f = QtConcurrent::run(MainWindow::loadAllCardsThreadCall);
-    m_loadAllCardsWatcher.setFuture(f);
-}
-
-void MainWindow::onAllCardsLoaded()
-{
-    listBooks();
-    gdDebug("finished");
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

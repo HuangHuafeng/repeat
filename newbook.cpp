@@ -75,6 +75,8 @@ void NewBook::addWordsToBook(WordBook &book, const QString fileName)
 void NewBook::addWordListToBook(WordBook &book, const QStringList wordList)
 {
     QProgressDialog progress("Creating the book ...", "Abort", 0, wordList.size(), this);
+    progress.setWindowModality(Qt::WindowModal);
+
     QStringList failedWords;
 
     for (int i = 0;i < wordList.size();i ++) {

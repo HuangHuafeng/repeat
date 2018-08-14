@@ -65,7 +65,7 @@ public:
     }
 
     static bool createDatabaseTables();
-    static bool readAllCardsFromDatabase();
+    static void readAllCardsFromDatabase();
 
     static bool doesWordHaveCard(const QString &spelling);
     static sptr<WordCard> getCard(const QString &spelling, bool create = false);
@@ -111,8 +111,8 @@ private:
     QString m_wordSpelling;
     QVector<StudyRecord> m_studyHistory;
 
-    static QMap<QString, sptr<WordCard>> m_cards;
-    static QMutex m_cardsMutex;
+    static QMap<QString, sptr<WordCard>> m_allCards;
+    static QMutex m_allCardsMutex;
 
     static int m_defaultInterval;
     static int m_defaultIntervalForUnknownNewWord;

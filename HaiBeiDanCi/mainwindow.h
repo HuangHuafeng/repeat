@@ -28,7 +28,6 @@ public:
 private slots:
     void onItemSelectionChanged();
     void onWordStudied(QString spelling);
-    void onAllCardsLoaded();
 
     void on_pushBrowseExpiredWords_clicked();
 
@@ -80,9 +79,6 @@ private:
 
     void saveSettings();
     void loadSetting();
-
-    void loadAllCards();
-    static bool loadAllCardsThreadCall();
 
     sptr<StudyList> expiredWordsFromCurrentBook();
     sptr<StudyList> oldWordsFromCurrentBook();

@@ -5,8 +5,8 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 
-QMap<QString, sptr<Word>> Word::m_words;
-QMutex Word::m_wordsMutex;
+QMap<QString, sptr<Word>> Word::m_allWords;
+QMutex Word::m_allWordsMutex;
 
 Word::Word(QString word, QString definition, int id) :
     m_spelling(word),
@@ -73,7 +73,7 @@ int Word::getId()
 // static
 QList<QString> Word::getAllWords()
 {
-    return m_words.keys();
+    return m_allWords.keys();
 }
 
 // static
@@ -129,6 +129,13 @@ bool Word::createDatabaseTables()
 
 void Word::readAllWordsFromDatabase()
 {
+    m_allWordsMutex.lock();
+    bool alreadyRead = m_allWords.isEmpty() == false;
+    m_allWordsMutex.unlock();
+    if (alreadyRead == true) {
+        return;
+    }
+
     auto ptrQuery = WordDB::createSqlQuery();
     if (ptrQuery.get() == nullptr) {
         return;
@@ -138,15 +145,15 @@ void Word::readAllWordsFromDatabase()
                   " FROM words"
                   " ORDER BY id ASC");
     if (query.exec()) {
-        m_wordsMutex.lock();
+        m_allWordsMutex.lock();
         while (query.next()) {
             int id = query.value("id").toInt();
             QString spelling = query.value("word").toString();
             QString definition = query.value("definition").toString();
             sptr<Word> word = new Word(spelling, definition, id);
-            m_words.insert(spelling, word);
+            m_allWords.insert(spelling, word);
         }
-        m_wordsMutex.unlock();
+        m_allWordsMutex.unlock();
     } else {
         WordDB::databaseError(query, "fetching all cards from database");
     }
@@ -155,15 +162,15 @@ void Word::readAllWordsFromDatabase()
 // static
 sptr<Word> Word::getWord(const QString &spelling, bool create)
 {
-    m_wordsMutex.lock();
-    sptr<Word> word = m_words.value(spelling);
+    m_allWordsMutex.lock();
+    sptr<Word> word = m_allWords.value(spelling);
     if (word.get() == nullptr && create == true) {
         word = new Word(spelling);
         if (word.get()) {
-            m_words.insert(spelling, word);
+            m_allWords.insert(spelling, word);
         }
     }
-    m_wordsMutex.unlock();
+    m_allWordsMutex.unlock();
 
     return word;
 }

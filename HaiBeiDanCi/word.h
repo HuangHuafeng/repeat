@@ -41,8 +41,8 @@ private:
     QString m_definition;
     int m_id;   // id in database
 
-    static QMap<QString, sptr<Word>> m_words;
-    static QMutex m_wordsMutex;
+    static QMap<QString, sptr<Word>> m_allWords;
+    static QMutex m_allWordsMutex;
 };
 
 #endif // WORD_H

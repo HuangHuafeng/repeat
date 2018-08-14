@@ -5,8 +5,8 @@
 
 #include <QMessageBox>
 
-QMap<QString, sptr<WordBook>> WordBook::m_books;
-QMutex WordBook::m_booksMutex;
+QMap<QString, sptr<WordBook>> WordBook::m_allBooks;
+QMutex WordBook::m_allBooksMutex;
 
 WordBook::WordBook(QString name, QString introduction, int id) :
     m_name(name),
@@ -271,15 +271,15 @@ bool WordBook::dbgetNameAndIntro()
 // static
 sptr<WordBook> WordBook::getBook(QString bookName, bool create)
 {
-    m_booksMutex.lock();
-    auto book = m_books.value(bookName);
+    m_allBooksMutex.lock();
+    auto book = m_allBooks.value(bookName);
     if (book.get() == nullptr && create == true) {
         book = new WordBook(bookName);
         if (book.get()) {
-            m_books.insert(bookName, book);
+            m_allBooks.insert(bookName, book);
         }
     }
-    m_booksMutex.unlock();
+    m_allBooksMutex.unlock();
 
     return book;
 }
@@ -299,18 +299,25 @@ QVector<QString> WordBook::getWordsInBook(QString bookName)
 // static
 void WordBook::readAllBooksFromDatabase()
 {
+    m_allBooksMutex.lock();
+    bool alreadyRead = m_allBooks.isEmpty() == false;
+    m_allBooksMutex.unlock();
+    if (alreadyRead == true) {
+        return;
+    }
+
     auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return;}auto query = *ptrQuery;
     query.prepare("SELECT id, name, introduction FROM wordbooks");
     if (query.exec()) {
-        m_booksMutex.lock();
+        m_allBooksMutex.lock();
         while (query.next()) {
             int id = query.value("id").toInt();
             QString name = query.value("name").toString();
             QString introduction = query.value("introduction").toString();
             auto abook = new WordBook(name, introduction, id);
-            m_books.insert(name, abook);
+            m_allBooks.insert(name, abook);
         }
-        m_booksMutex.unlock();
+        m_allBooksMutex.unlock();
     } else {
         WordDB::databaseError(query, "fetching word books");
     }
@@ -319,7 +326,7 @@ void WordBook::readAllBooksFromDatabase()
 // static
 const QList<QString> WordBook::getAllBooks()
 {
-    return m_books.keys();
+    return m_allBooks.keys();
 }
 
 // static

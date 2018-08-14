@@ -16,28 +16,26 @@
 class WordDB
 {
 public:
-    WordDB();
     virtual ~WordDB();
 
+    static bool initialize();
+    static void shutdown();
     static bool prepareDatabaseForThisThread();
-    static bool removeDatabaseForThisThread();
-    static bool connectDB(const QString &connectionName = "");
-
+    static sptr<QSqlQuery> createSqlQuery();
     static void databaseError(QSqlQuery &query, const QString what);
     static sptr<QSqlDatabase> connectedDatabase();
-    static sptr<QSqlQuery> createSqlQuery();
+
+private:
+    WordDB();
+
+    static bool connectDB(const QString &connectionName = "");
+    static void addConn(QThread *ptrThread, sptr<QSqlDatabase> database);
+    static sptr<QSqlDatabase> getConn(QThread *ptrThread);
+    static void rememberDatabase(sptr<QSqlDatabase> database);
 
 private:
     static QMutex m_mapConnMutex;
     static QMap<QThread *, sptr<QSqlDatabase>> m_mapConns;
-
-    static void addConn(QThread *ptrThread, sptr<QSqlDatabase> database);
-    static bool removeConn(QThread *ptrThread);
-    static sptr<QSqlDatabase> getConn(QThread *ptrThread);
-
-    static void rememberDatabase(sptr<QSqlDatabase> database);
-    void clearDatabase();
-
 };
 
 #endif // WORDDB_H

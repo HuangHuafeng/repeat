@@ -17,11 +17,6 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain(MySettings::orgDomain());
     QCoreApplication::setApplicationName(MySettings::appName());
 
-    WordDB appDb;
-    if (appDb.connectDB() == false) {
-        return 1;
-    }
-
     QTranslator qtTranslator;
     qtTranslator.load("qt_" + QLocale::system().name(),
             QLibraryInfo::location(QLibraryInfo::TranslationsPath));

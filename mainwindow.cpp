@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDateTime>
+#include <QProgressDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -18,6 +19,10 @@ MainWindow::MainWindow(QWidget *parent) :
     m_newbookWindow(m_gdhelper, this)
 {
     ui->setupUi(this);
+
+    if (WordDB::initialize() == false) {
+        QMessageBox::critical(this, "MySettings::appName()", MainWindow::tr("database error"));
+    }
 
     // load LDOCE6 by default for covenience
     m_gdhelper.loadDict("/Users/huafeng/Documents/Nexus7/Dictionary/LDOCE6/LDOCE6.mdx");
@@ -35,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    WordDB::shutdown();
     delete ui;
 }
 
@@ -101,11 +107,20 @@ void MainWindow::on_pushTest_clicked()
     auto sl = StudyList::allWords();
     if (sl.get() != nullptr) {
         auto wordList = sl->getWordList();
+        gdDebug("%d", wordList.size());
+        QProgressDialog progress("touch all the words ...", "Abort", 0, wordList.size(), this);
+        progress.setWindowModality(Qt::WindowModal);
         for (int i = 0; i < wordList.size();i ++) {
             auto spelling = wordList.at(i);
             auto card = WordCard::getCard(spelling, true);
             if (card.get()) {
                 card->update(static_cast<MemoryItem::ResponseQuality>(i % 5));
+            }
+
+            //gdDebug("add fake study record for %s", spelling.toStdString().c_str());
+            progress.setValue(i);
+            if (progress.wasCanceled()) {
+                break;
             }
         }
     }

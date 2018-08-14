@@ -12,8 +12,8 @@
 
 // m_baselineTime is my daughter's birth time
 const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);
-QMap<QString, sptr<WordCard>> WordCard::m_cards;
-QMutex WordCard::m_cardsMutex;
+QMap<QString, sptr<WordCard>> WordCard::m_allCards;
+QMutex WordCard::m_allCardsMutex;
 
 int WordCard::m_defaultIntervalForUnknownNewWord = 10;   // 10 minutes
 int WordCard::m_defaultInterval = 60 * 24;     // one day
@@ -338,23 +338,23 @@ QDateTime WordCard::defaultExpireTime()
  * this improves the performance by using less query
  * @return
  */
-bool WordCard::readAllCardsFromDatabase()
+void WordCard::readAllCardsFromDatabase()
 {
-    static bool allCardsCreated = false;
-    if (allCardsCreated == true) {
-        return true;
+    m_allCardsMutex.lock();
+    bool alreadyRead = m_allCards.isEmpty() == false;
+    m_allCardsMutex.unlock();
+    if (alreadyRead == true) {
+        return;
     }
 
-    allCardsCreated = true;
-
-    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
+    auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return;}auto query = *ptrQuery;
     query.prepare(" SELECT word, c.*"
                   " FROM wordcards AS c"
                   " INNER JOIN words AS w"
                             " ON c.word_id=w.id"
                   " ORDER BY c.id DESC");
     if (query.exec()) {
-        m_cardsMutex.lock();
+        m_allCardsMutex.lock();
         while (query.next()) {
             QString spelling = query.value("word").toString();
             qint64 expire = query.value("expire").toLongLong();
@@ -364,23 +364,20 @@ bool WordCard::readAllCardsFromDatabase()
             sr.m_interval = query.value("interval").toInt();
             sr.m_repetition = query.value("repetition").toInt();
 
-            auto card = m_cards.value(spelling);
+            auto card = m_allCards.value(spelling);
             if (card.get() == nullptr) {
                 // create the card
                 sptr<WordCard> card = new WordCard(spelling, sr);
-                m_cards.insert(spelling, card);
+                m_allCards.insert(spelling, card);
             } else {
                 // add the study history
                 card->m_studyHistory.prepend(sr);
             }
         }
-        m_cardsMutex.unlock();
+        m_allCardsMutex.unlock();
     } else {
         WordDB::databaseError(query, "fetching all cards from database");
-        return false;
     }
-
-    return true;
 }
 
 // static
@@ -391,15 +388,15 @@ bool WordCard::readAllCardsFromDatabase()
  */
 sptr<WordCard> WordCard::getCard(const QString &spelling, bool create)
 {
-    m_cardsMutex.lock();
-    auto card = m_cards.value(spelling);
+    m_allCardsMutex.lock();
+    auto card = m_allCards.value(spelling);
     if (card.get() == nullptr && create == true) {
         card = new WordCard(spelling);
         if (card.get()) {
-            m_cards.insert(spelling, card);
+            m_allCards.insert(spelling, card);
         }
     }
-    m_cardsMutex.unlock();
+    m_allCardsMutex.unlock();
 
     return card;
 }

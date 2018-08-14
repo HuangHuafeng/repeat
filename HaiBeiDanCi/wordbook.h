@@ -43,8 +43,8 @@ private:
     QString m_introduction;
     int m_id;   // id in database
 
-    static QMap<QString, sptr<WordBook>> m_books;
-    static QMutex m_booksMutex;
+    static QMap<QString, sptr<WordBook>> m_allBooks;
+    static QMutex m_allBooksMutex;
 
     bool dbgetNameAndIntro();
 };

@@ -24,8 +24,26 @@ WordDB::WordDB()
 
 WordDB::~WordDB()
 {
-    // only clear my database
-    clearDatabase();
+}
+
+bool WordDB::initialize()
+{
+    if (false == WordDB::prepareDatabaseForThisThread()) {
+        return false;
+    }
+
+    Word::readAllWordsFromDatabase();
+    WordCard::readAllCardsFromDatabase();
+    WordBook::readAllBooksFromDatabase();
+
+    return true;
+}
+
+void WordDB::shutdown()
+{
+    m_mapConnMutex.lock();
+    m_mapConns.clear();
+    m_mapConnMutex.unlock();
 }
 
 void WordDB::rememberDatabase(sptr<QSqlDatabase> database)
@@ -39,8 +57,6 @@ void WordDB::rememberDatabase(sptr<QSqlDatabase> database)
         return;
     }
 
-    //QObject obj;
-    //auto ptrThread = obj.thread();
     auto ptrThread = QThread::currentThread();
     addConn(ptrThread, database);
 }
@@ -50,34 +66,9 @@ void WordDB::addConn(QThread *ptrThread, sptr<QSqlDatabase> database)
 {
     m_mapConnMutex.lock();
     m_mapConns.insert(ptrThread, database);
-    gdDebug("m_mapConns has %d elements in addConn()", m_mapConns.size());
     m_mapConnMutex.unlock();
 }
 
-bool WordDB::removeConn(QThread *ptrThread)
-{
-    bool retVal = false;
-    m_mapConnMutex.lock();
-    QMap<QThread *, sptr<QSqlDatabase>>::iterator  it = m_mapConns.find(ptrThread);
-    int count = 0;
-    while (it != m_mapConns.end() && it.key() == ptrThread) {
-        it ++;
-        count ++;
-    }
-    gdDebug("Found %d connections.", count);
-    if (count != 1) {
-        // NOT expected! We should have one and ONLY ONE connection for this thread
-        gdDebug("something wrong! We should have one and ONLY ONE connection for this thread");
-    } else {
-        QMap<QThread *, sptr<QSqlDatabase>>::iterator  itAgain = m_mapConns.find(ptrThread);
-        m_mapConns.erase(itAgain);
-        gdDebug("Good! we deleted the only one connection for this thread!");
-        retVal = true;
-    }
-    m_mapConnMutex.unlock();
-
-    return retVal;
-}
 
 sptr<QSqlDatabase> WordDB::getConn(QThread *ptrThread)
 {
@@ -86,19 +77,6 @@ sptr<QSqlDatabase> WordDB::getConn(QThread *ptrThread)
     m_mapConnMutex.unlock();
 
     return database;
-}
-
-void WordDB::clearDatabase()
-{
-    auto ptrThread = QThread::currentThread();
-    removeConn(ptrThread);
-}
-
-// static
-bool WordDB::removeDatabaseForThisThread()
-{
-    auto ptrThread = QThread::currentThread();
-    return removeConn(ptrThread);
 }
 
 // static
@@ -116,10 +94,8 @@ bool WordDB::prepareDatabaseForThisThread()
         QString dbConnName = "AutoCreateInProcess_" + QString::number(pid)
                 + "_ForThread_" + QString::number(nthAutoCreated);
         m.unlock();
-        gdDebug("%s", dbConnName.toStdString().c_str());
 
-        if (WordDB::connectDB(dbConnName)) {
-        }
+        return WordDB::connectDB(dbConnName);
     }
 
     return true;

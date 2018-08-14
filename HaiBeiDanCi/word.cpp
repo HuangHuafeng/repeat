@@ -18,7 +18,7 @@ Word::Word(QString word, QString definition, int id) :
 bool Word::dbsaveDefinition()
 {
     auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
-    if (Word::isInDatabase(m_spelling)) {
+    if (m_id != 0 || Word::isInDatabase(m_spelling)) {
         // update
         query.prepare("UPDATE words SET definition=:definition WHERE word=:word");
     } else {
@@ -31,6 +31,11 @@ bool Word::dbsaveDefinition()
     {
         WordDB::databaseError(query, "saving word \"" + m_spelling + "\"");
         return false;
+    }
+
+    if (m_id == 0) {
+        // update the id
+        m_id = query.lastInsertId().toInt();
     }
 
     return true;
@@ -54,6 +59,12 @@ QString Word::getDefinitionDIV()
     return div;
 }
 
+void Word::setDefinition(const QString &definition)
+{
+    m_definition = definition;
+    dbsaveDefinition();
+}
+
 int Word::getId()
 {
     return m_id;
@@ -69,10 +80,13 @@ QList<QString> Word::getAllWords()
 int Word::getWordId(const QString &spelling)
 {
     auto word = Word::getWord(spelling);
-    if (word.get() != nullptr && word->m_id != 0) {
+    if (word.get() != nullptr) {
         return word->m_id;
     }
 
+    return 0;
+
+    /*
     int id = 0;
     auto ptrQuery = WordDB::createSqlQuery();if (ptrQuery.get() == nullptr) {return false;}auto query = *ptrQuery;
     query.prepare("SELECT id FROM words WHERE word=:word COLLATE NOCASE");
@@ -86,6 +100,7 @@ int Word::getWordId(const QString &spelling)
     }
 
     return id;
+    */
 }
 
 // static

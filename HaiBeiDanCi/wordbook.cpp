@@ -55,6 +55,11 @@ bool WordBook::dbsave()
         return false;
     }
 
+    if (m_id == 0) {
+        // update the id
+        m_id = query.lastInsertId().toInt();
+    }
+
     return true;
 }
 

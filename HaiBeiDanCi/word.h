@@ -17,6 +17,8 @@ public:
         return m_spelling;
     }
 
+    void setDefinition(const QString &definition);
+
     int getId();
     const QString & getDefinition();
     QString getDefinitionDIV();

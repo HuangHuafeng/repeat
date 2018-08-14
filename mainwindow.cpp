@@ -19,8 +19,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-
-
     // load LDOCE6 by default for covenience
     m_gdhelper.loadDict("/Users/huafeng/Documents/Nexus7/Dictionary/LDOCE6/LDOCE6.mdx");
 
@@ -29,6 +27,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->horizontalLayout_2->addWidget(&m_definitionView);
     m_gdhelper.loadBlankPage(m_definitionView);
     this->resize(800, 600);
+
+    Word::readAllWordsFromDatabase();
+    WordCard::readAllCardsFromDatabase();
+    WordBook::readAllBooksFromDatabase();
 }
 
 MainWindow::~MainWindow()
@@ -68,7 +70,7 @@ void MainWindow::QueryWord()
             QObject::tr("Cannot find the word ") + "\"" + spelling + "\"");
     }
 
-    auto word = Word::getWordFromDatabase(spelling);
+    auto word = Word::getWord(spelling);
     if (word.get()) {
         //QString html = word->getDefinition();
         QString html = word->getDefinitionDIV();
@@ -101,7 +103,7 @@ void MainWindow::on_pushTest_clicked()
         auto wordList = sl->getWordList();
         for (int i = 0; i < wordList.size();i ++) {
             auto spelling = wordList.at(i);
-            auto card = WordCard::generateCardForWord(spelling);
+            auto card = WordCard::getCard(spelling, true);
             if (card.get()) {
                 card->update(static_cast<MemoryItem::ResponseQuality>(i % 5));
             }

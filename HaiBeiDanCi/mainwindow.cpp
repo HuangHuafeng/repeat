@@ -117,6 +117,9 @@ void MainWindow::listBooks()
     QTreeWidgetItemIterator it(ui->twBooks);
     if (*it) {
         ui->twBooks->setCurrentItem(*it);
+    } else {
+        // no book, call onItemSelectionChanged() manually
+        onItemSelectionChanged();
     }
 }
 
@@ -271,7 +274,12 @@ void MainWindow::startBrowse(sptr<StudyList> studyList)
 
 sptr<StudyList> MainWindow::expiredWordsFromCurrentBook()
 {
-    auto bookName = ui->twBooks->currentItem()->text(0);
+    auto ci = ui->twBooks->currentItem();
+    if (ci == nullptr) {
+        return sptr<StudyList>();
+    }
+
+    auto bookName = ci->text(0);
     auto expire = QDateTime::currentDateTime();
     return StudyList::allExpiredWordsInBook(bookName, expire);
 }
@@ -288,7 +296,12 @@ void MainWindow::on_pushBrowseExpiredWords_clicked()
 
 sptr<StudyList> MainWindow::oldWordsFromCurrentBook()
 {
-    auto bookName = ui->twBooks->currentItem()->text(0);
+    auto ci = ui->twBooks->currentItem();
+    if (ci == nullptr) {
+        return sptr<StudyList>();
+    }
+
+    auto bookName = ci->text(0);
     return StudyList::allOldWordsInBook(bookName);
 }
 
@@ -304,7 +317,12 @@ void MainWindow::on_pushBrowseOldWords_clicked()
 
 sptr<StudyList> MainWindow::newWordsFromCurrentBook()
 {
-    auto bookName = ui->twBooks->currentItem()->text(0);
+    auto ci = ui->twBooks->currentItem();
+    if (ci == nullptr) {
+        return sptr<StudyList>();
+    }
+
+    auto bookName = ci->text(0);
     return StudyList::allNewWordsInBook(bookName);
 }
 
@@ -321,7 +339,12 @@ void MainWindow::on_pushBrowseNewWords_clicked()
 
 void MainWindow::showCurrentBookIntroduction()
 {
-    auto bookName = ui->twBooks->currentItem()->text(0);
+    auto ci = ui->twBooks->currentItem();
+    if (ci == nullptr) {
+        return;
+    }
+
+    auto bookName = ci->text(0);
     auto book = WordBook::getBook(bookName);
     if (book.get()) {
         m_bookIntro.setHtml(book->getIntroduction());
@@ -330,7 +353,12 @@ void MainWindow::showCurrentBookIntroduction()
 
 sptr<StudyList> MainWindow::allWordsFromCurrentBook()
 {
-    auto bookName = ui->twBooks->currentItem()->text(0);
+    auto ci = ui->twBooks->currentItem();
+    if (ci == nullptr) {
+        return sptr<StudyList>();
+    }
+
+    auto bookName = ci->text(0);
     return StudyList::allWordsInBook(bookName);
 }
 

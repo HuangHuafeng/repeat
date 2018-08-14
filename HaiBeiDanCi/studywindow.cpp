@@ -144,6 +144,10 @@ QString StudyWindow::minuteToString(int minute)
 
 void StudyWindow::showWord(sptr<Word> word)
 {
+    if (word.get() == nullptr) {
+        return;
+    }
+
     if (m_wordView.getSpelling() != word->getSpelling()) {
         // set the word ONLY when its spelling is different
         m_wordView.setWord(word);

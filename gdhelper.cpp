@@ -66,8 +66,13 @@ bool GDHelper::saveWord(const QString &spelling)
         return false;
     }
 
-    Word word(spelling);
-    word.setDefinition(html);
+    auto word = Word::getWord(spelling, true);
+    if (word.get()) {
+        word->setDefinition(html);
+    } else {
+        return false;
+    }
+
     return true;
 }
 
@@ -84,7 +89,12 @@ bool GDHelper::saveWord(const QString &spelling, const QString &lemma)
         return false;
     }
 
-    Word word(spelling);
-    word.setDefinition(html);
+    auto word = Word::getWord(spelling, true);
+    if (word.get()) {
+        word->setDefinition(html);
+    } else {
+        return false;
+    }
+
     return true;
 }

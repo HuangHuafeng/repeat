@@ -41,7 +41,9 @@ void PreferencesDialog::on_buttonBox_accepted()
     {
         QMessageBox::critical(this,
                               MySettings::appName(),
-                              QObject::tr("Please restart the app to make the changes effect"));
+                              QObject::tr("Restart is required.\nClick OK to exit the app."));
+
+        QCoreApplication::instance()->quit();
     }
 }
 

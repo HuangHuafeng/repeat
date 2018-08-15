@@ -1,13 +1,25 @@
 #ifndef MYSETTINGS_H
 #define MYSETTINGS_H
 
-#include <QString>
-#include <QObject>
+#include "downloadmanager.h"
+#include "../golddict/sptr.hh"
 
-class MySettings
+#include <QObject>
+#include <QString>
+#include <QJsonDocument>
+
+class MySettings : public QObject
 {
+    Q_OBJECT
+
+    QString m_group;
+    QJsonDocument m_infoFromGithub;
+    DownloadManager m_downloadManager;
+
+    static MySettings *m_settings;
+
   public:
-    MySettings();
+    virtual ~MySettings();
 
     static QString orgName()
     {
@@ -26,9 +38,18 @@ class MySettings
 
     static void saveDataDirectory(QString newDir);
     static QString dataDirectory();
+    static MySettings * getSettings();
+
+    QString mediaHttpUrl();
+
+private slots:
+    void onFileDownloaded(QString fileName);
 
 private:
-    static const QString m_group;
+    MySettings();
+
+    void loadInfoFromGitHub();
+    static QString group();
 };
 
 #endif // MYSETTINGS_H

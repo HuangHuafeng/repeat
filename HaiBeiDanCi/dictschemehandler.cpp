@@ -12,10 +12,18 @@ DictSchemeHandler::DictSchemeHandler(QObject *parent) : QWebEngineUrlSchemeHandl
                                                         m_mediaPlayer()
 {
     installSchemeHandler();
+
+    connect(&m_downloadManager, SIGNAL(fileDownloaded(QString)), this, SLOT(onFileDownloaded(QString)));
 }
 
 DictSchemeHandler::~DictSchemeHandler()
 {
+}
+
+void DictSchemeHandler::onFileDownloaded(QString fileName)
+{
+    //gdDebug("%s downloaded!", fileName.toStdString().c_str());
+    m_mediaPlayer.play(fileName);
 }
 
 void DictSchemeHandler::installSchemeHandler()
@@ -51,6 +59,21 @@ void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 
 void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
 {
-    QString audioFile = MySettings::dataDirectory() + request->requestUrl().path();
-    m_mediaPlayer.play(audioFile);
+    QString path = request->requestUrl().path();
+    QString audioFile = MySettings::dataDirectory() + path;
+    if (QFile::exists(audioFile))
+    {
+        m_mediaPlayer.play(audioFile);
+    } else
+    {
+        auto s = MySettings::getSettings();
+        if (s != nullptr)
+        {
+            const QString mhu = s->mediaHttpUrl();
+            QUrl url(mhu + path);
+            m_downloadManager.download(url, audioFile);
+        }
+        //gdDebug("try to download %s", url.toString().toStdString().c_str());
+        //gdDebug("and save to %s", audioFile.toStdString().c_str());
+    }
 }

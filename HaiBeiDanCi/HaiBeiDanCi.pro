@@ -42,7 +42,8 @@ SOURCES += \
     mysettings.cpp \
     introductionpage.cpp \
     introductionview.cpp \
-    preferencesdialog.cpp
+    preferencesdialog.cpp \
+    downloadmanager.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -63,7 +64,8 @@ HEADERS += \
     mysettings.h \
     introductionpage.h \
     introductionview.h \
-    preferencesdialog.h
+    preferencesdialog.h \
+    downloadmanager.h
 
 FORMS += \
         mainwindow.ui \
@@ -78,3 +80,6 @@ RESOURCES += \
     haibeidanci.qrc
 
 TRANSLATIONS = myapp_zh_CN.ts
+
+DISTFILES += \
+    info.json

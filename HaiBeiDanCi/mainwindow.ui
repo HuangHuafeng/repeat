@@ -664,7 +664,7 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="action_About"/>
-    <addaction name="actionTest_Menu"/>
+    <addaction name="actionPreferences"/>
    </widget>
    <addaction name="menu_Help"/>
   </widget>
@@ -675,20 +675,22 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action_About"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_About">
    <property name="text">
     <string>&amp;About</string>
    </property>
-   <property name="shortcut">
-    <string>4</string>
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
    </property>
   </action>
-  <action name="actionTest_Menu">
+  <action name="actionPreferences">
    <property name="text">
-    <string>Test Menu</string>
+    <string>Preferences...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::PreferencesRole</enum>
    </property>
   </action>
  </widget>

@@ -1,5 +1,6 @@
 #include "dictschemehandler.h"
 #include "../golddict/gddebug.hh"
+#include "mysettings.h"
 
 #include <QWebEngineUrlRequestJob>
 #include <QCoreApplication>
@@ -50,7 +51,6 @@ void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 
 void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
 {
-    QString audioFile = "/Users/huafeng/Documents/GitHub/TextFinder/build-Repeat-Desktop_Qt_5_11_1_clang_64bit-Debug/Repeat.app/Contents/MacOS" + request->requestUrl().path();
-    //QString audioFile = QCoreApplication::applicationDirPath() + request->requestUrl().path();
+    QString audioFile = MySettings::dataDirectory() + request->requestUrl().path();
     m_mediaPlayer.play(audioFile);
 }

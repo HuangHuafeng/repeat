@@ -28,7 +28,7 @@ class WordDB
   private:
     WordDB();
 
-    static bool connectDB(const QString &connectionName = "");
+    static bool connectDB(const QString &connectionName);
     static void addConn(QThread *ptrThread, sptr<QSqlDatabase> database);
     static sptr<QSqlDatabase> getConn(QThread *ptrThread);
     static void rememberDatabase(sptr<QSqlDatabase> database);

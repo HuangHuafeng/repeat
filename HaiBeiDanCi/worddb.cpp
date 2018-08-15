@@ -3,6 +3,7 @@
 #include "word.h"
 #include "wordcard.h"
 #include "wordbook.h"
+#include "mysettings.h"
 
 #include <QCoreApplication>
 #include <QMessageBox>
@@ -110,17 +111,8 @@ bool WordDB::connectDB(const QString &connectionName)
         return true;
     }
 
-    QSqlDatabase tempDatabase;
-    QString dbFileName = "/Users/huafeng/Documents/GitHub/TextFinder/build-Repeat-Desktop_Qt_5_11_1_clang_64bit-Debug/Repeat.app/Contents/MacOS/words.db";
-    //QString dbFileName = QCoreApplication::applicationDirPath() + "/words.db";
-    if (connectionName == "")
-    {
-        tempDatabase = QSqlDatabase::addDatabase("QSQLITE");
-    }
-    else
-    {
-        tempDatabase = QSqlDatabase::addDatabase("QSQLITE", connectionName);
-    }
+    QString dbFileName = MySettings::dataDirectory() + "/words.db";
+    QSqlDatabase tempDatabase = QSqlDatabase::addDatabase("QSQLITE", connectionName);
     sptr<QSqlDatabase> newDatabase = new QSqlDatabase(tempDatabase);
     WordDB::rememberDatabase(newDatabase);
 

@@ -1,5 +1,6 @@
 #include "wordview.h"
 #include "../golddict/gddebug.hh"
+#include "mysettings.h"
 
 #include <QWebChannel>
 #include <QFileInfo>
@@ -52,7 +53,7 @@ void WordView::loadHtml()
     m_channel.registerObject(QString("wordview"), this);
     page()->setWebChannel(&m_channel);
 
-    QUrl baseUrl("file:///Users/huafeng/Documents/GitHub/TextFinder/build-Repeat-Desktop_Qt_5_11_1_clang_64bit-Debug/Repeat.app/Contents/MacOS/");
+    QUrl baseUrl("file://" + MySettings::dataDirectory() + "/");
     setHtml(htmlFile.readAll().data(), baseUrl);
 }
 

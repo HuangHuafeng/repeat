@@ -23,6 +23,12 @@ class MySettings
     {
         return QObject::tr("HaiBeiDanCi");
     }
+
+    static void saveDataDirectory(QString newDir);
+    static QString dataDirectory();
+
+private:
+    static const QString m_group;
 };
 
 #endif // MYSETTINGS_H

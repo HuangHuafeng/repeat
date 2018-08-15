@@ -64,6 +64,8 @@ class MainWindow : public QMainWindow
 
     void on_action_About_triggered();
 
+    void on_actionPreferences_triggered();
+
 private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;

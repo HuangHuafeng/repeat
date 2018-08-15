@@ -14,24 +14,39 @@
         <translation>显示释义</translation>
     </message>
     <message>
-        <location filename="browserwindow.ui" line="68"/>
+        <location filename="browserwindow.ui" line="61"/>
+        <source>Space</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="browserwindow.ui" line="71"/>
         <source>Hide word list</source>
         <translation>隐藏单词列表</translation>
     </message>
     <message>
-        <location filename="browserwindow.ui" line="121"/>
+        <location filename="browserwindow.ui" line="124"/>
         <source>Previous</source>
         <translation>上一个</translation>
     </message>
     <message>
-        <location filename="browserwindow.ui" line="131"/>
+        <location filename="browserwindow.ui" line="127"/>
+        <source>Left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="browserwindow.ui" line="137"/>
         <source>Show definition directly</source>
         <translation>直接显示单词释义</translation>
     </message>
     <message>
-        <location filename="browserwindow.ui" line="147"/>
+        <location filename="browserwindow.ui" line="153"/>
         <source>Next</source>
         <translation>下一个</translation>
+    </message>
+    <message>
+        <location filename="browserwindow.ui" line="156"/>
+        <source>Right</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="browserwindow.cpp" line="21"/>
@@ -167,12 +182,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="683"/>
+        <location filename="mainwindow.ui" line="682"/>
         <source>&amp;About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="688"/>
+        <location filename="mainwindow.ui" line="690"/>
         <source>Test Menu</source>
         <translation type="unfinished"></translation>
     </message>
@@ -289,33 +304,58 @@ Click OK to exit.</source>
         <translation>不认识</translation>
     </message>
     <message>
-        <location filename="studywindow.ui" line="84"/>
-        <location filename="studywindow.ui" line="125"/>
-        <location filename="studywindow.ui" line="166"/>
-        <location filename="studywindow.ui" line="207"/>
-        <location filename="studywindow.ui" line="248"/>
+        <location filename="studywindow.ui" line="66"/>
+        <source>1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="studywindow.ui" line="87"/>
+        <location filename="studywindow.ui" line="131"/>
+        <location filename="studywindow.ui" line="175"/>
+        <location filename="studywindow.ui" line="219"/>
+        <location filename="studywindow.ui" line="263"/>
         <source>TextLabel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="studywindow.ui" line="104"/>
+        <location filename="studywindow.ui" line="107"/>
         <source>Correct(3)</source>
         <translation>有点印象</translation>
     </message>
     <message>
-        <location filename="studywindow.ui" line="145"/>
+        <location filename="studywindow.ui" line="110"/>
+        <source>2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="studywindow.ui" line="151"/>
         <source>Show</source>
         <translation>显示释义</translation>
     </message>
     <message>
-        <location filename="studywindow.ui" line="186"/>
+        <location filename="studywindow.ui" line="154"/>
+        <source>Space</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="studywindow.ui" line="195"/>
         <source>Correct(4)</source>
         <translation>记起来了</translation>
     </message>
     <message>
-        <location filename="studywindow.ui" line="227"/>
+        <location filename="studywindow.ui" line="198"/>
+        <source>3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="studywindow.ui" line="239"/>
         <source>Perfect</source>
         <translation>记住了</translation>
+    </message>
+    <message>
+        <location filename="studywindow.ui" line="242"/>
+        <source>4</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="studywindow.cpp" line="300"/>

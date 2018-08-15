@@ -6,6 +6,7 @@
 #include "word.h"
 #include "worddb.h"
 #include "wordbook.h"
+#include "preferencesdialog.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -426,4 +427,10 @@ void MainWindow::setMyTitle()
 void MainWindow::on_action_About_triggered()
 {
     QMessageBox::information(this, MySettings::appName(), "About");
+}
+
+void MainWindow::on_actionPreferences_triggered()
+{
+    PreferencesDialog pd(this);
+    pd.exec();
 }

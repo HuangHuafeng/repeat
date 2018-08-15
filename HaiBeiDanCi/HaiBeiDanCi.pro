@@ -41,7 +41,8 @@ SOURCES += \
     browserwindow.cpp \
     mysettings.cpp \
     introductionpage.cpp \
-    introductionview.cpp
+    introductionview.cpp \
+    preferencesdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -61,12 +62,14 @@ HEADERS += \
     browserwindow.h \
     mysettings.h \
     introductionpage.h \
-    introductionview.h
+    introductionview.h \
+    preferencesdialog.h
 
 FORMS += \
         mainwindow.ui \
     studywindow.ui \
-    browserwindow.ui
+    browserwindow.ui \
+    preferencesdialog.ui
 
 SUBDIRS += \
     HaiBeiDanCi.pro

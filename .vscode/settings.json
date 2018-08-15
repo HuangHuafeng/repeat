@@ -10,7 +10,8 @@
         "qwebengineview": "cpp",
         "qwebchannel": "cpp",
         "qcontextmenuevent": "cpp",
-        "qlabel": "cpp"
+        "qlabel": "cpp",
+        "qfiledialog": "cpp"
     },
     "C_Cpp.autocomplete": "Disabled",
     "clang.cxxflags": ["-std=c++11"]

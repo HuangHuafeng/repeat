@@ -62,7 +62,9 @@ class MainWindow : public QMainWindow
 
     void on_pushGlobalBrowseExpiredWords_clicked();
 
-  private:
+    void on_action_About_triggered();
+
+private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;
     BrowserWindow m_browserWindow;

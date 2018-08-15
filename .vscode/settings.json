@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "qtconcurrent": "cpp",
+        "qfuture": "cpp",
+        "qmessagebox": "cpp",
+        "qtreewidgetitem": "cpp",
+        "qvector": "cpp",
+        "qwebengineprofile": "cpp",
+        "qbuffer": "cpp",
+        "qwebengineview": "cpp",
+        "qwebchannel": "cpp",
+        "qcontextmenuevent": "cpp",
+        "qlabel": "cpp"
+    },
+    "C_Cpp.autocomplete": "Disabled",
+    "clang.cxxflags": ["-std=c++11"]
+}

@@ -422,3 +422,8 @@ void MainWindow::setMyTitle()
     QString title = MySettings::appName();
     setWindowTitle(title);
 }
+
+void MainWindow::on_action_About_triggered()
+{
+    QMessageBox::information(this, MySettings::appName(), "About");
+}

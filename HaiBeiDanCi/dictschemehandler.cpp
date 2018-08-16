@@ -66,7 +66,7 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
         m_mediaPlayer.play(audioFile);
     } else
     {
-        auto s = MySettings::getSettings();
+        auto s = MySettings::instance();
         if (s != nullptr)
         {
             const QString mhu = s->mediaHttpUrl();

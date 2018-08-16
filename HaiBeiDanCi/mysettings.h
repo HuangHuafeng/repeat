@@ -12,7 +12,6 @@ class MySettings : public QObject
 {
     Q_OBJECT
 
-    QString m_group;
     QJsonDocument m_infoFromGithub;
     DownloadManager m_downloadManager;
 
@@ -38,18 +37,31 @@ class MySettings : public QObject
 
     static void saveDataDirectory(QString newDir);
     static QString dataDirectory();
-    static MySettings * getSettings();
+    static void saveUpdateInterval(int days);
+    static int updateInterval();
+
+    static MySettings *instance();
 
     QString mediaHttpUrl();
+    void updateInfoFileNow();
 
-private slots:
-    void onFileDownloaded(QString fileName);
+  private slots:
+    void onInfoFileDownloadedFromGithub(QString fileName);
 
-private:
+  private:
     MySettings();
 
-    void loadInfoFromGitHub();
-    static QString group();
+    void loadSettingsFromInfoFile();
+    void downloadInfoFileFromGitHub(QString saveToFileName);
+    void readInfoFile(QString infoFileName);
+
+    static QString group()
+    {
+        return "Preferences";
+    }
+
+    static void saveLastUpdateTime();
+    static QDateTime lastUpdateTime();
 };
 
 #endif // MYSETTINGS_H

@@ -5,14 +5,14 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-PreferencesDialog::PreferencesDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::PreferencesDialog)
+PreferencesDialog::PreferencesDialog(QWidget *parent) : QDialog(parent),
+                                                        ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
     setWindowTitle(QObject::tr("Preferences"));
 
     ui->leDataPath->setText(MySettings::dataDirectory());
+    ui->spinInfoUpdate->setValue(MySettings::updateInterval());
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -36,6 +36,7 @@ void PreferencesDialog::on_pushBrowse_clicked()
 void PreferencesDialog::on_buttonBox_accepted()
 {
     bool dataDirUpdated = saveDataDirectory();
+    saveUpdateInterval();
 
     if (dataDirUpdated)
     {
@@ -46,7 +47,6 @@ void PreferencesDialog::on_buttonBox_accepted()
         QCoreApplication::instance()->quit();
     }
 }
-
 
 /**
  * @brief PreferencesDialog::saveDataDirectory
@@ -65,4 +65,21 @@ bool PreferencesDialog::saveDataDirectory()
 
     MySettings::saveDataDirectory(newDir);
     return true;
+}
+
+bool PreferencesDialog::saveUpdateInterval()
+{
+    int newInterval = ui->spinInfoUpdate->value();
+    MySettings::saveUpdateInterval(newInterval);
+    return true;
+}
+
+void PreferencesDialog::on_pushUpdateInfo_clicked()
+{
+    auto s = MySettings::instance();
+    if (s != nullptr)
+    {
+        s->updateInfoFileNow();
+        QMessageBox::information(this, MySettings::appName(), QObject::tr("Info file update!"));
+    }
 }

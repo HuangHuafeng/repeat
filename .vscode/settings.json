@@ -11,7 +11,9 @@
         "qwebchannel": "cpp",
         "qcontextmenuevent": "cpp",
         "qlabel": "cpp",
-        "qfiledialog": "cpp"
+        "qfiledialog": "cpp",
+        "algorithm": "cpp",
+        "string": "cpp"
     },
     "C_Cpp.autocomplete": "Disabled",
     "clang.cxxflags": ["-std=c++11"]

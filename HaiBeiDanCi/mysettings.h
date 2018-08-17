@@ -37,12 +37,45 @@ class MySettings : public QObject
 
     static void saveDataDirectory(QString newDir);
     static QString dataDirectory();
+
     static void saveUpdateInterval(int days);
     static int updateInterval();
 
+    static void restoreDataSettings();
+    static void restoreCardSettings();
+
+    static void saveCardMaximumInterval(int days);
+    static int cardMaximumInterval();
+    static int cardMaximumIntervalInMinutes();
+
+    static void saveCardDefaultInterval(int days);
+    static int cardDefaultInterval();
+    static int cardDefaultIntervalInMinutes();
+
+    static void saveCardIntervalForIncorrect(int minutes);
+    static int cardIntervalForIncorrect();
+
+    static void saveDefaultEasiness(float easiness);
+    static float defaultEasiness();
+
+    static void savePerfectIncrease(float increase);
+    static float perfectIncrease();
+
+    static void saveCorrectIncrease(float increase);
+    static float correctIncrease();
+
+    static void saveVagueDecrease(float deccrease);
+    static float vagueDecrease();
+    static float vagueIncrease();
+
+    static void saveIncorrectDecrease(float deccrease);
+    static float incorrectDecrease();
+    static float incorrectIncrease();
+
     static MySettings *instance();
 
-    QString mediaHttpUrl();
+    static QString mediaHttpUrl();
+    static QString infoFileHttpUrl();
     void updateInfoFileNow();
 
   private slots:
@@ -62,6 +95,7 @@ class MySettings : public QObject
 
     static void saveLastUpdateTime();
     static QDateTime lastUpdateTime();
+    static QString getSettingString(QString key);
 };
 
 #endif // MYSETTINGS_H

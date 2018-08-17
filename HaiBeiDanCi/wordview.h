@@ -8,6 +8,7 @@
 #include <QWebChannel>
 #include <QString>
 #include <QContextMenuEvent>
+#include <QElapsedTimer>
 
 class WordView : public QWebEngineView
 {
@@ -53,6 +54,7 @@ class WordView : public QWebEngineView
 
     /// Inspect element
     void inspect();
+    void onLoadFinished(bool ok);
 
   protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
@@ -63,9 +65,11 @@ class WordView : public QWebEngineView
     QSize m_sizeHint;
     TemporaryFileManager m_tfm;
     ShowOptions m_showSetting;
+    QElapsedTimer m_et;
 
-    void loadHtml();
+    void loadHtml(QString fileName);
     void toHtmlCallback(QString html);
+    void changeBackgroundToStyleInHtml(const QVariant &color);
 };
 
 #endif // WORDVIEW_H

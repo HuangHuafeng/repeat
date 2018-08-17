@@ -32,7 +32,7 @@ BrowserWindow::BrowserWindow(QWidget *parent) : QDialog(parent),
     splitter->addWidget(&m_wordView);
     splitter->addWidget(ui->widgetBottom);
     ui->verticalLayout->addWidget(splitter);
-    ui->gridLayout->setSizeConstraint(QLayout::SetFixedSize);
+    //ui->gridLayout->setSizeConstraint(QLayout::SetFixedSize);
 }
 
 BrowserWindow::~BrowserWindow()
@@ -110,7 +110,7 @@ void BrowserWindow::addWordsToTreeView(sptr<StudyList> studyList)
         infoList.append(word);
 
         auto card = WordCard::getCard(word);
-        if (card.get())
+        if (card.get() && card->isNew() == false)
         {
             // expire
             infoList.append(card->getExpireTime().toString("yyyy-MM-dd"));

@@ -66,14 +66,8 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
         m_mediaPlayer.play(audioFile);
     } else
     {
-        auto s = MySettings::instance();
-        if (s != nullptr)
-        {
-            const QString mhu = s->mediaHttpUrl();
-            QUrl url(mhu + path);
-            m_downloadManager.download(url, audioFile);
-        }
-        //gdDebug("try to download %s", url.toString().toStdString().c_str());
-        //gdDebug("and save to %s", audioFile.toStdString().c_str());
+        const QString mhu = MySettings::mediaHttpUrl();
+        QUrl url(mhu + path);
+        m_downloadManager.download(url, audioFile);
     }
 }

@@ -79,28 +79,9 @@ class WordCard : public MemoryItem
     WordCard(const QString &spelling);
     WordCard(const QString &spelling, const StudyRecord &sr);
 
-    int defaultInterval()
-    {
-        return m_defaultInterval;
-    }
-
-    int defaultIntervalForKnownNewWord()
-    {
-        return m_defaultIntervalForKnownNewWord;
-    }
-
-    int defaultIntervalForUnknownNewWord()
-    {
-        return m_defaultIntervalForUnknownNewWord;
-    }
-
-    int defaultIntervalForRelearning()
-    {
-        return m_defaultIntervalForUnknownNewWord;
-    }
-
     void dbsave();
 
+    int defaultInterval(ResponseQuality responseQuality);
     int estimatedIntervalNewCard(ResponseQuality responseQuality = Perfect);
     int estimatedIntervalOldCard(ResponseQuality responseQuality = Perfect);
     float getAdjustProportion();
@@ -115,16 +96,6 @@ class WordCard : public MemoryItem
 
     static QMap<QString, sptr<WordCard>> m_allCards;
     static QMutex m_allCardsMutex;
-
-    static int m_defaultInterval;
-    static int m_defaultIntervalForUnknownNewWord;
-    static int m_defaultIntervalForKnownNewWord;
-    static float m_defaultEasiness;
-
-    static float m_defaultPerfectIncrease;
-    static float m_defaultCorrectIncrease;
-    static float m_defaultKindRememberIncrease;
-    static float m_defaultIncorrectIncrease;
 };
 
 struct StudyRecord

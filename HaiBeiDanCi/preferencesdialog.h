@@ -2,6 +2,7 @@
 #define PREFERENCESDIALOG_H
 
 #include <QDialog>
+#include <QAbstractButton>
 
 namespace Ui
 {
@@ -23,12 +24,30 @@ class PreferencesDialog : public QDialog
 
     void on_pushUpdateInfo_clicked();
 
-  private:
+    void on_buttonBox_clicked(QAbstractButton *button);
+
+private:
     Ui::PreferencesDialog *ui;
 
   private:
+    bool saveCardSettings();
+    bool saveDataSettings();
+
+    void exitPreferencesDialog();
     bool saveDataDirectory();
     bool saveUpdateInterval();
+    bool saveDefaultEasiness();
+    bool saveCardDefaultInterval();
+    bool saveCardMaximumInterval();
+    bool savePerfectIncrease();
+    bool saveCorrectIncrease();
+    bool saveVagueDecrease();
+    bool saveCardIntervalForIncorrect();
+    void restoreDefaults();
+    int restoreCardSettings();
+    int restoreDataSettings();
+    void loadCardSettings();
+    void loadDataSettings();
 };
 
 #endif // PREFERENCESDIALOG_H

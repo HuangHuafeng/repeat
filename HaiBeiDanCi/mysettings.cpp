@@ -10,8 +10,6 @@ MySettings *MySettings::m_settings = nullptr;
 
 MySettings::MySettings()
 {
-    connect(&m_downloadManager, SIGNAL(fileDownloaded(QString)), this, SLOT(onInfoFileDownloadedFromGithub(QString)));
-    loadSettingsFromInfoFile();
 }
 
 MySettings::~MySettings()
@@ -27,6 +25,11 @@ MySettings *MySettings::instance()
     if (m_settings == nullptr)
     {
         m_settings = new MySettings();
+        if (m_settings != nullptr)
+        {
+            connect(&m_settings->m_downloadManager, SIGNAL(fileDownloaded(QString)), m_settings, SLOT(onInfoFileDownloadedFromGithub(QString)));
+            m_settings->loadSettingsFromInfoFile();
+        }
     }
 
     return m_settings;
@@ -67,26 +70,346 @@ int MySettings::updateInterval()
 {
     QSettings settings;
     settings.beginGroup(MySettings::group());
-    int ui = settings.value("updateInterval", 7).toInt();
+    int updInt = settings.value("updateInterval", -1).toInt();
     settings.endGroup();
 
-    return ui;
+    if (updInt == -1)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString updIntString = MySettings::getSettingString("updateInterval");
+        if (updIntString.isEmpty() == false)
+        {
+            updInt = updIntString.toInt();
+        }
+        else
+        {
+            // default to one week if we cannot find any setting
+            updInt = 7;
+        }
+    }
+
+    return updInt;
+}
+
+void MySettings::saveDefaultEasiness(float easiness)
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("defaultEasiness", easiness);
+    settings.endGroup();
+}
+
+float MySettings::defaultEasiness()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    float defaultEasiness = settings.value("defaultEasiness", 0.0f).toFloat();
+    settings.endGroup();
+
+    if (defaultEasiness ==  0.0f)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString deString = MySettings::getSettingString("defaultEasiness");
+        if (deString.isEmpty() == false)
+        {
+            defaultEasiness = deString.toFloat();
+        }
+        else
+        {
+            // default to 2.5f if we cannot find any setting
+            defaultEasiness = 2.5f;
+        }
+    }
+
+    return defaultEasiness;
+}
+
+void MySettings::saveCardMaximumInterval(int days)
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("cardMaximumInterval", days);
+    settings.endGroup();
+}
+
+int MySettings::cardMaximumInterval()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    int updInt = settings.value("cardMaximumInterval", -1).toInt();
+    settings.endGroup();
+
+    if (updInt == -1)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString updIntString = MySettings::getSettingString("cardMaximumInterval");
+        if (updIntString.isEmpty() == false)
+        {
+            updInt = updIntString.toInt();
+        }
+        else
+        {
+            // default to 10 years if we cannot find any setting
+            updInt = 365 * 10;
+        }
+    }
+
+    return updInt;
+}
+
+int MySettings::cardMaximumIntervalInMinutes()
+{
+    return 60 * 24 * MySettings::cardMaximumInterval();
+}
+
+void MySettings::saveCardDefaultInterval(int days)
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("cardDefaultInterval", days);
+    settings.endGroup();
+}
+
+int MySettings::cardDefaultInterval()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    int updInt = settings.value("cardDefaultInterval", 0).toInt();
+    settings.endGroup();
+
+    if (updInt == 0)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString updIntString = MySettings::getSettingString("cardDefaultInterval");
+        if (updIntString.isEmpty() == false)
+        {
+            updInt = updIntString.toInt();
+        }
+        else
+        {
+            // default to 1 day if we cannot find any setting
+            updInt = 1;
+        }
+    }
+
+    return updInt;
+}
+
+int MySettings::cardDefaultIntervalInMinutes()
+{
+    return 60 * 24 * MySettings::cardDefaultInterval();
+}
+
+void MySettings::saveCardIntervalForIncorrect(int minutes)
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("cardIntervalForIncorrect", minutes);
+    settings.endGroup();
+}
+
+int MySettings::cardIntervalForIncorrect()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    int updInt = settings.value("cardIntervalForIncorrect", 0).toInt();
+    settings.endGroup();
+
+    if (updInt == 0)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString updIntString = MySettings::getSettingString("cardDefaultIntervalForIncorrect");
+        if (updIntString.isEmpty() == false)
+        {
+            updInt = updIntString.toInt();
+        }
+        else
+        {
+            // default to 10 minutes if we cannot find any setting
+            updInt = 10;
+        }
+    }
+
+    return updInt;
+}
+
+void MySettings::restoreDataSettings()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.remove("dataDirectory");
+    settings.remove("updateInterval");
+    settings.endGroup();
+}
+
+void MySettings::restoreCardSettings()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.remove("defaultEasiness");
+    settings.remove("cardMaximumInterval");
+    settings.remove("cardDefaultInterval");
+    settings.remove("perfectIncrease");
+    settings.remove("correctIncrease");
+    settings.remove("vagueDecrease");
+    settings.remove("cardIntervalForIncorrect");
+    settings.endGroup();
+}
+
+void MySettings::savePerfectIncrease(float increase)
+{
+    int valueInt = static_cast<int>(increase * 100);
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("perfectIncrease", valueInt);
+    settings.endGroup();
+}
+
+float MySettings::perfectIncrease()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    int valueInSetting = settings.value("perfectIncrease", -100).toInt();
+    settings.endGroup();
+
+    if (valueInSetting == -100)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString stringValue = MySettings::getSettingString("perfectIncrease");
+        if (stringValue.isEmpty() == false)
+        {
+            valueInSetting = stringValue.toInt();
+        }
+        else
+        {
+            // default to 15% if we cannot find any setting
+            valueInSetting = 15;
+        }
+    }
+
+    return valueInSetting / 100.f;
+}
+
+void MySettings::saveCorrectIncrease(float increase)
+{
+    int valueInt = static_cast<int>(increase * 100);
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("correctIncrease", valueInt);
+    settings.endGroup();
+}
+
+float MySettings::correctIncrease()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    int valueInSetting = settings.value("correctIncrease", -100).toInt();
+    settings.endGroup();
+
+    if (valueInSetting == -100)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString stringValue = MySettings::getSettingString("correctIncrease");
+        if (stringValue.isEmpty() == false)
+        {
+            valueInSetting = stringValue.toInt();
+        }
+        else
+        {
+            // default to 0% if we cannot find any setting
+            valueInSetting = 0;
+        }
+    }
+
+    return valueInSetting / 100.f;
+}
+
+void MySettings::saveIncorrectDecrease(float deccrease)
+{
+    int valueInt = static_cast<int>(deccrease * 100);
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("incorrectDecrease", valueInt);
+    settings.endGroup();
+}
+
+float MySettings::incorrectDecrease()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    int valueInSetting = settings.value("incorrectDecrease", -100).toInt();
+    settings.endGroup();
+
+    if (valueInSetting == -100)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString stringValue = MySettings::getSettingString("incorrectDecrease");
+        if (stringValue.isEmpty() == false)
+        {
+            valueInSetting = stringValue.toInt();
+        }
+        else
+        {
+            // default to 20% if we cannot find any setting
+            valueInSetting = 20;
+        }
+    }
+
+    return valueInSetting / 100.f;
+}
+
+float MySettings::incorrectIncrease()
+{
+    return MySettings::incorrectDecrease() * -1.0f;
+}
+
+void MySettings::saveVagueDecrease(float deccrease)
+{
+    int valueInt = static_cast<int>(deccrease * 100);
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("vagueDecrease", valueInt);
+    settings.endGroup();
+}
+
+float MySettings::vagueDecrease()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    int valueInSetting = settings.value("vagueDecrease", -100).toInt();
+    settings.endGroup();
+
+    if (valueInSetting == -100)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString stringValue = MySettings::getSettingString("vagueDecrease");
+        if (stringValue.isEmpty() == false)
+        {
+            valueInSetting = stringValue.toInt();
+        }
+        else
+        {
+            // default to 15% if we cannot find any setting
+            valueInSetting = 15;
+        }
+    }
+
+    return valueInSetting / 100.f;
+}
+
+float MySettings::vagueIncrease()
+{
+    return MySettings::vagueDecrease() * -1.0f;
 }
 
 QString MySettings::mediaHttpUrl()
 {
-    QString mhu = "";
-    auto s = MySettings::instance();
-    if (s != nullptr)
-    {
-        QJsonValue obj = s->m_infoFromGithub["mediahttp"];
-        if (obj.isString() == true)
-        {
-            mhu = obj.toString();
-        }
-    }
+    return MySettings::getSettingString("mediahttp");
+}
 
-    return mhu;
+QString MySettings::infoFileHttpUrl()
+{
+    return MySettings::getSettingString("infohttp");
 }
 
 void MySettings::saveLastUpdateTime()
@@ -111,8 +434,13 @@ QDateTime MySettings::lastUpdateTime()
 
 void MySettings::downloadInfoFileFromGitHub(QString saveToFileName)
 {
-    QUrl infoFileUrl("https://raw.githubusercontent.com/HuangHuafeng/repeat/master/HaiBeiDanCi/info.json");
-    m_downloadManager.download(infoFileUrl, saveToFileName);
+    QString urlString = MySettings::infoFileHttpUrl();
+    if (urlString.isEmpty() == true)
+    {
+        urlString = "https://raw.githubusercontent.com/HuangHuafeng/repeat/master/HaiBeiDanCi/info.json";
+    }
+
+    m_downloadManager.download(urlString, saveToFileName);
 }
 
 void MySettings::readInfoFile(QString infoFileName)
@@ -172,4 +500,21 @@ void MySettings::updateInfoFileNow()
     }
 
     downloadInfoFileFromGitHub(infoFileName);
+}
+
+
+QString MySettings::getSettingString(QString key)
+{
+    QString value = "";
+    auto s = MySettings::instance();
+    if (s != nullptr)
+    {
+        auto jsonValue = s->m_infoFromGithub[key];
+        if (jsonValue.isString() == true)
+        {
+            value = jsonValue.toString();
+        }
+    }
+
+    return value;
 }

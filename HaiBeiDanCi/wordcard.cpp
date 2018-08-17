@@ -1,6 +1,7 @@
 #include "wordcard.h"
 #include "../golddict/gddebug.hh"
 #include "worddb.h"
+#include "mysettings.h"
 
 #include <QDateTime>
 #include <QSqlDatabase>
@@ -15,21 +16,7 @@ const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00
 QMap<QString, sptr<WordCard>> WordCard::m_allCards;
 QMutex WordCard::m_allCardsMutex;
 
-int WordCard::m_defaultIntervalForUnknownNewWord = 10;        // 10 minutes
-int WordCard::m_defaultInterval = 60 * 24;                    // one day
-int WordCard::m_defaultIntervalForKnownNewWord = 60 * 24 * 3; // three days
-
-float WordCard::m_defaultEasiness = 2.5f;
-// based on the response, adjust easiness and interval
-// so we have the following constraints logically
-// m_defaultPerfectIncrease > m_defaultCorrectIncrease >= 0
-// 0 > m_defaultKindRememberIncrease > m_defaultIncorrectIncrease
-float WordCard::m_defaultPerfectIncrease = 0.15f;
-float WordCard::m_defaultCorrectIncrease = 0.0f;
-float WordCard::m_defaultKindRememberIncrease = -0.15f;
-float WordCard::m_defaultIncorrectIncrease = -0.20f;
-
-WordCard::WordCard(const QString &spelling) : MemoryItem(m_defaultInterval, m_defaultEasiness, 0)
+WordCard::WordCard(const QString &spelling) : MemoryItem(MySettings::cardDefaultIntervalInMinutes(), MySettings::defaultEasiness(), 0)
 {
     m_wordSpelling = spelling;
 }
@@ -107,25 +94,41 @@ int WordCard::estimatedInterval(ResponseQuality responseQuality)
         interval = estimatedIntervalOldCard(responseQuality);
     }
 
+    if (interval > MySettings::cardMaximumIntervalInMinutes())
+    {
+        interval = MySettings::cardMaximumIntervalInMinutes();
+    }
+
     return interval;
 }
 
 int WordCard::estimatedIntervalNewCard(ResponseQuality responseQuality)
 {
-    if (responseQuality <= MemoryItem::IncorrectButCanRecall)
+    return defaultInterval(responseQuality);
+}
+
+int WordCard::defaultInterval(ResponseQuality responseQuality)
+{
+    float tempInterval = MySettings::cardDefaultIntervalInMinutes();
+    if (responseQuality == MemoryItem::Perfect)
     {
-        return defaultIntervalForUnknownNewWord();
+        tempInterval = MySettings::cardDefaultIntervalInMinutes() * (1.0f + MySettings::perfectIncrease()) / (1.0f + MySettings::vagueIncrease());
     }
-    else if (responseQuality < MemoryItem::CorrectAfterHesitation)
+    else if (responseQuality == MemoryItem::CorrectAfterHesitation)
     {
-        // the user does not know the new word
-        return defaultInterval();
+        tempInterval = MySettings::cardDefaultIntervalInMinutes() * (1.0f + MySettings::correctIncrease()) / (1.0f + MySettings::vagueIncrease());
+    }
+    else if (responseQuality == MemoryItem::CorrectWithDifficulty)
+    {
+        tempInterval = MySettings::cardDefaultIntervalInMinutes();
     }
     else
     {
-        // the user knows the new word!
-        return defaultIntervalForKnownNewWord();
+        // responseQuality <= MemoryItem::IncorrectButCanRecall
+        tempInterval = MySettings::cardIntervalForIncorrect();
     }
+
+    return static_cast<int>(tempInterval);
 }
 
 int WordCard::estimatedIntervalOldCard(ResponseQuality responseQuality)
@@ -136,32 +139,18 @@ int WordCard::estimatedIntervalOldCard(ResponseQuality responseQuality)
     {
         int ci = getIntervalInMinute();
         float ee = estimatedEasiness(responseQuality);
-        //auto proportion = getAdjustProportion();
-        //estimatedInterval = static_cast<int>(ci * (1.0f + (1.0f + proportion) * ee));
         auto ia = getIntervalAdjustRatio(responseQuality);
         auto tempInterval = ci * ee * ia;
-
-        // make it greater than defaultInterval()
-        if (tempInterval < defaultInterval())
-        {
-            if (responseQuality == MemoryItem::Perfect)
-            {
-                tempInterval = defaultInterval() * (1.0f + m_defaultPerfectIncrease) / (1.0f + m_defaultIncorrectIncrease);
-            }
-            else if (responseQuality == MemoryItem::CorrectAfterHesitation)
-            {
-                tempInterval = defaultInterval() * (1.0f + m_defaultCorrectIncrease) / (1.0f + m_defaultIncorrectIncrease);
-            }
-            else if (responseQuality == MemoryItem::CorrectWithDifficulty)
-            {
-                tempInterval = defaultInterval();
-            }
-        }
         estimatedInterval = static_cast<int>(tempInterval);
+        if (estimatedInterval < MySettings::cardDefaultIntervalInMinutes())
+        {
+            // change it to defaultInterval()
+            estimatedInterval = defaultInterval(responseQuality);
+        }
     }
     else
     {
-        estimatedInterval = defaultIntervalForRelearning();
+        estimatedInterval = defaultInterval(MemoryItem::IncorrectButCanRecall);
     }
 
     return estimatedInterval;
@@ -195,9 +184,9 @@ float WordCard::getAdjustProportion()
  * @param responseQuality
  * @return
  * assumes:
- * 1.0f > m_defaultPerfectIncrease >= 0
- * 1.0f > m_defaultCorrectIncrease >= 0
- * -1.0f < m_defaultKindRememberIncrease <= 0
+ * 1.0f > perfectIncrease >= 0
+ * 1.0f > correctIncrease >= 0
+ * -1.0f < vagueIncrease <= 0
  */
 float WordCard::getEasinessAdjustRatio(ResponseQuality responseQuality)
 {
@@ -209,11 +198,11 @@ float WordCard::getEasinessAdjustRatio(ResponseQuality responseQuality)
     float ratio = 0.0f;
     if (responseQuality == MemoryItem::Perfect)
     {
-        ratio = 1.0f + m_defaultPerfectIncrease * (1.0f + proportion);
+        ratio = 1.0f + MySettings::perfectIncrease() * (1.0f + proportion);
     }
     else if (responseQuality == MemoryItem::CorrectAfterHesitation)
     {
-        ratio = 1.0f + m_defaultCorrectIncrease * (1.0f + proportion);
+        ratio = 1.0f + MySettings::correctIncrease() * (1.0f + proportion);
     }
     else if (responseQuality == MemoryItem::CorrectWithDifficulty)
     {
@@ -223,7 +212,7 @@ float WordCard::getEasinessAdjustRatio(ResponseQuality responseQuality)
         }
         else
         {
-            ratio = 1.0f + m_defaultKindRememberIncrease * (1.0f - punishmentFactor * proportion);
+            ratio = 1.0f + MySettings::vagueIncrease() * (1.0f - punishmentFactor * proportion);
         }
     }
     else
@@ -234,7 +223,7 @@ float WordCard::getEasinessAdjustRatio(ResponseQuality responseQuality)
         }
         else
         {
-            ratio = 1.0f + m_defaultIncorrectIncrease * (1.0f - punishmentFactor * proportion);
+            ratio = 1.0f + MySettings::incorrectIncrease() * (1.0f - punishmentFactor * proportion);
         }
     }
 
@@ -260,20 +249,20 @@ float WordCard::getIntervalAdjustRatio(ResponseQuality responseQuality)
     float r1 = 0.0f;
     if (responseQuality == MemoryItem::Perfect)
     {
-        r1 = 1.0f + m_defaultPerfectIncrease;
+        r1 = 1.0f + MySettings::perfectIncrease();
     }
     else if (responseQuality == MemoryItem::CorrectAfterHesitation)
     {
-        r1 = 1.0f + m_defaultCorrectIncrease;
+        r1 = 1.0f + MySettings::correctIncrease();
     }
     else if (responseQuality == MemoryItem::CorrectWithDifficulty)
     {
-        r1 = 1.0f + m_defaultKindRememberIncrease;
+        r1 = 1.0f + MySettings::vagueIncrease();
     }
     else
     {
         // the code should NOT reach here!
-        r1 = 1.0f + m_defaultIncorrectIncrease;
+        r1 = 1.0f + MySettings::incorrectIncrease();
     }
     ratio *= r1;
 

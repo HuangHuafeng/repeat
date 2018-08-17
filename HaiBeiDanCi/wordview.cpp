@@ -17,7 +17,9 @@ WordView::WordView(QWidget *parent) : QWebEngineView(parent),
                                       m_tfm(parent)
 {
     m_showSetting = WordView::ShowAll;
-    loadHtml();
+    connect(this, SIGNAL(loadFinished(bool)), this, SLOT(onLoadFinished(bool)));
+
+    reloadHtml();
     setWord();
 
     //auto action = page()->action(QWebEnginePage::ViewSource);
@@ -33,39 +35,62 @@ QSize WordView::sizeHint() const
     return m_sizeHint;
 }
 
-void WordView::loadHtml()
+void WordView::loadHtml(QString fileName)
 {
-    QFileInfo wordHtmlFile(QCoreApplication::applicationDirPath() + "/wordview.html");
+    QFile htmlFile(fileName);
+    if (htmlFile.open(QIODevice::ReadOnly | QIODevice::Text) == true)
+    {
+        m_channel.registerObject(QString("wordview"), this);
+        page()->setWebChannel(&m_channel);
 
-    if (!wordHtmlFile.exists())
+        QUrl baseUrl("file://" + MySettings::dataDirectory() + "/");
+        setHtml(htmlFile.readAll().data(), baseUrl);
+    }
+    else
+    {
+        gdDebug("failed to open file %s", fileName.toStdString().c_str());
+    }
+}
+
+void WordView::reloadHtml()
+{
+    bool needReload = false;
+    QFileInfo wordHtmlFile(MySettings::dataDirectory() + "/wordview.html");
+
+    if (m_et.isValid() == false)
+    {
+        needReload = true;
+        m_et.start();
+    }
+
+    if (wordHtmlFile.exists() == false)
     {
         QFile::copy(":/wordview.html", wordHtmlFile.absoluteFilePath());
         gdDebug("file copied to %s", wordHtmlFile.absoluteFilePath().toStdString().c_str());
-    }
 
-    QFile htmlFile(wordHtmlFile.absoluteFilePath());
-    if (!htmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
+        needReload = true;
+    }
+    else
     {
-        gdDebug("failed to load file");
-        return;
+        QDateTime lmt = wordHtmlFile.lastModified();
+        QDateTime current = QDateTime::currentDateTime();
+        qint64 past = lmt.msecsTo(current);
+        if (past < m_et.elapsed())
+        {
+            needReload = true;
+        }
     }
 
-    m_channel.registerObject(QString("wordview"), this);
-    page()->setWebChannel(&m_channel);
-
-    QUrl baseUrl("file://" + MySettings::dataDirectory() + "/");
-    setHtml(htmlFile.readAll().data(), baseUrl);
+    if (needReload == true)
+    {
+        loadHtml(wordHtmlFile.absoluteFilePath());
+    }
 }
 
 void WordView::setWord(sptr<Word> word)
 {
     m_word = word;
     emit wordChanged();
-}
-
-void WordView::reloadHtml()
-{
-    loadHtml();
 }
 
 void WordView::setShowSetting(ShowOptions showSetting)
@@ -161,4 +186,22 @@ void WordView::toHtmlCallback(QString html)
 void WordView::inspect()
 {
     page()->toHtml(std::bind(&WordView::toHtmlCallback, this, std::placeholders::_1));
+}
+
+void WordView::onLoadFinished(bool /*ok*/)
+{
+    page()->runJavaScript("getComputedStyle(document.body).backgroundColor", std::bind(&WordView::changeBackgroundToStyleInHtml, this, std::placeholders::_1));
+}
+
+void WordView::changeBackgroundToStyleInHtml(const QVariant &color)
+{
+    QStringList rgb = color.toString().replace(QRegExp("(rgb\\(|\\))"), "").split(",");
+
+    if (rgb.size() == 3)
+    {
+        int r = rgb[0].toInt();
+        int g = rgb[1].toInt();
+        int b = rgb[2].toInt();
+        page()->setBackgroundColor(QColor(r, g, b));
+    }
 }

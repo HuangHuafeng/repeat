@@ -247,8 +247,8 @@ void MySettings::restoreCardSettings()
     QSettings settings;
     settings.beginGroup(MySettings::group());
     settings.remove("defaultEasiness");
-    settings.remove("cardMaximumInterval");
     settings.remove("cardDefaultInterval");
+    settings.remove("cardMaximumInterval");
     settings.remove("perfectIncrease");
     settings.remove("correctIncrease");
     settings.remove("vagueDecrease");
@@ -324,6 +324,7 @@ float MySettings::correctIncrease()
     return valueInSetting / 100.f;
 }
 
+/*
 void MySettings::saveIncorrectDecrease(float deccrease)
 {
     int valueInt = static_cast<int>(deccrease * 100);
@@ -357,10 +358,16 @@ float MySettings::incorrectDecrease()
 
     return valueInSetting / 100.f;
 }
+*/
 
+/**
+ * @brief MySettings::incorrectIncrease
+ * @return
+ * incorrectDecrease not exposed to user, so we just use vagueDecrease() * 110%
+ */
 float MySettings::incorrectIncrease()
 {
-    return MySettings::incorrectDecrease() * -1.0f;
+    return MySettings::vagueDecrease() * -1.10f;
 }
 
 void MySettings::saveVagueDecrease(float deccrease)

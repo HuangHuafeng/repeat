@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>480</width>
-    <height>320</height>
+    <height>324</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -250,6 +250,20 @@ file every</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>spinDefaultEasiness</tabstop>
+  <tabstop>spinDefaultInterval</tabstop>
+  <tabstop>spinBoxMaximumInterval</tabstop>
+  <tabstop>spinPerfectIncrease</tabstop>
+  <tabstop>spinCorrectIncrease</tabstop>
+  <tabstop>spinVagueDecrease</tabstop>
+  <tabstop>spinIntervalForIncorrect</tabstop>
+  <tabstop>leDataPath</tabstop>
+  <tabstop>pushBrowse</tabstop>
+  <tabstop>spinInfoUpdate</tabstop>
+  <tabstop>pushUpdateInfo</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

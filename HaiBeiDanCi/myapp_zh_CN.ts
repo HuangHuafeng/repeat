@@ -344,27 +344,32 @@ file every</source>
         <translation>海贝单词</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="127"/>
+        <location filename="studywindow.cpp" line="105"/>
+        <source>Congratulations! All cards finished!</source>
+        <translation>已完成所有待学习单词!</translation>
+    </message>
+    <message>
+        <location filename="studywindow.cpp" line="128"/>
         <source>minute</source>
         <translation>分钟</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="133"/>
+        <location filename="studywindow.cpp" line="134"/>
         <source>hour</source>
         <translation>小时</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="139"/>
+        <location filename="studywindow.cpp" line="140"/>
         <source>day</source>
         <translation>天</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="145"/>
+        <location filename="studywindow.cpp" line="146"/>
         <source>month</source>
         <translation>月</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="148"/>
+        <location filename="studywindow.cpp" line="149"/>
         <source>long time later</source>
         <translation>很久以后</translation>
     </message>
@@ -418,14 +423,6 @@ Click OK to exit the app.</source>
  Do you want to continue?</source>
         <translation>这将清除所有本地设置并且不可恢复！
 确定要这么做吗？</translation>
-    </message>
-</context>
-<context>
-    <name>QObject::QObject</name>
-    <message>
-        <location filename="studywindow.cpp" line="107"/>
-        <source>Congratulations! All cards finished!</source>
-        <translation>已完成所有待学习单词!</translation>
     </message>
 </context>
 <context>
@@ -490,7 +487,7 @@ Click OK to exit the app.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="300"/>
+        <location filename="studywindow.cpp" line="301"/>
         <source>study words</source>
         <translation>学习单词</translation>
     </message>

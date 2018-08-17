@@ -40,9 +40,6 @@ WordCard::~WordCard()
 
 void WordCard::update(ResponseQuality responseQuality)
 {
-    // changes the interval with the ratio
-    //int interval = static_cast<int>(getIntervalInMinute());
-    //setInterval(interval);
     int nextInterval;
     float nextEasiness;
     int nextRepetition;

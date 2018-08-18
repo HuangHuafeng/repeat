@@ -1,5 +1,4 @@
 #include "word.h"
-#include "../golddict/gddebug.hh"
 #include "worddb.h"
 
 #include <QRegularExpression>

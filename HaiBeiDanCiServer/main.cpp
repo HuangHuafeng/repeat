@@ -1,4 +1,6 @@
 #include "hbdcserver.h"
+#include "../HaiBeiDanCi/worddb.h"
+#include "../HaiBeiDanCi/mysettings.h"
 
 #include <QCoreApplication>
 #include <QtNetwork>
@@ -6,14 +8,25 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    HBDCServer server;
-    if (server.listen(QHostAddress::Any, 65315) == false)
+
+    // use the setting from HaiBeiDanCi if it's in the same computer
+    QCoreApplication::setOrganizationName(MySettings::orgName());
+    QCoreApplication::setOrganizationDomain(MySettings::orgDomain());
+    QCoreApplication::setApplicationName(MySettings::appName());
+
+    if (WordDB::initialize() == false)
     {
-        QString msg = QObject::tr("Unable to start the server: %1.").arg(server.errorString());
-        qDebug() << msg;
+        qCritical("failed to load data from database!");
         return 1;
     }
 
+    HBDCServer server;
+    if (server.listen() == false)
+    {
+        QString msg = QObject::tr("Unable to start the server: %1.").arg(server.errorString());
+        qCritical("%s", msg.toUtf8().constData());
+        return 2;
+    }
 
     QString ipAddress;
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();

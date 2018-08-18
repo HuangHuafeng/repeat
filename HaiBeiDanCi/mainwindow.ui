@@ -666,7 +666,14 @@
     <addaction name="action_About"/>
     <addaction name="actionPreferences"/>
    </widget>
+   <widget class="QMenu" name="menuData">
+    <property name="title">
+     <string>Server</string>
+    </property>
+    <addaction name="actionBooks"/>
+   </widget>
    <addaction name="menu_Help"/>
+   <addaction name="menuData"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -691,6 +698,11 @@
    </property>
    <property name="menuRole">
     <enum>QAction::PreferencesRole</enum>
+   </property>
+  </action>
+  <action name="actionBooks">
+   <property name="text">
+    <string>Books</string>
    </property>
   </action>
  </widget>

@@ -1,5 +1,4 @@
 #include "mysettings.h"
-#include "../golddict/gddebug.hh"
 
 #include <QSettings>
 #include <QCoreApplication>
@@ -455,7 +454,7 @@ void MySettings::readInfoFile(QString infoFileName)
     QFile infoFile(infoFileName);
     if (!infoFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        gdDebug("failed to load info file");
+        qDebug("failed to load info file");
         return;
     }
 
@@ -502,7 +501,7 @@ void MySettings::updateInfoFileNow()
         // delete the info file
         if (QFile::remove(infoFileName) == false)
         {
-            gdDebug("failed to remove old info file");
+            qDebug("failed to remove old info file");
         }
     }
 

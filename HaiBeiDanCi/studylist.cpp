@@ -1,5 +1,4 @@
 #include "studylist.h"
-#include "../golddict/gddebug.hh"
 #include "wordbook.h"
 #include "worddb.h"
 

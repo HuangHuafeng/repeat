@@ -1,5 +1,4 @@
 #include "wordview.h"
-#include "../golddict/gddebug.hh"
 #include "mysettings.h"
 
 #include <QWebChannel>
@@ -48,7 +47,7 @@ void WordView::loadHtml(QString fileName)
     }
     else
     {
-        gdDebug("failed to open file %s", fileName.toStdString().c_str());
+        qDebug("failed to open file %s", fileName.toUtf8().constData());
     }
 }
 
@@ -66,7 +65,7 @@ void WordView::reloadHtml()
     if (wordHtmlFile.exists() == false)
     {
         QFile::copy(":/wordview.html", wordHtmlFile.absoluteFilePath());
-        gdDebug("file copied to %s", wordHtmlFile.absoluteFilePath().toStdString().c_str());
+        qInfo("file copied to %s", wordHtmlFile.absoluteFilePath().toUtf8().constData());
 
         needReload = true;
     }
@@ -161,9 +160,9 @@ void WordView::toHtmlCallback(QString html)
     /*
      * the following lines tells that
      * html.size() sometimes is smaller than html.toStdString().length() !!!!!
-    gdDebug("html.size(): %d", html.size());
-    gdDebug("strlen: %d", strlen(html.toStdString().c_str()));
-    gdDebug("html.toStdString().length(): %d", html.toStdString().length());
+    qDebug("html.size(): %d", html.size());
+    qDebug("strlen: %d", strlen(html.toStdString().c_str()));
+    qDebug("html.toStdString().length(): %d", html.toStdString().length());
     */
 
     QString word(m_word.get() ? m_word->getSpelling() : "nullptr");
@@ -172,7 +171,7 @@ void WordView::toHtmlCallback(QString html)
 
     if (!tmp.open() || tmp.write(html.toStdString().c_str(), len) != len)
     {
-        gdDebug("failed to write temporary file inWordView::toHtmlCallback()");
+        qDebug("failed to write temporary file inWordView::toHtmlCallback()");
     }
     else
     {

@@ -1,4 +1,5 @@
 #include "clientwaiter.h"
+#include "../HaiBeiDanCi/word.h"
 
 #include <QtNetwork>
 
@@ -16,14 +17,59 @@ void ClientWaiter::run()
         return;
     }
 
-    QString text = "Hello, it's " + QDateTime::currentDateTime().toString() + "\n";
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    //out.setVersion(QDataStream::Qt_4_0);
-    out << text;
+    qDebug("%s:%d connected", tcpSocket.peerAddress().toString().toLatin1().constData(), tcpSocket.peerPort());
 
-    tcpSocket.write(block);
-    //tcpSocket.write(text.toStdString().c_str());
+
+    /*
+    auto w = Word::getWord("over");
+    if (w.get() != nullptr)
+    {
+        //out << w->getDefinition();
+        QString reply = "ABC";
+        out << reply;
+        tcpSocket.write(block);
+    }
+    */
+
+    auto counter = 0;
+    while (1)
+    {
+        if (tcpSocket.waitForReadyRead() == false)
+        {
+            break;
+        }
+
+        int reqOpcode;
+        QString reqPara;
+        QDataStream in(&tcpSocket);
+        in.startTransaction();
+        in >> reqOpcode >> reqPara;
+        in.commitTransaction();
+        qDebug() << reqOpcode << reqPara;
+
+        //auto data = tcpSocket.readAll();
+        //qDebug() << data.constData();
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        //out.setVersion(QDataStream::Qt_5_11);
+        //out.setVersion(QDataStream::Qt_4_0);
+
+        counter ++;
+        int opcode = counter;
+        int responseResult = 0;
+        QString response = "Hello " + QString::number(counter);
+        out << opcode << responseResult << response;
+        tcpSocket.write(block);
+
+        qDebug() << block;
+    }
+
+
     tcpSocket.disconnectFromHost();
-    tcpSocket.waitForDisconnected();
+    if (tcpSocket.state() != QAbstractSocket::UnconnectedState)
+    {
+        tcpSocket.waitForDisconnected();
+    }
+    qDebug() << "disconnected.";
 }

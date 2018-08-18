@@ -10,6 +10,17 @@ HBDCServer::HBDCServer(QObject *parent)
 {
 }
 
+
+bool HBDCServer::listen(const QHostAddress &address, quint16 port)
+{
+    if (port == 0)
+    {
+        port = 61027;
+    }
+
+    return QTcpServer::listen(address, port);
+}
+
 void HBDCServer::incomingConnection(qintptr socketDescriptor)
 {
     ClientWaiter *thread = new ClientWaiter(socketDescriptor, this);

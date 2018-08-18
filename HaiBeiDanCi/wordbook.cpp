@@ -1,9 +1,6 @@
 #include "wordbook.h"
 #include "worddb.h"
-#include "../golddict/gddebug.hh"
 #include "word.h"
-
-#include <QMessageBox>
 
 QMap<QString, sptr<WordBook>> WordBook::m_allBooks;
 QMutex WordBook::m_allBooksMutex;

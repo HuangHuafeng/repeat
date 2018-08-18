@@ -1,7 +1,6 @@
 #include "studywindow.h"
 #include "ui_studywindow.h"
 #include "wordcard.h"
-#include "../golddict/gddebug.hh"
 #include "mysettings.h"
 
 #include <QLabel>

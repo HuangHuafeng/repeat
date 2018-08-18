@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui webenginewidgets multimedia sql concurrent
+QT       += core gui webenginewidgets multimedia sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -36,14 +36,15 @@ SOURCES += \
     worddb.cpp \
     wordview.cpp \
     dictschemehandler.cpp \
-    ../golddict/gddebug.cc \
     temporaryfilemanager.cpp \
     browserwindow.cpp \
     mysettings.cpp \
     introductionpage.cpp \
     introductionview.cpp \
     preferencesdialog.cpp \
-    downloadmanager.cpp
+    downloadmanager.cpp \
+    serverdatadialog.cpp \
+    testdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -57,7 +58,6 @@ HEADERS += \
     worddb.h \
     wordview.h \
     dictschemehandler.h \
-    ../golddict/gddebug.hh \
     ../golddict/sptr.hh \
     temporaryfilemanager.h \
     browserwindow.h \
@@ -65,13 +65,17 @@ HEADERS += \
     introductionpage.h \
     introductionview.h \
     preferencesdialog.h \
-    downloadmanager.h
+    downloadmanager.h \
+    serverdatadialog.h \
+    testdialog.h
 
 FORMS += \
         mainwindow.ui \
     studywindow.ui \
     browserwindow.ui \
-    preferencesdialog.ui
+    preferencesdialog.ui \
+    serverdatadialog.ui \
+    testdialog.ui
 
 SUBDIRS += \
     HaiBeiDanCi.pro

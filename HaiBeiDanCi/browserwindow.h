@@ -4,7 +4,6 @@
 #include "wordview.h"
 #include "wordcard.h"
 #include "studylist.h"
-#include "../golddict/gddebug.hh"
 
 #include <QDialog>
 #include <QVector>

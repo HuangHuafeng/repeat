@@ -1,6 +1,5 @@
 #include "browserwindow.h"
 #include "ui_browserwindow.h"
-#include "../golddict/gddebug.hh"
 #include "worddb.h"
 #include "mysettings.h"
 

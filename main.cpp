@@ -1,6 +1,6 @@
 #include "mainwindow.h"
-#include "golddict/gddebug.hh"
 #include "HaiBeiDanCi/worddb.h"
+#include "HaiBeiDanCi/mysettings.h"
 
 #include <QApplication>
 #include <QTranslator>
@@ -9,6 +9,11 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    // use the setting from HaiBeiDanCi if it's in the same computer
+    QCoreApplication::setOrganizationName(MySettings::orgName());
+    QCoreApplication::setOrganizationDomain(MySettings::orgDomain());
+    QCoreApplication::setApplicationName(MySettings::appName());
 
     QTranslator qtTranslator;
     qtTranslator.load("qt_" + QLocale::system().name(),

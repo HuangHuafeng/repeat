@@ -11,6 +11,7 @@ class HBDCServer : public QTcpServer
 
 public:
     HBDCServer(QObject *parent = nullptr);
+    bool listen(const QHostAddress &address = QHostAddress::Any, quint16 port = 0);
 
 protected:
     void incomingConnection(qintptr socketDescriptor) override;

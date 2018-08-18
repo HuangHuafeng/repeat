@@ -81,7 +81,9 @@ SOURCES += \
     HaiBeiDanCi/wordcard.cpp \
     HaiBeiDanCi/studylist.cpp \
     HaiBeiDanCi/wordbook.cpp \
-    newbook.cpp
+    newbook.cpp \
+    HaiBeiDanCi/mysettings.cpp \
+    HaiBeiDanCi/downloadmanager.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -133,7 +135,9 @@ HEADERS += \
     HaiBeiDanCi/wordcard.h \
     HaiBeiDanCi/studylist.h \
     HaiBeiDanCi/wordbook.h \
-    newbook.h
+    newbook.h \
+    HaiBeiDanCi/mysettings.h \
+    HaiBeiDanCi/downloadmanager.h
 
 FORMS += \
         mainwindow.ui \

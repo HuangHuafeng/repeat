@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "../golddict/gddebug.hh"
 #include "worddb.h"
 #include "dictschemehandler.h"
 #include "mysettings.h"

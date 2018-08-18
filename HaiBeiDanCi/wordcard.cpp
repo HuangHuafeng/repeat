@@ -1,5 +1,4 @@
 #include "wordcard.h"
-#include "../golddict/gddebug.hh"
 #include "worddb.h"
 #include "mysettings.h"
 
@@ -9,7 +8,6 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QVariant>
-#include <QtConcurrent>
 
 // m_baselineTime is my daughter's birth time
 const QDateTime MyTime::m_baselineTime = QDateTime::fromString("2016-10-31T10:00:00+08:00", Qt::ISODate);

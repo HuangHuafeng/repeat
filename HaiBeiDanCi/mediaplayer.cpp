@@ -1,5 +1,4 @@
 #include "mediaplayer.h"
-#include "../golddict/gddebug.hh"
 
 MediaPlayer::MediaPlayer() : m_mediaPlayer(),
                              m_filesToPlay()
@@ -32,8 +31,6 @@ void MediaPlayer::playNextFile()
 
 void MediaPlayer::stateChanged(QMediaPlayer::State state)
 {
-    //gdDebug("got state QMediaPlayer::stateChanged(%d)", state);
-    //gdDebug("MediaStatus is %d in MediaPlayer::stateChanged()", m_mediaPlayer.mediaStatus());
     if (state == QMediaPlayer::StoppedState)
     {
         // remove the one just finished from the list
@@ -48,6 +45,6 @@ void MediaPlayer::stateChanged(QMediaPlayer::State state)
 
 void MediaPlayer::error(QMediaPlayer::Error error)
 {
-    gdDebug("got error QMediaPlayer::error(%d)", error);
+    qDebug("got error QMediaPlayer::error(%d)", error);
     m_mediaPlayer.stop();
 }

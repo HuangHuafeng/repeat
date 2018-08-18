@@ -1,17 +1,17 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "../golddict/gddebug.hh"
 #include "mysettings.h"
 #include "wordcard.h"
 #include "word.h"
 #include "worddb.h"
 #include "wordbook.h"
 #include "preferencesdialog.h"
+#include "serverdatadialog.h"
+#include "testdialog.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
 #include <QSettings>
-#include <QtConcurrent>
 #include <QFuture>
 #include <QFutureWatcher>
 
@@ -433,4 +433,13 @@ void MainWindow::on_actionPreferences_triggered()
 {
     PreferencesDialog pd(this);
     pd.exec();
+}
+
+void MainWindow::on_actionBooks_triggered()
+{
+    //ServerDataDialog sdd(this);
+    //sdd.exec();
+
+    TestDialog td(this);
+    td.exec();
 }

@@ -1,5 +1,4 @@
 #include "dictschemehandler.h"
-#include "../golddict/gddebug.hh"
 #include "mysettings.h"
 
 #include <QWebEngineUrlRequestJob>
@@ -7,6 +6,7 @@
 #include <QBuffer>
 #include <QWebEngineProfile>
 #include <QMessageBox>
+#include <QFile>
 
 DictSchemeHandler::DictSchemeHandler(QObject *parent) : QWebEngineUrlSchemeHandler(parent),
                                                         m_mediaPlayer()
@@ -22,7 +22,6 @@ DictSchemeHandler::~DictSchemeHandler()
 
 void DictSchemeHandler::onFileDownloaded(QString fileName)
 {
-    //gdDebug("%s downloaded!", fileName.toStdString().c_str());
     m_mediaPlayer.play(fileName);
 }
 
@@ -34,7 +33,7 @@ void DictSchemeHandler::installSchemeHandler()
     if (defaultProfile->urlSchemeHandler(QByteArray("hhfaudio")))
     {
         // already installed
-        gdDebug("We should not run to this line in DictSchemeHandler::installSchemeHandler()!");
+        qInfo("We should not run to this line in DictSchemeHandler::installSchemeHandler()!");
     }
     else
     {
@@ -53,7 +52,7 @@ void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     else
     {
         // impossible as we only register hhfaudio
-        gdDebug("scheme %s is unknown in DictSchemeHandler::requestStarted()", requestUrl.scheme().toStdString().c_str());
+        qInfo("scheme %s is unknown in DictSchemeHandler::requestStarted()", requestUrl.scheme().toStdString().c_str());
     }
 }
 

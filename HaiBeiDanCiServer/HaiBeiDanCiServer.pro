@@ -1,5 +1,5 @@
 QT -= gui
-QT += network
+QT += network sql
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -18,7 +18,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
     clientwaiter.cpp \
-    hbdcserver.cpp
+    hbdcserver.cpp \
+    ../HaiBeiDanCi/word.cpp \
+    ../HaiBeiDanCi/wordbook.cpp \
+    ../HaiBeiDanCi/worddb.cpp \
+    ../HaiBeiDanCi/mysettings.cpp \
+    ../HaiBeiDanCi/downloadmanager.cpp \
+    ../HaiBeiDanCi/wordcard.cpp \
+    ../HaiBeiDanCi/memoryitem.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -27,4 +34,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     clientwaiter.h \
-    hbdcserver.h
+    hbdcserver.h \
+    ../HaiBeiDanCi/word.h \
+    ../HaiBeiDanCi/wordbook.h \
+    ../HaiBeiDanCi/worddb.h \
+    ../HaiBeiDanCi/mysettings.h \
+    ../HaiBeiDanCi/downloadmanager.h \
+    ../HaiBeiDanCi/wordcard.h \
+    ../HaiBeiDanCi/memoryitem.h

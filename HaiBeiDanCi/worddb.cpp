@@ -1,12 +1,10 @@
 #include "worddb.h"
-#include "../golddict/gddebug.hh"
 #include "word.h"
 #include "wordcard.h"
 #include "wordbook.h"
 #include "mysettings.h"
 
 #include <QCoreApplication>
-#include <QMessageBox>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -119,9 +117,7 @@ bool WordDB::connectDB(const QString &connectionName)
     newDatabase->setDatabaseName(dbFileName);
     if (!newDatabase->open())
     {
-        QMessageBox::critical(nullptr, QObject::tr("Database Error"),
-                              QObject::tr("Unable to open database file!\n"
-                                          "Click OK to exit."));
+        qCritical("Unable to open database file!");
         return false;
     }
 
@@ -147,10 +143,8 @@ bool WordDB::connectDB(const QString &connectionName)
 void WordDB::databaseError(QSqlQuery &query, const QString what)
 {
     QSqlError error = query.lastError();
-    //    QMessageBox::critical(nullptr, QObject::tr("Database Error"),
-    //        QObject::tr("Database error when ") + what + ": " + error.text(), QMessageBox::Ok);
     QString errorText = QObject::tr("Database error when ") + what + ": " + error.text();
-    gdDebug("%s", errorText.toStdString().c_str());
+    qCritical("%s", errorText.toUtf8().constData());
 }
 
 // static

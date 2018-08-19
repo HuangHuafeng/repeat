@@ -3,7 +3,6 @@
 
 #include <QThread>
 #include <QTcpSocket>
-#include <../golddict/sptr.hh>
 
 //! [0]
 class ClientWaiter : public QThread
@@ -20,7 +19,7 @@ signals:
 
 private:
     qintptr m_socketDescriptor;
-    sptr<QTcpSocket> m_tcpSocket;
+    QTcpSocket *m_tcpSocket;
 
     void disconnectPeer();
     void failedToHandleMessage(int messageCode);
@@ -30,6 +29,8 @@ private:
 
     bool handleRequestGetAllBooks();
     bool handleRequestGetWordsOfBook();
+    bool handleRequestGetAWord();
+    bool handleRequestGetABook();
 
 };
 

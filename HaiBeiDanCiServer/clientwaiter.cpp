@@ -14,7 +14,7 @@ ClientWaiter::ClientWaiter(qintptr socketDescriptor, QObject *parent)
 void ClientWaiter::run()
 {
     m_tcpSocket = new QTcpSocket(nullptr);
-    if (m_tcpSocket.get() == nullptr)
+    if (m_tcpSocket == nullptr)
     {
         return;
     }
@@ -66,7 +66,7 @@ void ClientWaiter::run()
 
 void ClientWaiter::disconnectPeer()
 {
-    if (m_tcpSocket.get() == nullptr)
+    if (m_tcpSocket == nullptr)
     {
         return;
     }
@@ -81,7 +81,7 @@ void ClientWaiter::disconnectPeer()
 
 void ClientWaiter::failedToHandleMessage(int messageCode)
 {
-    if (m_tcpSocket.get() == nullptr)
+    if (m_tcpSocket == nullptr)
     {
         return;
     }
@@ -95,13 +95,13 @@ void ClientWaiter::failedToHandleMessage(int messageCode)
 
 int ClientWaiter::readMessageCode()
 {
-    if (m_tcpSocket.get() == nullptr)
+    if (m_tcpSocket == nullptr)
     {
         return 0;
     }
 
     int messageCode;
-    QDataStream in(m_tcpSocket.get());
+    QDataStream in(m_tcpSocket);
     in.startTransaction();
     in >> messageCode;
     if (in.commitTransaction() == true)
@@ -133,6 +133,14 @@ bool ClientWaiter::handleMessage(int messageCode)
         handleResult = handleRequestGetWordsOfBook();
         break;
 
+    case ServerClientProtocol::RequestGetAWord:
+        handleResult = handleRequestGetAWord();
+        break;
+
+    case ServerClientProtocol::RequestGetABook:
+        handleResult = handleRequestGetABook();
+        break;
+
     default:
         qDebug() << "got unknown message with code" << messageCode << "in handleMessage()";
         break;
@@ -144,7 +152,7 @@ bool ClientWaiter::handleMessage(int messageCode)
 
 bool ClientWaiter::handleRequestGetAllBooks()
 {
-    if (m_tcpSocket.get() == nullptr)
+    if (m_tcpSocket == nullptr)
     {
         return false;
     }
@@ -160,15 +168,55 @@ bool ClientWaiter::handleRequestGetAllBooks()
     return true;
 }
 
-bool ClientWaiter::handleRequestGetWordsOfBook()
+bool ClientWaiter::handleRequestGetAWord()
 {
-    if (m_tcpSocket.get() == nullptr)
+    return false;
+}
+
+bool ClientWaiter::handleRequestGetABook()
+{
+    if (m_tcpSocket == nullptr)
     {
         return false;
     }
 
     // read the name of the book
-    QDataStream in(m_tcpSocket.get());
+    QDataStream in(m_tcpSocket);
+    QString bookName;
+    in.startTransaction();
+    in >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to get book name in handleRequestGetABook()";
+        return false;
+    }
+
+    auto book = WordBook::getBook(bookName);
+    if (book == nullptr)
+    {
+        return false;
+    }
+
+    int responseCode = ServerClientProtocol::ResponseGetABook;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseCode << *book;
+    m_tcpSocket->write(block);
+
+    return true;
+}
+
+bool ClientWaiter::handleRequestGetWordsOfBook()
+{
+    if (m_tcpSocket == nullptr)
+    {
+        return false;
+    }
+
+    // read the name of the book
+    QDataStream in(m_tcpSocket);
     QString bookName;
     in.startTransaction();
     in >> bookName;
@@ -180,7 +228,7 @@ bool ClientWaiter::handleRequestGetWordsOfBook()
     }
 
     auto book = WordBook::getBook(bookName);
-    if (book.get() == nullptr)
+    if (book == nullptr)
     {
         return false;
     }

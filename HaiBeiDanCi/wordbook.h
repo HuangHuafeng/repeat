@@ -14,9 +14,12 @@ class WordBook
   public:
     WordBook(QString name = QObject::tr("new book"), QString introduction = QObject::tr("no introduction"), int id = 0);
 
-    int getId();
-    QString getName();
-    QString getIntroduction();
+    int getId() const;
+    void setId(int id);
+    QString getName() const;
+    void setName(QString name);
+    QString getIntroduction() const;
+    void setIntroduction(QString introduction);
 
     bool hasWord(QString spelling);
     bool hasWord(int wordId);
@@ -48,5 +51,8 @@ class WordBook
 
     bool dbgetNameAndIntro();
 };
+
+QDataStream &operator<<(QDataStream &ds, const WordBook &book);
+QDataStream &operator>>(QDataStream &ds, WordBook &book);
 
 #endif // WORDBOOK_H

@@ -1,6 +1,8 @@
 #ifndef SERVERAGENT_H
 #define SERVERAGENT_H
 
+#include "wordbook.h"
+
 #include <QObject>
 #include <QtNetwork>
 #include <QVector>
@@ -17,12 +19,14 @@ public:
     void connectToServer(const QString &hostName, quint16 port);
     void sendRequestGetAllBooks();
     void sendRequestGetWordsOfBook(QString bookName);
+    void sendRequestGetABook(QString bookName);
 
 signals:
     void responseUnknownRequest();
     void responseGetAllBooks(QList<QString> books);
     void responseGetWordsOfBook(QString bookName, QVector<QString> wordList);
     void disconnected();
+    void responseGetABook(WordBook book);
 
 private slots:
     void onConnected();
@@ -39,6 +43,7 @@ private:
     bool handleResponseGetAllBooks();
     bool handleResponseGetWordsOfBook();
     bool handleResponseUnknownRequest();
+    bool handleResponseGetABook();
 };
 
 #endif // SERVERAGENT_H

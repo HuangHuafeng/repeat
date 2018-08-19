@@ -24,6 +24,8 @@ private slots:
 
     void on_pbDownloadBook_clicked();
 
+    void on_pbTest_clicked();
+
 private:
     Ui::ServerDataDialog *ui;
 
@@ -32,6 +34,7 @@ private:
     void connectToServer();
     void requestAllBooks();
     void requestWordsOfBook(QString bookName);
+    void requestGetABook(QString bookName);
 };
 
 #endif // SERVERDATADIALOG_H

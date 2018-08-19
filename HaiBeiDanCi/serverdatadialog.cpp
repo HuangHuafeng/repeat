@@ -116,3 +116,24 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
     auto bookName = ci->text(0);
     requestWordsOfBook(bookName);
 }
+
+void ServerDataDialog::on_pbTest_clicked()
+{
+    auto ci = ui->twBooks->currentItem();
+    if (ci == nullptr)
+    {
+        return;
+    }
+
+    auto bookName = ci->text(0);
+    requestGetABook(bookName);
+}
+
+void ServerDataDialog::requestGetABook(QString bookName)
+{
+    connectToServer();
+    if (m_serverAgent != nullptr)
+    {
+        m_serverAgent->sendRequestGetABook(bookName);
+    }
+}

@@ -6,6 +6,7 @@
 #include <QFile>
 
 MySettings *MySettings::m_settings = nullptr;
+QString MySettings::m_appName;
 
 MySettings::MySettings()
 {

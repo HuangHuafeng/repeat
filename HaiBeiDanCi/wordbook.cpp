@@ -2,6 +2,8 @@
 #include "worddb.h"
 #include "word.h"
 
+#include <QDataStream>
+
 QMap<QString, sptr<WordBook>> WordBook::m_allBooks;
 QMutex WordBook::m_allBooksMutex;
 
@@ -11,17 +13,32 @@ WordBook::WordBook(QString name, QString introduction, int id) : m_name(name),
 {
 }
 
-int WordBook::getId()
+int WordBook::getId() const
 {
     return m_id;
 }
 
-QString WordBook::getName()
+void WordBook::setId(int id)
+{
+    m_id = id;
+}
+
+QString WordBook::getName() const
 {
     return m_name;
 }
 
-QString WordBook::getIntroduction()
+void WordBook::setName(QString name)
+{
+    m_name = name;
+}
+
+void WordBook::setIntroduction(QString introduction)
+{
+    m_introduction = introduction;
+}
+
+QString WordBook::getIntroduction() const
 {
     return m_introduction;
 }
@@ -475,4 +492,22 @@ bool WordBook::isInDatabase(const QString &name)
     }
 
     return retVal;
+}
+
+QDataStream &operator<<(QDataStream &ds, const WordBook &book)
+{
+    ds << book.getId() << book.getName() << book.getIntroduction();
+    return ds;
+}
+
+QDataStream &operator>>(QDataStream &ds, WordBook &book)
+{
+    int id;
+    QString name;
+    QString introduction;
+    ds >> id >> name >> introduction;
+    book.setId(id);
+    book.setName(name);
+    book.setIntroduction(introduction);
+    return ds;
 }

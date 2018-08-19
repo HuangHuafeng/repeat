@@ -85,6 +85,10 @@ bool ServerAgent::handleMessage(int messageCode)
         handleResult = handleResponseGetWordsOfBook();
         break;
 
+    case ServerClientProtocol::ResponseGetABook:
+        handleResult = handleResponseGetABook();
+        break;
+
     default:
         qDebug() << "got unknown message with code" << messageCode << "in handleMessage()";
         handleResult = false;
@@ -129,13 +133,26 @@ bool ServerAgent::handleResponseGetWordsOfBook()
     }
 
     emit(responseGetWordsOfBook(bookName, wordList));
-    /*
-    qDebug() << "got words of book" << bookName;
-    for (int i = 0;i < wordList.size();i ++)
+
+    return true;
+}
+
+bool ServerAgent::handleResponseGetABook()
+{
+    WordBook book;
+    QDataStream in(&m_tcpSocket);
+    in.startTransaction();
+    in >> book;
+    if (in.commitTransaction() == false)
     {
-        qDebug() << wordList.at(i);
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read words of the book in handleResponseGetWordsOfBook()";
+        return false;
     }
-    */
+
+    emit(responseGetABook(book));
+
+    qDebug() << book.getId() << book.getName() << book.getIntroduction();
 
     return true;
 }
@@ -183,6 +200,16 @@ void ServerAgent::sendRequestGetAllBooks()
 void ServerAgent::sendRequestGetWordsOfBook(QString bookName)
 {
     int messageCode = ServerClientProtocol::RequestGetWordsOfBook;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << messageCode << bookName;
+    m_tcpSocket.write(block);
+}
+
+void ServerAgent::sendRequestGetABook(QString bookName)
+{
+    int messageCode = ServerClientProtocol::RequestGetABook;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);

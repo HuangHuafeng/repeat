@@ -16,6 +16,7 @@ class MySettings : public QObject
     DownloadManager m_downloadManager;
 
     static MySettings *m_settings;
+    static QString m_appName;
 
   public:
     virtual ~MySettings();
@@ -30,9 +31,14 @@ class MySettings : public QObject
         return "aniujsoft.com";
     }
 
+    static void setAppName(QString appName)
+    {
+        m_appName = appName;
+    }
+
     static QString appName()
     {
-        return QObject::tr("HaiBeiDanCi");
+        return m_appName;
     }
 
     static void saveDataDirectory(QString newDir);

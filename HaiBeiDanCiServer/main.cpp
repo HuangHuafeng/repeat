@@ -9,10 +9,15 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
+    MySettings::setAppName("HaiBeiDanCiServer");
+
     // use the setting from HaiBeiDanCi if it's in the same computer
     QCoreApplication::setOrganizationName(MySettings::orgName());
     QCoreApplication::setOrganizationDomain(MySettings::orgDomain());
     QCoreApplication::setApplicationName(MySettings::appName());
+
+    // this should be after the above 3 lines!!!
+    MySettings::saveDataDirectory("/Users/huafeng/Documents/GitHub/HaiBeiDanCiData");
 
     if (WordDB::initialize() == false)
     {

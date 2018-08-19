@@ -12,6 +12,8 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    MySettings::setAppName(QObject::tr("HaiBeiDanCi"));
+
     QCoreApplication::setOrganizationName(MySettings::orgName());
     QCoreApplication::setOrganizationDomain(MySettings::orgDomain());
     QCoreApplication::setApplicationName(MySettings::appName());

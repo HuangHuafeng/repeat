@@ -23,7 +23,7 @@ bool HBDCServer::listen(const QHostAddress &address, quint16 port)
 
 void HBDCServer::incomingConnection(qintptr socketDescriptor)
 {
-    ClientWaiter *thread = new ClientWaiter(socketDescriptor, this);
+    ClientWaiter *thread = new ClientWaiter(socketDescriptor, nullptr);
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 }

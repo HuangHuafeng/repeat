@@ -41,4 +41,5 @@ HEADERS += \
     ../HaiBeiDanCi/mysettings.h \
     ../HaiBeiDanCi/downloadmanager.h \
     ../HaiBeiDanCi/wordcard.h \
-    ../HaiBeiDanCi/memoryitem.h
+    ../HaiBeiDanCi/memoryitem.h \
+    ../golddict/sptr.hh

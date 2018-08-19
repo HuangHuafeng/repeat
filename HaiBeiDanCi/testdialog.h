@@ -23,11 +23,18 @@ private slots:
     void onDisconnected();
     void onError(QAbstractSocket::SocketError socketError);
     void onReadyRead();
+    void onStateChanged(QAbstractSocket::SocketState socketState);
 
 private:
     Ui::TestDialog *ui;
 
     QTcpSocket m_tcpSocket;
+
+    int readMessageCode();
+    bool handleMessage(int messageCode);
+    bool handleResponseGetAllBooks();
+    bool handleResponseGetWordsOfBook();
+    bool handleResponseUnknownRequest();
 };
 
 #endif // TESTDIALOG_H

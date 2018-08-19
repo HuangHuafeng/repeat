@@ -1,14 +1,8 @@
-#include "testdialog.h"
-#include "ui_testdialog.h"
+#include "serveragent.h"
 #include "serverclientprotocol.h"
 
-TestDialog::TestDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::TestDialog),
-    m_tcpSocket(this)
+ServerAgent::ServerAgent(QObject *parent) : QObject(parent), m_tcpSocket(this)
 {
-    ui->setupUi(this);
-
     connect(&m_tcpSocket, SIGNAL(connected()), this, SLOT(onConnected()));
     connect(&m_tcpSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
     connect(&m_tcpSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
@@ -24,68 +18,44 @@ TestDialog::TestDialog(QWidget *parent) :
     }
 }
 
-TestDialog::~TestDialog()
-{
-    delete ui;
-}
 
-void TestDialog::on_pushButton_clicked()
-{
-    //qDebug() << m_tcpSocket.error();
-
-    int opcode = ui->leAction->text().toInt();
-    if (opcode == 0)
-    {
-        return;
-    }
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << opcode;
-
-    QString parameter = ui->leParameter->text();
-    if (parameter.isEmpty() == false)
-    {
-        out << parameter;
-    }
-
-    m_tcpSocket.write(block);
-}
-
-void TestDialog::onReadyRead()
+void ServerAgent::onReadyRead()
 {
     int messageCode = readMessageCode();
     if (messageCode != 0)
     {
-        if (handleMessage(messageCode) == false)
+        if (handleMessage(messageCode) == true)
+        {
+            qDebug() << "successfully handled message with code" << messageCode;
+        }
+        else
         {
             qDebug() << "failed to handle message with code" << messageCode;
         }
     }
 }
 
-void TestDialog::onConnected()
+void ServerAgent::onConnected()
 {
     qDebug() << "onConnected()";
 }
 
-void TestDialog::onDisconnected()
+void ServerAgent::onDisconnected()
 {
     qDebug() << "onDisconnected()";
 }
 
-void TestDialog::onError(QAbstractSocket::SocketError socketError)
+void ServerAgent::onError(QAbstractSocket::SocketError socketError)
 {
     qDebug() << "onError()" << socketError;
 }
 
-
-void TestDialog::onStateChanged(QAbstractSocket::SocketState socketState)
+void ServerAgent::onStateChanged(QAbstractSocket::SocketState socketState)
 {
     qDebug() << "onStateChanged()" << socketState;
 }
 
-int TestDialog::readMessageCode()
+int ServerAgent::readMessageCode()
 {
     int messageCode;
     QDataStream in(&m_tcpSocket);
@@ -103,7 +73,7 @@ int TestDialog::readMessageCode()
     }
 }
 
-bool TestDialog::handleMessage(int messageCode)
+bool ServerAgent::handleMessage(int messageCode)
 {
     bool handleResult = false;
     switch (messageCode) {
@@ -129,7 +99,7 @@ bool TestDialog::handleMessage(int messageCode)
     return handleResult;
 }
 
-bool TestDialog::handleResponseGetAllBooks()
+bool ServerAgent::handleResponseGetAllBooks()
 {
     QDataStream in(&m_tcpSocket);
     QList<QString> books;
@@ -142,12 +112,13 @@ bool TestDialog::handleResponseGetAllBooks()
         return false;
     }
 
-    qDebug() << books;
+    //qDebug() << books;
+    emit(responseGetAllBooks(books));
 
     return true;
 }
 
-bool TestDialog::handleResponseGetWordsOfBook()
+bool ServerAgent::handleResponseGetWordsOfBook()
 {
     QString bookName;
     QVector<QString> wordList;
@@ -161,16 +132,19 @@ bool TestDialog::handleResponseGetWordsOfBook()
         return false;
     }
 
+    emit(responseGetWordsOfBook(bookName, wordList));
+    /*
     qDebug() << "got words of book" << bookName;
     for (int i = 0;i < wordList.size();i ++)
     {
         qDebug() << wordList.at(i);
     }
+    */
 
     return true;
 }
 
-bool TestDialog::handleResponseUnknownRequest()
+bool ServerAgent::handleResponseUnknownRequest()
 {
     QDataStream in(&m_tcpSocket);
     int requestCode;
@@ -183,7 +157,28 @@ bool TestDialog::handleResponseUnknownRequest()
         return false;
     }
 
+    emit(responseUnknownRequest());
     qDebug() << "the server responed that failed to handle request with code" << requestCode;
 
     return true;
+}
+
+void ServerAgent::sendRequestGetAllBooks()
+{
+    int messageCode = ServerClientProtocol::RequestGetAllBooks;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << messageCode;
+    m_tcpSocket.write(block);
+}
+
+void ServerAgent::sendRequestGetWordsOfBook(QString bookName)
+{
+    int messageCode = ServerClientProtocol::RequestGetWordsOfBook;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << messageCode << bookName;
+    m_tcpSocket.write(block);
 }

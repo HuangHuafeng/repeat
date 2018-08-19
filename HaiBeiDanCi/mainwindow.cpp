@@ -74,7 +74,7 @@ void MainWindow::loadSetting()
 void MainWindow::listBooks()
 {
     QStringList header;
-    header.append(MainWindow::tr("Book Name"));
+    header.append(QObject::tr("Book Name"));
     ui->twBooks->setHeaderLabels(header);
 
     auto bookList = WordBook::getAllBooks();
@@ -437,9 +437,9 @@ void MainWindow::on_actionPreferences_triggered()
 
 void MainWindow::on_actionBooks_triggered()
 {
-    //ServerDataDialog sdd(this);
-    //sdd.exec();
+    ServerDataDialog sdd(this);
+    sdd.exec();
 
-    TestDialog td(this);
-    td.exec();
+    //TestDialog td(this);
+    //td.exec();
 }

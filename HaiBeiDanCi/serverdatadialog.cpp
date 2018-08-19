@@ -5,7 +5,7 @@
 ServerDataDialog::ServerDataDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ServerDataDialog),
-    m_serverAgent(this)
+    m_serverAgent(nullptr)
 {
     ui->setupUi(this);
 
@@ -14,13 +14,62 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
     header.append(QObject::tr("Status"));
     ui->twBooks->setHeaderLabels(header);
 
-    connect(&m_serverAgent, SIGNAL(responseGetAllBooks(QList<QString>)), this, SLOT(onResponseGetAllBooks(QList<QString>)));
-    m_serverAgent.sendRequestGetAllBooks();
+    requestAllBooks();
 }
 
 ServerDataDialog::~ServerDataDialog()
 {
     delete ui;
+}
+
+void ServerDataDialog::requestAllBooks()
+{
+    connectToServer();
+    if (m_serverAgent != nullptr)
+    {
+        m_serverAgent->sendRequestGetAllBooks();
+    }
+}
+
+void ServerDataDialog::requestWordsOfBook(QString bookName)
+{
+    connectToServer();
+    if (m_serverAgent != nullptr)
+    {
+        m_serverAgent->sendRequestGetWordsOfBook(bookName);
+    }
+}
+
+void ServerDataDialog::connectToServer()
+{
+    if (m_serverAgent != nullptr)
+    {
+        return;
+    }
+
+    m_serverAgent = new ServerAgent(this);
+    if (m_serverAgent == nullptr)
+    {
+        return;
+    }
+
+    connect(m_serverAgent, SIGNAL(responseGetAllBooks(QList<QString>)), this, SLOT(onResponseGetAllBooks(QList<QString>)));
+    connect(m_serverAgent, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
+    connect(m_serverAgent, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));
+
+    m_serverAgent->connectToServer("huafengsmac", 61027);
+}
+
+void ServerDataDialog::onResponseGetWordsOfBook(QString bookName, QVector<QString> wordList)
+{
+    qDebug() << bookName;
+    qDebug() << wordList;
+}
+
+void ServerDataDialog::onDisconnected()
+{
+    m_serverAgent->deleteLater();
+    m_serverAgent = nullptr;
 }
 
 void ServerDataDialog::onResponseGetAllBooks(QList<QString> books)
@@ -54,4 +103,16 @@ void ServerDataDialog::onResponseGetAllBooks(QList<QString> books)
     }
 
     ui->twBooks->resizeColumnToContents(0);
+}
+
+void ServerDataDialog::on_pbDownloadBook_clicked()
+{
+    auto ci = ui->twBooks->currentItem();
+    if (ci == nullptr)
+    {
+        return;
+    }
+
+    auto bookName = ci->text(0);
+    requestWordsOfBook(bookName);
 }

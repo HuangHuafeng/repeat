@@ -12,7 +12,9 @@ class ServerAgent : public QObject
 
 public:
     explicit ServerAgent(QObject *parent = nullptr);
+    virtual ~ServerAgent();
 
+    void connectToServer(const QString &hostName, quint16 port);
     void sendRequestGetAllBooks();
     void sendRequestGetWordsOfBook(QString bookName);
 
@@ -20,6 +22,7 @@ signals:
     void responseUnknownRequest();
     void responseGetAllBooks(QList<QString> books);
     void responseGetWordsOfBook(QString bookName, QVector<QString> wordList);
+    void disconnected();
 
 private slots:
     void onConnected();

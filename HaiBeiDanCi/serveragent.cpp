@@ -1,23 +1,18 @@
 #include "serveragent.h"
 #include "serverclientprotocol.h"
 
-ServerAgent::ServerAgent(QObject *parent) : QObject(parent), m_tcpSocket(this)
+ServerAgent::ServerAgent(QObject *parent) : QObject(parent), m_tcpSocket(nullptr)
 {
     connect(&m_tcpSocket, SIGNAL(connected()), this, SLOT(onConnected()));
     connect(&m_tcpSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
     connect(&m_tcpSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
     connect(&m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onError(QAbstractSocket::SocketError)));
     connect(&m_tcpSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onStateChanged(QAbstractSocket::SocketState)));
-
-    m_tcpSocket.connectToHost("huafengsmac", 61027);
-
-    // it seems waitForConnected() helps to get/trigger the error ConnectionRefusedError
-    if (m_tcpSocket.waitForConnected() == false)
-    {
-        qDebug() << "waitForConnected() failed" << m_tcpSocket.error();
-    }
 }
 
+ServerAgent::~ServerAgent()
+{
+}
 
 void ServerAgent::onReadyRead()
 {
@@ -43,6 +38,7 @@ void ServerAgent::onConnected()
 void ServerAgent::onDisconnected()
 {
     qDebug() << "onDisconnected()";
+    emit(disconnected());
 }
 
 void ServerAgent::onError(QAbstractSocket::SocketError socketError)
@@ -161,6 +157,17 @@ bool ServerAgent::handleResponseUnknownRequest()
     qDebug() << "the server responed that failed to handle request with code" << requestCode;
 
     return true;
+}
+
+void ServerAgent::connectToServer(const QString &hostName, quint16 port)
+{
+    m_tcpSocket.connectToHost(hostName, port);
+
+    // it seems waitForConnected() helps to get/trigger the error ConnectionRefusedError
+    if (m_tcpSocket.waitForConnected() == false)
+    {
+        qDebug() << "waitForConnected() failed" << m_tcpSocket.error();
+    }
 }
 
 void ServerAgent::sendRequestGetAllBooks()

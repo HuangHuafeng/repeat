@@ -19,11 +19,19 @@ public:
 
 private slots:
     void onResponseGetAllBooks(QList<QString> books);
+    void onDisconnected();
+    void onResponseGetWordsOfBook(QString bookName, QVector<QString> wordList);
+
+    void on_pbDownloadBook_clicked();
 
 private:
     Ui::ServerDataDialog *ui;
 
-    ServerAgent m_serverAgent;
+    ServerAgent *m_serverAgent;
+
+    void connectToServer();
+    void requestAllBooks();
+    void requestWordsOfBook(QString bookName);
 };
 
 #endif // SERVERDATADIALOG_H

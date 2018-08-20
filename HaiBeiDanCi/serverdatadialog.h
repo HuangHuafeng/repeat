@@ -19,8 +19,9 @@ public:
 
 private slots:
     void onResponseGetAllBooks(QList<QString> books);
+    //void onResponseGetABook(WordBook book);
     void onDisconnected();
-    void onResponseGetWordsOfBook(QString bookName, QVector<QString> wordList);
+    void onResponseGetWordsOfBook(QString /*bookName*/, QVector<QString> wordList);
 
     void on_pbDownloadBook_clicked();
 
@@ -30,6 +31,8 @@ private:
     Ui::ServerDataDialog *ui;
 
     ServerAgent *m_serverAgent;
+
+    void downloadBook(const QString bookName);
 
     void connectToServer();
     void requestAllBooks();

@@ -36,19 +36,26 @@ void ServerAgent::onReadyRead()
         if (currentMessage != 0)
         {
             // we have a message, try to process it
-            if (handleMessage(currentMessage) == true)
+            int handleResult = handleMessage(currentMessage);
+            if (handleResult == 0)
             {
                 // successfully processed the message
                 qDebug() << "successfully handled message with code" << currentMessage;
                 currentMessage = 0;
             }
-            else
+            else if (handleResult == 1)
             {
                 qDebug() << "failed to handle message with code" << currentMessage;
 
                 // failed to process the message, probably means the content of the message is NOT fully available
                 // so quit the loop and contine in next call of onReadyRead()
                 break;
+            }
+            else
+            {
+                // handleResult == -1, unknown message!
+                // discard the message and continue trying to get the next message
+                currentMessage = 0;
             }
         }
         else
@@ -98,9 +105,10 @@ int ServerAgent::readMessageCode()
     }
 }
 
-bool ServerAgent::handleMessage(int messageCode)
+int ServerAgent::handleMessage(int messageCode)
 {
     bool handleResult = false;
+    bool unknowMessage = false;
     switch (messageCode) {
     case ServerClientProtocol::ResponseFailedToRequest:
         handleResult = handleResponseUnknownRequest();
@@ -122,14 +130,44 @@ bool ServerAgent::handleMessage(int messageCode)
         handleResult = handleResponseGetABook();
         break;
 
+    case ServerClientProtocol::ResponseAllDataSent:
+        handleResult = handleResponseAllDataSent();
+        break;
+
     default:
-        //aaaqDebug() << "got unknown message with code" << messageCode << "in handleMessage()";
-        handleResult = false;
+        handleUnknownMessage(messageCode);
+        unknowMessage = true;
         break;
 
     }
 
-    return handleResult;
+    int retVal;
+    if (unknowMessage == true)
+    {
+        retVal = -1;
+    }
+    else
+    {
+        if (handleResult == true)
+        {
+            retVal = 0;
+        }
+        else
+        {
+            retVal = 1;
+        }
+    }
+
+    return retVal;
+}
+
+void ServerAgent::handleUnknownMessage(int messageCode)
+{
+    // read all following data in the socket
+    //auto abondonData = m_tcpSocket.readAll();
+
+    qDebug() << "got unknown message with code" << messageCode;
+    //qDebug() << abondonData;
 }
 
 bool ServerAgent::handleResponseGetAllBooks()
@@ -186,6 +224,25 @@ bool ServerAgent::handleResponseGetAWord()
     emit(responseGetAWord(word));
 
     qDebug() << word.getId() << word.getSpelling() << word.getDefinition();
+
+    return true;
+}
+
+bool ServerAgent::handleResponseAllDataSent()
+{
+    QDataStream in(&m_tcpSocket);
+    int messageCode;
+    in.startTransaction();
+    in >> messageCode;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read books in handleResponseGetAllBooks()";
+        return false;
+    }
+
+    emit(responseAllDataSent(messageCode));
+    emit(requestCompleted(messageCode));
 
     return true;
 }
@@ -278,4 +335,14 @@ void ServerAgent::sendRequestGetABook(QString bookName)
     QDataStream out(&block, QIODevice::WriteOnly);
     out << messageCode << bookName;
     m_tcpSocket.write(block);
+}
+
+void ServerAgent::downloadBook(QString bookName)
+{
+    qDebug() << "start to download" << bookName;
+}
+
+void ServerAgent::getBookList()
+{
+
 }

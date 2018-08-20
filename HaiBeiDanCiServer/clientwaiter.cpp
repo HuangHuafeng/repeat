@@ -48,6 +48,7 @@ void ClientWaiter::run()
         if (handleMessage(messageCode) == true)
         {
             qDebug() << "successfully handled message with code" << messageCode;
+            sendResponseAllDataSent(messageCode);
             continue;
         }
         else
@@ -218,6 +219,16 @@ void ClientWaiter::sendResponseGetAWord(const Word &word)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseCode << word;
+    m_tcpSocket->write(block);
+}
+
+void ClientWaiter::sendResponseAllDataSent(int messageCode)
+{
+    int responseCode = ServerClientProtocol::ResponseAllDataSent;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseCode << messageCode;
     m_tcpSocket->write(block);
 }
 

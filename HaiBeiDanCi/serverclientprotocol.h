@@ -35,6 +35,7 @@ public:
         ResponseGetABook = ResponseNoOperation + 5,
         ResponseFailedToRequest = ResponseNoOperation + 1000,
         ResponseUnknownRequest = ResponseNoOperation + 1001,
+        ResponseAllDataSent = ResponseNoOperation + 1002,
     } ResponseCode;
 };
 
@@ -57,6 +58,7 @@ public:
  * ResponseFailedToRequest: ResponseCode + RequestCode
  * ResponseGetAWord: ResponseCode + (Word serialization)
  * ResponseGetABook: ResponseCode + (WordBook serialization)
+ * ResponseAllDataSent: ResponseCode + RequestCode
  ****/
 
 class funcTracker

@@ -54,16 +54,21 @@ void ServerDataDialog::connectToServer()
     }
 
     connect(m_serverAgent, SIGNAL(responseGetAllBooks(QList<QString>)), this, SLOT(onResponseGetAllBooks(QList<QString>)));
+    //connect(m_serverAgent, SIGNAL(responseGetABook(WordBook)), this, SLOT(onResponseGetABook(WordBook)));
     connect(m_serverAgent, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
     connect(m_serverAgent, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));
 
     m_serverAgent->connectToServer("huafengsmac", 61027);
 }
 
-void ServerDataDialog::onResponseGetWordsOfBook(QString bookName, QVector<QString> wordList)
+void ServerDataDialog::onResponseGetWordsOfBook(QString /*bookName*/, QVector<QString> wordList)
 {
-    qDebug() << bookName;
-    qDebug() << wordList;
+    //qDebug() << bookName;
+    //qDebug() << wordList;
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        requestGetAWord(wordList.at(i));
+    }
 }
 
 void ServerDataDialog::onDisconnected()
@@ -114,6 +119,12 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
     }
 
     auto bookName = ci->text(0);
+    downloadBook(bookName);
+}
+
+void ServerDataDialog::downloadBook(const QString bookName)
+{
+    requestGetABook(bookName);
     requestWordsOfBook(bookName);
 }
 

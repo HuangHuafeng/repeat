@@ -48,6 +48,7 @@ private:
     void sendResponseGetAWord(const Word &word);
     void sendResponseGetABook(const WordBook &book);
     void sendResponseGetWordsOfBook(const QString bookName, const QVector<QString> &wordList);
+    void sendResponseAllDataSent(int messageCode);
 
 };
 

@@ -19,10 +19,6 @@ public:
 
     void run() override;
 
-    typedef enum {
-        MaximumWordsInAMessage = 25000,
-    } MessageParameters;
-
 signals:
     void error(QTcpSocket::SocketError socketError);
 
@@ -31,13 +27,13 @@ private:
     QTcpSocket *m_tcpSocket;
 
     void disconnectPeer();
-    void failedToHandleMessage(int messageCode);
 
     int readMessageCode();
-    bool handleMessage(int messageCode);
+    int handleMessage(int messageCode);
 
     bool handleRequestGetAllBooks();
     bool handleRequestGetWordsOfBook();
+    bool handleRequestGetWords();
     bool handleRequestGetAWord();
     bool handleRequestGetABook();
 
@@ -49,6 +45,9 @@ private:
     void sendResponseGetABook(const WordBook &book);
     void sendResponseGetWordsOfBook(const QString bookName, const QVector<QString> &wordList);
     void sendResponseAllDataSent(int messageCode);
+    void sendResponseAllDataSentForRequestGetWordsOfBook(const QString bookName);
+    void sendResponseAllDataSentForRequestGetWords(const QString bookName);
+    void sendResponseUnknownRequest(int messageCode);
 
 };
 

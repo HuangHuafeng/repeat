@@ -4,8 +4,7 @@
 
 ServerDataDialog::ServerDataDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::ServerDataDialog),
-    m_serverAgent(nullptr)
+    ui(new Ui::ServerDataDialog)
 {
     ui->setupUi(this);
 
@@ -14,7 +13,11 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
     header.append(QObject::tr("Status"));
     ui->twBooks->setHeaderLabels(header);
 
-    requestAllBooks();
+    ServerAgent *serveragent = ServerAgent::instance();
+    connect(serveragent, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
+
+    serveragent->getBookList();
+
 }
 
 ServerDataDialog::~ServerDataDialog()
@@ -22,64 +25,9 @@ ServerDataDialog::~ServerDataDialog()
     delete ui;
 }
 
-void ServerDataDialog::requestAllBooks()
+
+void ServerDataDialog::onBookListReady(const QList<QString> books)
 {
-    connectToServer();
-    if (m_serverAgent != nullptr)
-    {
-        m_serverAgent->sendRequestGetAllBooks();
-    }
-}
-
-void ServerDataDialog::requestWordsOfBook(QString bookName)
-{
-    connectToServer();
-    if (m_serverAgent != nullptr)
-    {
-        m_serverAgent->sendRequestGetWordsOfBook(bookName);
-    }
-}
-
-void ServerDataDialog::connectToServer()
-{
-    if (m_serverAgent != nullptr)
-    {
-        return;
-    }
-
-    m_serverAgent = new ServerAgent(this);
-    if (m_serverAgent == nullptr)
-    {
-        return;
-    }
-
-    connect(m_serverAgent, SIGNAL(responseGetAllBooks(QList<QString>)), this, SLOT(onResponseGetAllBooks(QList<QString>)));
-    //connect(m_serverAgent, SIGNAL(responseGetABook(WordBook)), this, SLOT(onResponseGetABook(WordBook)));
-    connect(m_serverAgent, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
-    connect(m_serverAgent, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));
-
-    m_serverAgent->connectToServer("huafengsmac", 61027);
-}
-
-void ServerDataDialog::onResponseGetWordsOfBook(QString /*bookName*/, QVector<QString> wordList)
-{
-    //qDebug() << bookName;
-    //qDebug() << wordList;
-    for (int i = 0;i < wordList.size();i ++)
-    {
-        requestGetAWord(wordList.at(i));
-    }
-}
-
-void ServerDataDialog::onDisconnected()
-{
-    m_serverAgent->deleteLater();
-    m_serverAgent = nullptr;
-}
-
-void ServerDataDialog::onResponseGetAllBooks(QList<QString> books)
-{
-    //qDebug() << books;
     for (int i = 0;i < books.size();i ++)
     {
         QString bookName = books.at(i);
@@ -119,13 +67,20 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
     }
 
     auto bookName = ci->text(0);
-    downloadBook(bookName);
+
+    qDebug() << "start to download" << bookName;
+
+    ServerAgent *serveragent = ServerAgent::instance();
+    connect(serveragent, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
+    serveragent->downloadBook(bookName);
 }
 
-void ServerDataDialog::downloadBook(const QString bookName)
+void ServerDataDialog::onBookDownloaded(QString bookName)
 {
-    requestGetABook(bookName);
-    requestWordsOfBook(bookName);
+    ServerAgent *serveragent = ServerAgent::instance();
+    disconnect(serveragent, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
+
+    qDebug() << bookName << "downloaded";
 }
 
 void ServerDataDialog::on_pbTest_clicked()
@@ -137,24 +92,5 @@ void ServerDataDialog::on_pbTest_clicked()
     }
 
     auto bookName = ci->text(0);
-    requestGetABook(bookName);
-    requestGetAWord("hello");
 }
 
-void ServerDataDialog::requestGetAWord(QString spelling)
-{
-    connectToServer();
-    if (m_serverAgent != nullptr)
-    {
-        m_serverAgent->sendRequestGetAWord(spelling);
-    }
-}
-
-void ServerDataDialog::requestGetABook(QString bookName)
-{
-    connectToServer();
-    if (m_serverAgent != nullptr)
-    {
-        m_serverAgent->sendRequestGetABook(bookName);
-    }
-}

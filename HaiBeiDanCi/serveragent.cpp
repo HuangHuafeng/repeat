@@ -1,17 +1,27 @@
 #include "serveragent.h"
 #include "serverclientprotocol.h"
 
-ServerAgent::ServerAgent(QObject *parent) : QObject(parent), m_tcpSocket(nullptr)
+ServerAgent * ServerAgent::m_serveragent = nullptr;
+
+ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent) : QObject(parent),
+    m_serverHostName(hostName),
+    m_serverPort(port),
+    m_tcpSocket(nullptr)
 {
-    connect(&m_tcpSocket, SIGNAL(connected()), this, SLOT(onConnected()));
-    connect(&m_tcpSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-    connect(&m_tcpSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
-    connect(&m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onError(QAbstractSocket::SocketError)));
-    connect(&m_tcpSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onStateChanged(QAbstractSocket::SocketState)));
 }
 
 ServerAgent::~ServerAgent()
 {
+}
+
+ServerAgent * ServerAgent::instance()
+{
+    if (m_serveragent == nullptr)
+    {
+        m_serveragent = new ServerAgent("huafengsmac");
+    }
+
+    return m_serveragent;
 }
 
 
@@ -73,13 +83,57 @@ void ServerAgent::onConnected()
 
 void ServerAgent::onDisconnected()
 {
-    qDebug() << "onDisconnected()";
-    emit(disconnected());
+    m_tcpSocket->deleteLater();
+    m_tcpSocket = nullptr;
 }
 
 void ServerAgent::onError(QAbstractSocket::SocketError socketError)
 {
     qDebug() << "onError()" << socketError;
+}
+
+void ServerAgent::onResponseGetABook(const WordBook &book)
+{
+    funcTracker ft("onResponseGetABook()");
+    sptr<WordBook> newBook = new WordBook(book);
+    m_mapBooks.insert(book.getName(), newBook);
+}
+
+void ServerAgent::onResponseGetWordsOfBook(QString bookName, QVector<QString> wordList)
+{
+    funcTracker ft("onResponseGetWordsOfBook()");
+    qDebug() << "got words for book" << bookName;
+
+    QVector<QString> wordsToGet;
+    // in this case, we download the definition of the words
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        auto spelling = wordList.at(i);
+        auto word = m_mapWords.value(spelling);
+        if (word.get() == nullptr)
+        {
+            wordsToGet.append(spelling);
+        }
+    }
+
+    if (wordsToGet.size() > 0)
+    {
+        sendRequestGetWordsWithSmallMessages(bookName, wordsToGet);
+    }
+    else
+    {
+        // no need to download any words
+        m_mapBooksStatus.insert(bookName, true);
+        emit(bookDownloaded(bookName));
+        qDebug() << "downloaded" << bookName;
+    }
+}
+
+void ServerAgent::onResponseGetAWord(const Word &word)
+{
+    sptr<Word> newWord = new Word(word);
+    m_mapWords.insert(word.getSpelling(), newWord);
+    qDebug() << m_mapWords.size();
 }
 
 void ServerAgent::onStateChanged(QAbstractSocket::SocketState socketState)
@@ -90,7 +144,7 @@ void ServerAgent::onStateChanged(QAbstractSocket::SocketState socketState)
 int ServerAgent::readMessageCode()
 {
     int messageCode;
-    QDataStream in(&m_tcpSocket);
+    QDataStream in(m_tcpSocket);
     in.startTransaction();
     in >> messageCode;
     if (in.commitTransaction() == true)
@@ -107,10 +161,15 @@ int ServerAgent::readMessageCode()
 
 int ServerAgent::handleMessage(int messageCode)
 {
+    if (m_tcpSocket == nullptr)
+    {
+        return -1;
+    }
+
     bool handleResult = false;
     bool unknowMessage = false;
     switch (messageCode) {
-    case ServerClientProtocol::ResponseFailedToRequest:
+    case ServerClientProtocol::ResponseUnknownRequest:
         handleResult = handleResponseUnknownRequest();
         break;
 
@@ -161,18 +220,19 @@ int ServerAgent::handleMessage(int messageCode)
     return retVal;
 }
 
-void ServerAgent::handleUnknownMessage(int messageCode)
+bool ServerAgent::handleUnknownMessage(int messageCode)
 {
     // read all following data in the socket
-    //auto abondonData = m_tcpSocket.readAll();
+    //auto abondonData = m_tcpSocket->readAll();
 
     qDebug() << "got unknown message with code" << messageCode;
-    //qDebug() << abondonData;
+
+    return true;
 }
 
 bool ServerAgent::handleResponseGetAllBooks()
 {
-    QDataStream in(&m_tcpSocket);
+    QDataStream in(m_tcpSocket);
     QList<QString> books;
     in.startTransaction();
     in >> books;
@@ -183,8 +243,8 @@ bool ServerAgent::handleResponseGetAllBooks()
         return false;
     }
 
-    //qDebug() << books;
-    emit(responseGetAllBooks(books));
+    m_books = books;
+    emit(bookListReady(m_books));
 
     return true;
 }
@@ -193,7 +253,7 @@ bool ServerAgent::handleResponseGetWordsOfBook()
 {
     QString bookName;
     QVector<QString> wordList;
-    QDataStream in(&m_tcpSocket);
+    QDataStream in(m_tcpSocket);
     in.startTransaction();
     in >> bookName >> wordList;
     if (in.commitTransaction() == false)
@@ -211,7 +271,7 @@ bool ServerAgent::handleResponseGetWordsOfBook()
 bool ServerAgent::handleResponseGetAWord()
 {
     Word word;
-    QDataStream in(&m_tcpSocket);
+    QDataStream in(m_tcpSocket);
     in.startTransaction();
     in >> word;
     if (in.commitTransaction() == false)
@@ -223,14 +283,14 @@ bool ServerAgent::handleResponseGetAWord()
 
     emit(responseGetAWord(word));
 
-    qDebug() << word.getId() << word.getSpelling() << word.getDefinition();
+    //qDebug() << word.getId() << word.getSpelling() << word.getDefinition();
 
     return true;
 }
 
 bool ServerAgent::handleResponseAllDataSent()
 {
-    QDataStream in(&m_tcpSocket);
+    QDataStream in(m_tcpSocket);
     int messageCode;
     in.startTransaction();
     in >> messageCode;
@@ -241,8 +301,64 @@ bool ServerAgent::handleResponseAllDataSent()
         return false;
     }
 
-    emit(responseAllDataSent(messageCode));
-    emit(requestCompleted(messageCode));
+    bool handleResult = false;
+    switch (messageCode) {
+    case ServerClientProtocol::RequestGetWordsOfBook:
+        handleResult = handleResponseAllDataSentForRequestGetWordsOfBook();
+        break;
+
+    case ServerClientProtocol::RequestGetWords:
+        handleResult = handleResponseAllDataSentForRequestGetWords();
+        break;
+
+    default:
+        qDebug() << "unhandled message code" << messageCode << "in handleResponseAllDataSent()";
+        handleResult = false;
+        break;
+    }
+
+    return true;
+}
+
+bool ServerAgent::handleResponseAllDataSentForRequestGetWordsOfBook()
+{
+    QDataStream in(m_tcpSocket);
+    QString bookName;
+    in.startTransaction();
+    in >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read books in handleResponseAllDataSentForRequestGetWordsOfBook()";
+        return false;
+    }
+
+    return true;
+}
+
+bool ServerAgent::handleResponseAllDataSentForRequestGetWords()
+{
+    QDataStream in(m_tcpSocket);
+    QString bookName;
+    in.startTransaction();
+    in >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read books in handleResponseAllDataSentForRequestGetWordsOfBook()";
+        return false;
+    }
+
+    if (bookName.startsWith(ServerClientProtocol::partPrefix()) == false)
+    {
+        m_mapBooksStatus.insert(bookName, true);
+        emit(bookDownloaded(bookName));
+        qDebug() << "downloaded" << bookName;
+    }
+    else
+    {
+        qDebug() << "received part" << bookName;
+    }
 
     return true;
 }
@@ -250,7 +366,7 @@ bool ServerAgent::handleResponseAllDataSent()
 bool ServerAgent::handleResponseGetABook()
 {
     WordBook book;
-    QDataStream in(&m_tcpSocket);
+    QDataStream in(m_tcpSocket);
     in.startTransaction();
     in >> book;
     if (in.commitTransaction() == false)
@@ -269,7 +385,7 @@ bool ServerAgent::handleResponseGetABook()
 
 bool ServerAgent::handleResponseUnknownRequest()
 {
-    QDataStream in(&m_tcpSocket);
+    QDataStream in(m_tcpSocket);
     int requestCode;
     in.startTransaction();
     in >> requestCode;
@@ -286,63 +402,153 @@ bool ServerAgent::handleResponseUnknownRequest()
     return true;
 }
 
-void ServerAgent::connectToServer(const QString &hostName, quint16 port)
+void ServerAgent::connectToServer()
 {
-    m_tcpSocket.connectToHost(hostName, port);
+    if (m_tcpSocket != nullptr)
+    {
+        return;
+    }
+
+    m_tcpSocket = new QTcpSocket(this);
+    if (m_tcpSocket == nullptr)
+    {
+        return;
+    }
+
+    connect(m_tcpSocket, SIGNAL(connected()), this, SLOT(onConnected()));
+    connect(m_tcpSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+    connect(m_tcpSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
+    connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onError(QAbstractSocket::SocketError)));
+    connect(m_tcpSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onStateChanged(QAbstractSocket::SocketState)));
+
+
+    connect(this, SIGNAL(responseGetABook(const WordBook &)), this, SLOT(onResponseGetABook(const WordBook &)));
+    connect(this, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));
+    connect(this, SIGNAL(responseGetAWord(const Word &)), this, SLOT(onResponseGetAWord(const Word &)));
+    //connect(this, SIGNAL(responseGetAWord(const Word &)), this, SLOT(onResponseGetAWord(const Word &)));
+    //connect(this, SIGNAL(responseGetAWord(const Word &)), this, SLOT(onResponseGetAWord(const Word &)));
+
+    m_tcpSocket->connectToHost(m_serverHostName, m_serverPort);
 
     // it seems waitForConnected() helps to get/trigger the error ConnectionRefusedError
-    if (m_tcpSocket.waitForConnected() == false)
+    if (m_tcpSocket->waitForConnected() == false)
     {
-        qDebug() << "waitForConnected() failed" << m_tcpSocket.error();
+        qDebug() << "waitForConnected() failed" << m_tcpSocket->error();
     }
 }
 
 void ServerAgent::sendRequestGetAllBooks()
 {
+    connectToServer();
     int messageCode = ServerClientProtocol::RequestGetAllBooks;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << messageCode;
-    m_tcpSocket.write(block);
+    m_tcpSocket->write(block);
 }
 
 void ServerAgent::sendRequestGetWordsOfBook(QString bookName)
 {
+    connectToServer();
     int messageCode = ServerClientProtocol::RequestGetWordsOfBook;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << messageCode << bookName;
-    m_tcpSocket.write(block);
+    m_tcpSocket->write(block);
 }
 
 void ServerAgent::sendRequestGetAWord(QString spelling)
 {
+    connectToServer();
     int messageCode = ServerClientProtocol::RequestGetAWord;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << messageCode << spelling;
-    m_tcpSocket.write(block);
+    m_tcpSocket->write(block);
 }
 
 void ServerAgent::sendRequestGetABook(QString bookName)
 {
+    connectToServer();
     int messageCode = ServerClientProtocol::RequestGetABook;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << messageCode << bookName;
-    m_tcpSocket.write(block);
+    m_tcpSocket->write(block);
+}
+
+void ServerAgent::sendRequestGetWords(QString bookName, QVector<QString> wordList)
+{
+    if (wordList.size() > ServerClientProtocol::MaximumWordsInAMessage)
+    {
+        return;
+    }
+
+    connectToServer();
+    int messageCode = ServerClientProtocol::RequestGetWords;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << messageCode << bookName << wordList;
+    m_tcpSocket->write(block);
+}
+
+void ServerAgent::sendRequestGetWordsWithSmallMessages(QString bookName, QVector<QString> wordList)
+{
+    int total = wordList.size();
+    int pos = 0;
+    int counter = 0;
+    while (pos + ServerClientProtocol::MaximumWordsInAMessage < total)
+    {
+        counter ++;
+        QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
+        const QString partName = ServerClientProtocol::partPrefix() + QString::number(counter) + "__" + bookName;
+        sendRequestGetWords(partName, subList);
+        pos += ServerClientProtocol::MaximumWordsInAMessage;
+    };
+
+    QVector<QString> leftWords = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
+    sendRequestGetWords(bookName, leftWords);
 }
 
 void ServerAgent::downloadBook(QString bookName)
 {
-    qDebug() << "start to download" << bookName;
+    bool downloaded = m_mapBooksStatus.value(bookName);
+    if (downloaded == true)
+    {
+        sptr<WordBook> book = m_mapBooks.value(bookName);
+        if (book.get() != nullptr)
+        {
+            emit(bookDownloaded(bookName));
+            qDebug() << "downloaded" << bookName;
+        }
+        else
+        {
+            qDebug() << "The code should NOT run to this line!";
+        }
+    }
+    else
+    {
+        // it's OK even if the book is already in downloading!
+        sendRequestGetABook(bookName);
+        sendRequestGetWordsOfBook(bookName);
+    }
 }
 
 void ServerAgent::getBookList()
 {
-
+    if (m_books.size() == 0)
+    {
+        // no book yet, send message to server to get books
+        sendRequestGetAllBooks();
+    }
+    else
+    {
+        // books are already available
+        emit(bookListReady(m_books));
+    }
 }

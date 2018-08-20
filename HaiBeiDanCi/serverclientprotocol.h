@@ -16,11 +16,20 @@
 class ServerClientProtocol
 {
 public:
+    static QString partPrefix()
+    {
+        return "__PART__";
+    }
+
+    typedef enum {
+        MaximumWordsInAMessage = 2000,
+    } MessageParameters;
+
     typedef enum {
         RequestNoOperation = 10000,
         RequestGetAllBooks = RequestNoOperation + 1,
         RequestGetWordsOfBook = RequestNoOperation + 2,     // should be careful, not too big
-        RequestGetWords = RequestNoOperation + 3,   // no implementation
+        RequestGetWords = RequestNoOperation + 3,
         RequestGetAWord = RequestNoOperation + 4,
         RequestGetABook = RequestNoOperation + 5,
         RequestBye = RequestNoOperation + 1000,

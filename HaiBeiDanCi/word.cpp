@@ -48,12 +48,35 @@ bool Word::dbsaveDefinition()
     return true;
 }
 
-const QString &Word::getDefinition()
+void Word::setId(int id)
+{
+    m_id = id;
+}
+
+void Word::setSpelling(QString spelling)
+{
+    m_spelling = spelling;
+}
+
+void Word::setDefinition(const QString &definition)
+{
+    m_definition = definition;
+
+    // we should not call dbsaveDefinition() here as we serialize Word
+    //dbsaveDefinition();
+}
+
+int Word::getId() const
+{
+    return m_id;
+}
+
+const QString &Word::getDefinition() const
 {
     return m_definition;
 }
 
-QString Word::getDefinitionDIV()
+QString Word::getDefinitionDIV() const
 {
     QString div = getDefinition();
 
@@ -65,17 +88,6 @@ QString Word::getDefinitionDIV()
     }
 
     return div;
-}
-
-void Word::setDefinition(const QString &definition)
-{
-    m_definition = definition;
-    dbsaveDefinition();
-}
-
-int Word::getId()
-{
-    return m_id;
 }
 
 // static
@@ -196,4 +208,22 @@ sptr<Word> Word::getWord(const QString &spelling, bool create)
     m_allWordsMutex.unlock();
 
     return word;
+}
+
+QDataStream &operator<<(QDataStream &ds, const Word &word)
+{
+    ds << word.getId() << word.getSpelling() << word.getDefinition();
+    return ds;
+}
+
+QDataStream &operator>>(QDataStream &ds, Word &word)
+{
+    int id;
+    QString spelling;
+    QString definition;
+    ds >> id >> spelling >> definition;
+    word.setId(id);
+    word.setSpelling(spelling);
+    word.setDefinition(definition);
+    return ds;
 }

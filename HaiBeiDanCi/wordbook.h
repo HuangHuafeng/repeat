@@ -8,6 +8,7 @@
 #include <QVector>
 #include <QObject>
 #include <QMutex>
+#include <QDataStream>
 
 class WordBook
 {

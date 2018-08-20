@@ -19,6 +19,7 @@ public:
     void connectToServer(const QString &hostName, quint16 port);
     void sendRequestGetAllBooks();
     void sendRequestGetWordsOfBook(QString bookName);
+    void sendRequestGetAWord(QString spelling);
     void sendRequestGetABook(QString bookName);
 
 signals:
@@ -26,6 +27,7 @@ signals:
     void responseGetAllBooks(QList<QString> books);
     void responseGetWordsOfBook(QString bookName, QVector<QString> wordList);
     void disconnected();
+    void responseGetAWord(Word word);
     void responseGetABook(WordBook book);
 
 private slots:
@@ -44,6 +46,7 @@ private:
     bool handleResponseGetWordsOfBook();
     bool handleResponseUnknownRequest();
     bool handleResponseGetABook();
+    bool handleResponseGetAWord();
 };
 
 #endif // SERVERAGENT_H

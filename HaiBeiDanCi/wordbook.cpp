@@ -2,8 +2,6 @@
 #include "worddb.h"
 #include "word.h"
 
-#include <QDataStream>
-
 QMap<QString, sptr<WordBook>> WordBook::m_allBooks;
 QMutex WordBook::m_allBooksMutex;
 

@@ -34,6 +34,7 @@ private:
     void connectToServer();
     void requestAllBooks();
     void requestWordsOfBook(QString bookName);
+    void requestGetAWord(QString spelling);
     void requestGetABook(QString bookName);
 };
 

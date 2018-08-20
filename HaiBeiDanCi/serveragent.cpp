@@ -14,20 +14,49 @@ ServerAgent::~ServerAgent()
 {
 }
 
+
+/**
+ * @brief ServerAgent::onReadyRead
+ * CORRECTION:
+ * it seems size of message is NOT an issue. Although it should be taken care of.
+ * We should be careful/aware that message is NOT always available as a whole, so we
+ * need to wait for more data in case we failed to read the message contents.
+ */
 void ServerAgent::onReadyRead()
 {
-    int messageCode = readMessageCode();
-    if (messageCode != 0)
-    {
-        if (handleMessage(messageCode) == true)
+    static int currentMessage = 0;
+
+    do {
+        if (currentMessage == 0)
         {
-            qDebug() << "successfully handled message with code" << messageCode;
+            // last message processed completed, it's time for a new message
+            currentMessage = readMessageCode();
+        }
+
+        if (currentMessage != 0)
+        {
+            // we have a message, try to process it
+            if (handleMessage(currentMessage) == true)
+            {
+                // successfully processed the message
+                qDebug() << "successfully handled message with code" << currentMessage;
+                currentMessage = 0;
+            }
+            else
+            {
+                qDebug() << "failed to handle message with code" << currentMessage;
+
+                // failed to process the message, probably means the content of the message is NOT fully available
+                // so quit the loop and contine in next call of onReadyRead()
+                break;
+            }
         }
         else
         {
-            qDebug() << "failed to handle message with code" << messageCode;
+            // no messages available, quit the loop
+            break;
         }
-    }
+    } while (1);
 }
 
 void ServerAgent::onConnected()
@@ -64,7 +93,7 @@ int ServerAgent::readMessageCode()
     else
     {
         // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read message code in readMessageCode()";
+        qInfo("failed to read message code in readMessageCode(), probably no data from peer");
         return 0;
     }
 }
@@ -85,12 +114,16 @@ bool ServerAgent::handleMessage(int messageCode)
         handleResult = handleResponseGetWordsOfBook();
         break;
 
+    case ServerClientProtocol::ResponseGetAWord:
+        handleResult = handleResponseGetAWord();
+        break;
+
     case ServerClientProtocol::ResponseGetABook:
         handleResult = handleResponseGetABook();
         break;
 
     default:
-        qDebug() << "got unknown message with code" << messageCode << "in handleMessage()";
+        //aaaqDebug() << "got unknown message with code" << messageCode << "in handleMessage()";
         handleResult = false;
         break;
 
@@ -133,6 +166,26 @@ bool ServerAgent::handleResponseGetWordsOfBook()
     }
 
     emit(responseGetWordsOfBook(bookName, wordList));
+
+    return true;
+}
+
+bool ServerAgent::handleResponseGetAWord()
+{
+    Word word;
+    QDataStream in(&m_tcpSocket);
+    in.startTransaction();
+    in >> word;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read words of the book in handleResponseGetAWord()";
+        return false;
+    }
+
+    emit(responseGetAWord(word));
+
+    qDebug() << word.getId() << word.getSpelling() << word.getDefinition();
 
     return true;
 }
@@ -204,6 +257,16 @@ void ServerAgent::sendRequestGetWordsOfBook(QString bookName)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << messageCode << bookName;
+    m_tcpSocket.write(block);
+}
+
+void ServerAgent::sendRequestGetAWord(QString spelling)
+{
+    int messageCode = ServerClientProtocol::RequestGetAWord;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << messageCode << spelling;
     m_tcpSocket.write(block);
 }
 

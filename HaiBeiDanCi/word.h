@@ -8,20 +8,25 @@
 #include <QSqlQuery>
 #include <QVector>
 #include <QMutex>
+#include <QDataStream>
 
 class Word
 {
   public:
+    Word(QString word = "SOMETHING_IS_WRONG", QString definition = "", int id = 0);
+
     const QString &getSpelling() const
     {
         return m_spelling;
     }
 
+    void setId(int id);
+    void setSpelling(QString spelling);
     void setDefinition(const QString &definition);
 
-    int getId();
-    const QString &getDefinition();
-    QString getDefinitionDIV();
+    int getId() const;
+    const QString &getDefinition() const;
+    QString getDefinitionDIV() const;
 
     static bool createDatabaseTables();
     static void readAllWordsFromDatabase();
@@ -32,8 +37,6 @@ class Word
     static bool isInDatabase(const QString &spelling);
 
   private:
-    Word(QString word, QString definition = "", int id = 0);
-
     bool dbsaveDefinition();
 
   private:
@@ -44,5 +47,8 @@ class Word
     static QMap<QString, sptr<Word>> m_allWords;
     static QMutex m_allWordsMutex;
 };
+
+QDataStream &operator<<(QDataStream &ds, const Word &word);
+QDataStream &operator>>(QDataStream &ds, Word &word);
 
 #endif // WORD_H

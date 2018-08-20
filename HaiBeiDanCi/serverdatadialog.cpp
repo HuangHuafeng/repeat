@@ -127,6 +127,16 @@ void ServerDataDialog::on_pbTest_clicked()
 
     auto bookName = ci->text(0);
     requestGetABook(bookName);
+    requestGetAWord("hello");
+}
+
+void ServerDataDialog::requestGetAWord(QString spelling)
+{
+    connectToServer();
+    if (m_serverAgent != nullptr)
+    {
+        m_serverAgent->sendRequestGetAWord(spelling);
+    }
 }
 
 void ServerDataDialog::requestGetABook(QString bookName)

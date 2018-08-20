@@ -1,14 +1,26 @@
 #ifndef SERVERCLIENTPROTOCOL_H
 #define SERVERCLIENTPROTOCOL_H
 
+#include <QString>
+
+/**
+ * a message between the server and the client should:
+ * 1. be small, so it can be read in easilier, no risk to overflow the socket buffer
+ *
+ * CORRECTION:
+ * it seems size of message is NOT an issue. Although it should be taken care of.
+ * We should be careful/aware that message is NOT always available as a whole, so we
+ * need to wait for more data in case we failed to read the message contents.
+ */
+
 class ServerClientProtocol
 {
 public:
     typedef enum {
         RequestNoOperation = 10000,
         RequestGetAllBooks = RequestNoOperation + 1,
-        RequestGetWordsOfBook = RequestNoOperation + 2,
-        RequestGetWords = RequestNoOperation + 3,
+        RequestGetWordsOfBook = RequestNoOperation + 2,     // should be careful, not too big
+        RequestGetWords = RequestNoOperation + 3,   // no implementation
         RequestGetAWord = RequestNoOperation + 4,
         RequestGetABook = RequestNoOperation + 5,
         RequestBye = RequestNoOperation + 1000,
@@ -17,7 +29,7 @@ public:
     typedef enum {
         ResponseNoOperation = 20000,
         ResponseGetAllBooks = ResponseNoOperation + 1,
-        ResponseGetWordsOfBook = ResponseNoOperation + 2,
+        ResponseGetWordsOfBook = ResponseNoOperation + 2, // Resp:Req is n:1
         ResponseGetWords = ResponseNoOperation + 3,
         ResponseGetAWord = ResponseNoOperation + 4,
         ResponseGetABook = ResponseNoOperation + 5,
@@ -34,6 +46,7 @@ public:
  * GetWordsOfBook: RequestCode + book name
  * GetWord: RequestCode + list of spellings
  * RequestGetAWord: RequestCode + spelling
+ * RequestGetABook: RequestCode + book name
  ****/
 
 /****
@@ -42,7 +55,25 @@ public:
  * GetWordsOfBookResponse: ResponseCode + book name + list of spellings
  * GetWordResponse: ResponseCode + list of Words
  * ResponseFailedToRequest: ResponseCode + RequestCode
- * ResponseGetAWord: ResponseCode + id + spelling + definition
+ * ResponseGetAWord: ResponseCode + (Word serialization)
+ * ResponseGetABook: ResponseCode + (WordBook serialization)
  ****/
+
+class funcTracker
+{
+public:
+    funcTracker(QString funcName) : m_funcName(funcName)
+    {
+        qInfo("funcTracker: entering %s", m_funcName.toLatin1().constData());
+    }
+
+    ~funcTracker()
+    {
+        qInfo("funcTracker: leaving %s", m_funcName.toLatin1().constData());
+    }
+
+private:
+    QString m_funcName;
+};
 
 #endif // SERVERCLIENTPROTOCOL_H

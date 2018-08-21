@@ -15,6 +15,9 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
 
     ServerAgent *serveragent = ServerAgent::instance();
     connect(serveragent, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
+    connect(serveragent, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
+    connect(serveragent, SIGNAL(wordDownloaded(QString)), this, SLOT(onWordDownloaded(QString)));
+    connect(serveragent, SIGNAL(downloadProgress(float)), this, SLOT(onDownloadProgress(float)));
 
     serveragent->getBookList();
 
@@ -71,16 +74,23 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
     qDebug() << "start to download" << bookName;
 
     ServerAgent *serveragent = ServerAgent::instance();
-    connect(serveragent, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
     serveragent->downloadBook(bookName);
 }
 
 void ServerDataDialog::onBookDownloaded(QString bookName)
 {
-    ServerAgent *serveragent = ServerAgent::instance();
-    disconnect(serveragent, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
-
     qDebug() << bookName << "downloaded";
+    // here the data of the book is available in ServerAgent, we should save it to local database
+}
+
+void ServerDataDialog::onWordDownloaded(QString spelling)
+{
+    qDebug() << spelling;
+}
+
+void ServerDataDialog::onDownloadProgress(float percentage)
+{
+    qDebug() << percentage;
 }
 
 void ServerDataDialog::on_pbTest_clicked()

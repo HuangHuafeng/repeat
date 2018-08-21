@@ -2,6 +2,7 @@
 #define SERVERCLIENTPROTOCOL_H
 
 #include <QString>
+#include <QRegExp>
 
 /**
  * a message between the server and the client should:
@@ -16,13 +17,25 @@
 class ServerClientProtocol
 {
 public:
-    static QString partPrefix()
+    static QString partPrefix(int partNumber = -1)
     {
-        return "__PART__";
+        if (partNumber == -1)
+        {
+            return "__PART__";
+        }
+        else
+        {
+            return "__PART__" + QString::number(partNumber) + "__";
+        }
+    }
+
+    static QRegExp partPrefixReplaceRegExp()
+    {
+        return QRegExp("__PART__\\d+__");
     }
 
     typedef enum {
-        MaximumWordsInAMessage = 2000,
+        MaximumWordsInAMessage = 500,
     } MessageParameters;
 
     typedef enum {

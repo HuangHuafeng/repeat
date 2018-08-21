@@ -20,6 +20,8 @@ public:
 private slots:
     void onBookListReady(const QList<QString> books);
     void onBookDownloaded(QString bookName);
+    void onWordDownloaded(QString spelling);
+    void onDownloadProgress(float percentage);
 
     void on_pbDownloadBook_clicked();
 

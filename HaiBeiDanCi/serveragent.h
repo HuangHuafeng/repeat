@@ -26,18 +26,10 @@ public:
     void getBookList();
 
 signals:
-    void responseUnknownRequest();
-    void responseGetAllBooks(QList<QString> books);
-    void responseGetWordsOfBook(QString bookName, QVector<QString> wordList);
-    void disconnected();
-    void responseGetAWord(const Word &word);
-    void responseGetABook(const WordBook &book);
-    void responseAllDataSent(int messageCode);
-    void requestCompleted(int messageCode);
-
-    // the following signals are more useful
-    void bookDownloaded(QString bookName);
     void bookListReady(const QList<QString> books);
+    void bookDownloaded(QString bookName);
+    void wordDownloaded(QString spelling);
+    void downloadProgress(float percentage);
 
 private slots:
     void onConnected();
@@ -45,10 +37,6 @@ private slots:
     void onError(QAbstractSocket::SocketError socketError);
     void onReadyRead();
     void onStateChanged(QAbstractSocket::SocketState socketState);
-
-    void onResponseGetABook(const WordBook &book);
-    void onResponseGetWordsOfBook(QString bookName, QVector<QString> wordList);
-    void onResponseGetAWord(const Word &word);
 
 private:
     explicit ServerAgent(const QString &hostName, quint16 port = 61027, QObject *parent = nullptr);
@@ -58,9 +46,13 @@ private:
     quint16 m_serverPort;
     QTcpSocket *m_tcpSocket;
 
-    QList<QString> m_books;
-    QMap<QString, bool> m_mapBooksStatus;
+    int m_numberOfWordsToDownload;
+    int m_numberOfWordsDownloaded;
+
     QMap<QString, sptr<WordBook>> m_mapBooks;
+    QMap<QString, bool> m_mapBooksStatus;
+    QMap<QString, QVector<QString>> m_mapBooksWordList;
+
     QMap<QString, sptr<Word>> m_mapWords;
 
     int readMessageCode();
@@ -75,7 +67,6 @@ private:
     bool handleResponseAllDataSentForRequestGetWordsOfBook();
     bool handleResponseAllDataSentForRequestGetWords();
 
-
     void connectToServer();
     void sendRequestGetAllBooks();
     void sendRequestGetWordsOfBook(QString bookName);
@@ -83,6 +74,8 @@ private:
     void sendRequestGetABook(QString bookName);
     void sendRequestGetWords(QString bookName, QVector<QString> wordList);
     void sendRequestGetWordsWithSmallMessages(QString bookName, QVector<QString> wordList);
+
+    void requestWords(QString bookName, QVector<QString> wordList);
 };
 
 #endif // SERVERAGENT_H

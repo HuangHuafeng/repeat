@@ -50,7 +50,7 @@ void ServerAgent::onReadyRead()
             if (handleResult == 0)
             {
                 // successfully processed the message
-                qDebug() << "successfully handled message with code" << currentMessage;
+                //qDebug() << "successfully handled message with code" << currentMessage;
                 currentMessage = 0;
             }
             else if (handleResult == 1)
@@ -92,20 +92,11 @@ void ServerAgent::onError(QAbstractSocket::SocketError socketError)
     qDebug() << "onError()" << socketError;
 }
 
-void ServerAgent::onResponseGetABook(const WordBook &book)
+void ServerAgent::requestWords(QString bookName, QVector<QString> wordList)
 {
-    funcTracker ft("onResponseGetABook()");
-    sptr<WordBook> newBook = new WordBook(book);
-    m_mapBooks.insert(book.getName(), newBook);
-}
-
-void ServerAgent::onResponseGetWordsOfBook(QString bookName, QVector<QString> wordList)
-{
-    funcTracker ft("onResponseGetWordsOfBook()");
-    qDebug() << "got words for book" << bookName;
-
+    // get the list of words which are not available locally
+    // should also check the local database too, will be added later
     QVector<QString> wordsToGet;
-    // in this case, we download the definition of the words
     for (int i = 0;i < wordList.size();i ++)
     {
         auto spelling = wordList.at(i);
@@ -118,22 +109,18 @@ void ServerAgent::onResponseGetWordsOfBook(QString bookName, QVector<QString> wo
 
     if (wordsToGet.size() > 0)
     {
+        m_numberOfWordsToDownload = wordsToGet.size();
+        m_numberOfWordsDownloaded = 0;
+        float percentage = 1.0f * m_numberOfWordsDownloaded / m_numberOfWordsToDownload;
+        emit(downloadProgress(percentage));
         sendRequestGetWordsWithSmallMessages(bookName, wordsToGet);
     }
     else
     {
-        // no need to download any words
+        // no need to download any word
         m_mapBooksStatus.insert(bookName, true);
         emit(bookDownloaded(bookName));
-        qDebug() << "downloaded" << bookName;
     }
-}
-
-void ServerAgent::onResponseGetAWord(const Word &word)
-{
-    sptr<Word> newWord = new Word(word);
-    m_mapWords.insert(word.getSpelling(), newWord);
-    qDebug() << m_mapWords.size();
 }
 
 void ServerAgent::onStateChanged(QAbstractSocket::SocketState socketState)
@@ -222,9 +209,6 @@ int ServerAgent::handleMessage(int messageCode)
 
 bool ServerAgent::handleUnknownMessage(int messageCode)
 {
-    // read all following data in the socket
-    //auto abondonData = m_tcpSocket->readAll();
-
     qDebug() << "got unknown message with code" << messageCode;
 
     return true;
@@ -243,8 +227,17 @@ bool ServerAgent::handleResponseGetAllBooks()
         return false;
     }
 
-    m_books = books;
-    emit(bookListReady(m_books));
+    // store the books in this agent
+    for (int i = 0;i < books.size();i ++)
+    {
+        QString bookName = books.at(i);
+        auto book = m_mapBooks.value(bookName);
+        auto downloaded = m_mapBooksStatus.value(bookName);
+        m_mapBooks.insert(bookName, book);
+        m_mapBooksStatus.insert(bookName, downloaded);
+    }
+
+    emit(bookListReady(books));
 
     return true;
 }
@@ -263,7 +256,10 @@ bool ServerAgent::handleResponseGetWordsOfBook()
         return false;
     }
 
-    emit(responseGetWordsOfBook(bookName, wordList));
+    bookName = bookName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
+    auto currentList = m_mapBooksWordList.value(bookName);
+    auto newList = currentList + wordList;
+    m_mapBooksWordList.insert(bookName, newList);
 
     return true;
 }
@@ -281,9 +277,15 @@ bool ServerAgent::handleResponseGetAWord()
         return false;
     }
 
-    emit(responseGetAWord(word));
+    // store the word
+    sptr<Word> newWord = new Word(word);
+    m_mapWords.insert(word.getSpelling(), newWord);
 
-    //qDebug() << word.getId() << word.getSpelling() << word.getDefinition();
+    emit(wordDownloaded(word.getSpelling()));
+
+    m_numberOfWordsDownloaded ++;
+    float percentage = 1.0f * m_numberOfWordsDownloaded / m_numberOfWordsToDownload;
+    emit(downloadProgress(percentage));
 
     return true;
 }
@@ -333,6 +335,10 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetWordsOfBook()
         return false;
     }
 
+    // we've received the words of the book, get the definition of these words
+    auto wordList = m_mapBooksWordList.value(bookName);
+    requestWords(bookName, wordList);
+
     return true;
 }
 
@@ -376,9 +382,9 @@ bool ServerAgent::handleResponseGetABook()
         return false;
     }
 
-    emit(responseGetABook(book));
-
-    qDebug() << book.getId() << book.getName() << book.getIntroduction();
+    sptr<WordBook> newBook = new WordBook(book);
+    m_mapBooks.insert(book.getName(), newBook);
+    //qDebug() << book.getId() << book.getName() << book.getIntroduction();
 
     return true;
 }
@@ -396,7 +402,6 @@ bool ServerAgent::handleResponseUnknownRequest()
         return false;
     }
 
-    emit(responseUnknownRequest());
     qDebug() << "the server responed that failed to handle request with code" << requestCode;
 
     return true;
@@ -422,9 +427,9 @@ void ServerAgent::connectToServer()
     connect(m_tcpSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onStateChanged(QAbstractSocket::SocketState)));
 
 
-    connect(this, SIGNAL(responseGetABook(const WordBook &)), this, SLOT(onResponseGetABook(const WordBook &)));
-    connect(this, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));
-    connect(this, SIGNAL(responseGetAWord(const Word &)), this, SLOT(onResponseGetAWord(const Word &)));
+    //connect(this, SIGNAL(responseGetABook(const WordBook &)), this, SLOT(onResponseGetABook(const WordBook &)));
+    //connect(this, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));
+    //connect(this, SIGNAL(responseGetAWord(const Word &)), this, SLOT(onResponseGetAWord(const Word &)));
     //connect(this, SIGNAL(responseGetAWord(const Word &)), this, SLOT(onResponseGetAWord(const Word &)));
     //connect(this, SIGNAL(responseGetAWord(const Word &)), this, SLOT(onResponseGetAWord(const Word &)));
 
@@ -506,7 +511,7 @@ void ServerAgent::sendRequestGetWordsWithSmallMessages(QString bookName, QVector
     {
         counter ++;
         QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-        const QString partName = ServerClientProtocol::partPrefix() + QString::number(counter) + "__" + bookName;
+        const QString partName = ServerClientProtocol::partPrefix(counter) + bookName;
         sendRequestGetWords(partName, subList);
         pos += ServerClientProtocol::MaximumWordsInAMessage;
     };
@@ -517,6 +522,9 @@ void ServerAgent::sendRequestGetWordsWithSmallMessages(QString bookName, QVector
 
 void ServerAgent::downloadBook(QString bookName)
 {
+    qDebug() << "number of books" << m_mapBooks.size();
+    qDebug() << "number of words" << m_mapWords.size();
+
     bool downloaded = m_mapBooksStatus.value(bookName);
     if (downloaded == true)
     {
@@ -541,7 +549,8 @@ void ServerAgent::downloadBook(QString bookName)
 
 void ServerAgent::getBookList()
 {
-    if (m_books.size() == 0)
+    auto books = m_mapBooksStatus.keys(true);
+    if (books.size() == 0)
     {
         // no book yet, send message to server to get books
         sendRequestGetAllBooks();
@@ -549,6 +558,6 @@ void ServerAgent::getBookList()
     else
     {
         // books are already available
-        emit(bookListReady(m_books));
+        emit(bookListReady(books));
     }
 }

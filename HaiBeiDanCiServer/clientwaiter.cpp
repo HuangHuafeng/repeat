@@ -15,6 +15,8 @@ void ClientWaiter::run()
         return;
     }
 
+    // it's required to create the database connection
+    // as we need to query database to like WordBook::getAllWords()
     WordDB::prepareDatabaseForThisThread();
 
     qDebug() << "run() start";
@@ -394,7 +396,7 @@ void ClientWaiter::sendWordsOfBook(const QString bookName)
     while (pos + ServerClientProtocol::MaximumWordsInAMessage < total)
     {
         counter ++;
-        const QString partName = ServerClientProtocol::partPrefix() + QString::number(counter) + "__" + bookName;
+        const QString partName = ServerClientProtocol::partPrefix(counter) + bookName;
         QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
         sendResponseGetWordsOfBook(partName, subList);
         pos += ServerClientProtocol::MaximumWordsInAMessage;

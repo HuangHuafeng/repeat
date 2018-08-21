@@ -22,6 +22,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
                                           m_bookIntro(nullptr)
 {
     ui->setupUi(this);
+
+    QStringList header;
+    header.append(QObject::tr("Book Name"));
+    ui->twBooks->setHeaderLabels(header);
+
     setMyTitle();
 
     m_bookIntro.setHtml("<html></html>");
@@ -34,11 +39,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     connect(ui->twBooks, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
-    updateAllBooksData();
     connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(onWordStudied(QString)));
 
     loadSetting();
-    listBooks();
+    reloadBooks();
+    updateAllBooksData();
+
+    ServerAgent *serveragent = ServerAgent::instance();
+    connect(serveragent, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
 }
 
 MainWindow::~MainWindow()
@@ -71,11 +79,9 @@ void MainWindow::loadSetting()
     settings.endGroup();
 }
 
-void MainWindow::listBooks()
+void MainWindow::reloadBooks()
 {
-    QStringList header;
-    header.append(QObject::tr("Book Name"));
-    ui->twBooks->setHeaderLabels(header);
+    ui->twBooks->clear();
 
     auto bookList = WordBook::getAllBooks();
 
@@ -121,6 +127,12 @@ void MainWindow::onWordStudied(QString /*spelling*/)
 {
     updateAllBooksData();
     updateCurrentBookData();
+}
+
+void MainWindow::onBookDownloaded(QString /*bookName*/)
+{
+    reloadBooks();
+    updateAllBooksData();
 }
 
 void MainWindow::updateCurrentBookData()

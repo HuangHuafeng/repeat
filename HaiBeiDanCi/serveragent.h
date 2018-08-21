@@ -8,6 +8,7 @@
 #include <QtNetwork>
 #include <QVector>
 #include <QString>
+#include <QTimer>
 
 /**
  * @brief The ServerAgent class
@@ -31,12 +32,19 @@ signals:
     void wordDownloaded(QString spelling);
     void downloadProgress(float percentage);
 
+    // this signal is sent after data related to a book is downloaded from the server
+    // the agent should connect to this signal to save the book as saving a book may time-consuming
+    void bookDataDownloadedFromServer(QString bookName);
+
 private slots:
     void onConnected();
     void onDisconnected();
     void onError(QAbstractSocket::SocketError socketError);
     void onReadyRead();
     void onStateChanged(QAbstractSocket::SocketState socketState);
+
+    void onServerHeartBeat();
+    void onBookDataDownloadedFromServer(QString bookName);
 
 private:
     explicit ServerAgent(const QString &hostName, quint16 port = 61027, QObject *parent = nullptr);
@@ -53,11 +61,13 @@ private:
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
 
+    QTimer m_timerServerHeartBeat;
+
     void completeBookDownload(QString bookName);
-    void saveBookToLocalDatabase(QString bookName);
 
     int readMessageCode();
     int handleMessage(int messageCode);
+    bool handleResponseNoOperation();
     bool handleUnknownMessage(int messageCode);
     bool handleResponseGetAllBooks();
     bool handleResponseGetWordsOfBook();
@@ -69,6 +79,7 @@ private:
     bool handleResponseAllDataSentForRequestGetWords();
 
     void connectToServer();
+    void sendRequestNoOperation();
     void sendRequestGetAllBooks();
     void sendRequestGetWordsOfBook(QString bookName);
     void sendRequestGetAWord(QString spelling);

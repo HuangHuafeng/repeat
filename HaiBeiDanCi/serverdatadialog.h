@@ -4,6 +4,7 @@
 #include "serveragent.h"
 
 #include <QDialog>
+#include <QProgressDialog>
 
 namespace Ui {
 class ServerDataDialog;
@@ -18,17 +19,22 @@ public:
     ~ServerDataDialog();
 
 private slots:
+    void onItemSelectionChanged();
     void onBookListReady(const QList<QString> books);
     void onBookDownloaded(QString bookName);
-    void onWordDownloaded(QString spelling);
     void onDownloadProgress(float percentage);
+    //void onWordDownloaded(QString spelling);
 
     void on_pbDownloadBook_clicked();
 
-    void on_pbTest_clicked();
+    void on_pbClose_clicked();
 
 private:
     Ui::ServerDataDialog *ui;
+
+    QProgressDialog *m_pd;
+
+    void updateBookStatus(QString bookName);
 
 };
 

@@ -31,6 +31,7 @@ private:
     int readMessageCode();
     int handleMessage(int messageCode);
 
+    bool handleRequestNoOperation();
     bool handleRequestGetAllBooks();
     bool handleRequestGetWordsOfBook();
     bool handleRequestGetWords();
@@ -40,6 +41,7 @@ private:
     void sendWordsOfBook(const QString bookName);
 
     // the following functions all send ONE message
+    void sendResponseNoOperation();
     void sendResponseGetAllBooks(const QList<QString> &books);
     void sendResponseGetAWord(const Word &word);
     void sendResponseGetABook(const WordBook &book);

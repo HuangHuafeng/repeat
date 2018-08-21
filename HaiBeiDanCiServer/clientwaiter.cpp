@@ -43,7 +43,7 @@ void ClientWaiter::run()
             if (handleResult == 0)
             {
                 // successfully processed the message
-                qDebug() << "successfully handled message with code" << currentMessage;
+                qDebug() << "successfully handled message with code" << currentMessage << endl;
                 currentMessage = 0;
                 continue;
             }
@@ -119,8 +119,6 @@ void ClientWaiter::sendResponseUnknownRequest(int messageCode)
 
 int ClientWaiter::readMessageCode()
 {
-    funcTracker ft("readMessageCode()");
-
     if (m_tcpSocket == nullptr)
     {
         return 0;
@@ -137,7 +135,7 @@ int ClientWaiter::readMessageCode()
     else
     {
         // in this case, the transaction is restored by commitTransaction()
-        qInfo("failed to read message code in readMessageCode(), probably no data from peer");
+        //qInfo("failed to read message code in readMessageCode(), probably no data from peer");
         return 0;
     }
 }
@@ -153,8 +151,11 @@ int ClientWaiter::handleMessage(int messageCode)
     bool unknowMessage = false;
     switch (messageCode) {
     case ServerClientProtocol::RequestBye:
-    case ServerClientProtocol::RequestNoOperation:
         handleResult = true;
+        break;
+
+    case ServerClientProtocol::RequestNoOperation:
+        handleResult = handleRequestNoOperation();
         break;
 
     case ServerClientProtocol::RequestGetAllBooks:
@@ -204,6 +205,13 @@ int ClientWaiter::handleMessage(int messageCode)
     return retVal;
 }
 
+bool ClientWaiter::handleRequestNoOperation()
+{
+    qDebug() << "Heartbeat received from the client";
+    sendResponseNoOperation();
+    return true;
+}
+
 bool ClientWaiter::handleRequestGetAllBooks()
 {
     funcTracker ft("handleRequestGetAllBooks()");
@@ -211,6 +219,16 @@ bool ClientWaiter::handleRequestGetAllBooks()
     auto books = WordBook::getAllBooks();
     sendResponseGetAllBooks(books);
     return true;
+}
+
+void ClientWaiter::sendResponseNoOperation()
+{
+    int responseCode = ServerClientProtocol::ResponseNoOperation;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseCode;
+    m_tcpSocket->write(block);
 }
 
 void ClientWaiter::sendResponseGetAllBooks(const QList<QString> &books)

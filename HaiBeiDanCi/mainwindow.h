@@ -29,6 +29,7 @@ class MainWindow : public QMainWindow
   private slots:
     void onItemSelectionChanged();
     void onWordStudied(QString spelling);
+    void onBookDownloaded(QString /*bookName*/);
 
     void on_pushBrowseExpiredWords_clicked();
 
@@ -75,7 +76,7 @@ private:
     IntroductionView m_bookIntro;
     QFutureWatcher<bool> m_loadAllCardsWatcher;
 
-    void listBooks();
+    void reloadBooks();
     void addBookToTheView(WordBook &book);
     void startStudy(sptr<StudyList> studyList);
     void startBrowse(sptr<StudyList> studyList);

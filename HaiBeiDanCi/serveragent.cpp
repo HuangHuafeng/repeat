@@ -6,8 +6,11 @@ ServerAgent * ServerAgent::m_serveragent = nullptr;
 ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent) : QObject(parent),
     m_serverHostName(hostName),
     m_serverPort(port),
-    m_tcpSocket(nullptr)
+    m_tcpSocket(nullptr),
+    m_timerServerHeartBeat(this)
 {
+    connect(&m_timerServerHeartBeat, SIGNAL(timeout()), this, SLOT(onServerHeartBeat()));
+    m_timerServerHeartBeat.start(10 * 1000);
 }
 
 ServerAgent::~ServerAgent()
@@ -108,18 +111,19 @@ void ServerAgent::requestWords(QString bookName, QVector<QString> wordList)
         wordsToGet.append(spelling);
     }
 
+    m_numberOfWordsToDownload = wordList.size() + wordsToGet.size();
+    m_numberOfWordsDownloaded = 0;
+    float percentage = 1.0f * m_numberOfWordsDownloaded / m_numberOfWordsToDownload;
+    emit(downloadProgress(percentage));
+
     if (wordsToGet.size() > 0)
     {
-        m_numberOfWordsToDownload = wordsToGet.size() + 1;  // plus one for saving the book
-        m_numberOfWordsDownloaded = 0;
-        float percentage = 1.0f * m_numberOfWordsDownloaded / m_numberOfWordsToDownload;
-        emit(downloadProgress(percentage));
         sendRequestGetWordsWithSmallMessages(bookName, wordsToGet);
     }
     else
     {
         // no need to download any word, download of the book completes here
-        completeBookDownload(bookName);
+        emit(bookDataDownloadedFromServer(bookName));
     }
 }
 
@@ -141,9 +145,19 @@ int ServerAgent::readMessageCode()
     else
     {
         // in this case, the transaction is restored by commitTransaction()
-        qInfo("failed to read message code in readMessageCode(), probably no data from peer");
+        //qInfo("failed to read message code in readMessageCode(), probably no data from peer");
         return 0;
     }
+}
+
+void ServerAgent::onServerHeartBeat()
+{
+    sendRequestNoOperation();
+}
+
+void ServerAgent::onBookDataDownloadedFromServer(QString bookName)
+{
+    completeBookDownload(bookName);
 }
 
 int ServerAgent::handleMessage(int messageCode)
@@ -156,6 +170,9 @@ int ServerAgent::handleMessage(int messageCode)
     bool handleResult = false;
     bool unknowMessage = false;
     switch (messageCode) {
+    case ServerClientProtocol::ResponseNoOperation:
+        handleResult = handleResponseNoOperation();
+        break;
     case ServerClientProtocol::ResponseUnknownRequest:
         handleResult = handleResponseUnknownRequest();
         break;
@@ -205,6 +222,13 @@ int ServerAgent::handleMessage(int messageCode)
     }
 
     return retVal;
+}
+
+bool ServerAgent::handleResponseNoOperation()
+{
+    qDebug() << "Heartbeat response received from the server";
+
+    return true;
 }
 
 bool ServerAgent::handleUnknownMessage(int messageCode)
@@ -333,7 +357,7 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetWordsOfBook()
     return true;
 }
 
-void ServerAgent::saveBookToLocalDatabase(QString bookName)
+void ServerAgent::completeBookDownload(QString bookName)
 {
     auto book = m_mapBooks.value(bookName);
     if (book.get() == nullptr)
@@ -342,15 +366,16 @@ void ServerAgent::saveBookToLocalDatabase(QString bookName)
         return;
     }
 
+    WordBook::storeBookFromServer(book);
     auto wordList = m_mapBooksWordList.value(bookName);
-    // storeBookFromServer() could be time comsuming! What can we do? A new thread?
-    WordBook::storeBookFromServer(book, wordList);
-}
+    auto storedBook = WordBook::getBook(bookName);
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        storedBook->addWord(wordList.at(i));
+        m_numberOfWordsDownloaded ++;
+        emit(downloadProgress(1.0f * m_numberOfWordsDownloaded / m_numberOfWordsToDownload));
+    }
 
-void ServerAgent::completeBookDownload(QString bookName)
-{
-    saveBookToLocalDatabase(bookName);
-    emit(downloadProgress(1.0f));
     emit(bookDownloaded(bookName));
 
     m_numberOfWordsDownloaded = 0;
@@ -372,7 +397,7 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetWords()
 
     if (bookName.startsWith(ServerClientProtocol::partPrefix()) == false)
     {
-        completeBookDownload(bookName);
+        emit(bookDataDownloadedFromServer(bookName));
     }
     else
     {
@@ -440,6 +465,7 @@ void ServerAgent::connectToServer()
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onError(QAbstractSocket::SocketError)));
     connect(m_tcpSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onStateChanged(QAbstractSocket::SocketState)));
 
+    connect(this, SIGNAL(bookDataDownloadedFromServer(QString)), this, SLOT(onBookDataDownloadedFromServer(QString)), Qt::ConnectionType::QueuedConnection);
 
     //connect(this, SIGNAL(responseGetABook(const WordBook &)), this, SLOT(onResponseGetABook(const WordBook &)));
     //connect(this, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));
@@ -454,6 +480,17 @@ void ServerAgent::connectToServer()
     {
         qDebug() << "waitForConnected() failed" << m_tcpSocket->error();
     }
+}
+
+void ServerAgent::sendRequestNoOperation()
+{
+    connectToServer();
+    int messageCode = ServerClientProtocol::RequestNoOperation;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << messageCode;
+    m_tcpSocket->write(block);
 }
 
 void ServerAgent::sendRequestGetAllBooks()

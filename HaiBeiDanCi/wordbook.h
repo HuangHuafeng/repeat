@@ -42,6 +42,8 @@ class WordBook
     static bool isInDatabase(const QString &name);
     static QVector<QString> getWordsInBook(QString bookName);
 
+    static void storeBookFromServer(sptr<WordBook> book, const QVector<QString> &wordList);
+
   private:
     QString m_name;
     QString m_introduction;

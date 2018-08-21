@@ -95,21 +95,22 @@ void ServerAgent::onError(QAbstractSocket::SocketError socketError)
 void ServerAgent::requestWords(QString bookName, QVector<QString> wordList)
 {
     // get the list of words which are not available locally
-    // should also check the local database too, will be added later
     QVector<QString> wordsToGet;
     for (int i = 0;i < wordList.size();i ++)
     {
         auto spelling = wordList.at(i);
-        auto word = m_mapWords.value(spelling);
-        if (word.get() == nullptr)
+
+        if (Word::getWord(spelling).get() != nullptr)
         {
-            wordsToGet.append(spelling);
+            // the word exists in local database
+            continue;
         }
+        wordsToGet.append(spelling);
     }
 
     if (wordsToGet.size() > 0)
     {
-        m_numberOfWordsToDownload = wordsToGet.size();
+        m_numberOfWordsToDownload = wordsToGet.size() + 1;  // plus one for saving the book
         m_numberOfWordsDownloaded = 0;
         float percentage = 1.0f * m_numberOfWordsDownloaded / m_numberOfWordsToDownload;
         emit(downloadProgress(percentage));
@@ -117,9 +118,8 @@ void ServerAgent::requestWords(QString bookName, QVector<QString> wordList)
     }
     else
     {
-        // no need to download any word
-        m_mapBooksStatus.insert(bookName, true);
-        emit(bookDownloaded(bookName));
+        // no need to download any word, download of the book completes here
+        completeBookDownload(bookName);
     }
 }
 
@@ -227,16 +227,7 @@ bool ServerAgent::handleResponseGetAllBooks()
         return false;
     }
 
-    // store the books in this agent
-    for (int i = 0;i < books.size();i ++)
-    {
-        QString bookName = books.at(i);
-        auto book = m_mapBooks.value(bookName);
-        auto downloaded = m_mapBooksStatus.value(bookName);
-        m_mapBooks.insert(bookName, book);
-        m_mapBooksStatus.insert(bookName, downloaded);
-    }
-
+    m_booksInServer = books;
     emit(bookListReady(books));
 
     return true;
@@ -279,7 +270,7 @@ bool ServerAgent::handleResponseGetAWord()
 
     // store the word
     sptr<Word> newWord = new Word(word);
-    m_mapWords.insert(word.getSpelling(), newWord);
+    Word::storeWordFromServer(newWord);
 
     emit(wordDownloaded(word.getSpelling()));
 
@@ -342,6 +333,30 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetWordsOfBook()
     return true;
 }
 
+void ServerAgent::saveBookToLocalDatabase(QString bookName)
+{
+    auto book = m_mapBooks.value(bookName);
+    if (book.get() == nullptr)
+    {
+        // the book does NOT exist in m_mapBooks?! it should NOT be the case!
+        return;
+    }
+
+    auto wordList = m_mapBooksWordList.value(bookName);
+    // storeBookFromServer() could be time comsuming! What can we do? A new thread?
+    WordBook::storeBookFromServer(book, wordList);
+}
+
+void ServerAgent::completeBookDownload(QString bookName)
+{
+    saveBookToLocalDatabase(bookName);
+    emit(downloadProgress(1.0f));
+    emit(bookDownloaded(bookName));
+
+    m_numberOfWordsDownloaded = 0;
+    m_numberOfWordsToDownload = 0;
+}
+
 bool ServerAgent::handleResponseAllDataSentForRequestGetWords()
 {
     QDataStream in(m_tcpSocket);
@@ -357,9 +372,7 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetWords()
 
     if (bookName.startsWith(ServerClientProtocol::partPrefix()) == false)
     {
-        m_mapBooksStatus.insert(bookName, true);
-        emit(bookDownloaded(bookName));
-        qDebug() << "downloaded" << bookName;
+        completeBookDownload(bookName);
     }
     else
     {
@@ -382,6 +395,7 @@ bool ServerAgent::handleResponseGetABook()
         return false;
     }
 
+    // store the book temporary in m_mapBooks, it will be saved to local database in completeBookDownload()
     sptr<WordBook> newBook = new WordBook(book);
     m_mapBooks.insert(book.getName(), newBook);
     //qDebug() << book.getId() << book.getName() << book.getIntroduction();
@@ -522,26 +536,13 @@ void ServerAgent::sendRequestGetWordsWithSmallMessages(QString bookName, QVector
 
 void ServerAgent::downloadBook(QString bookName)
 {
-    qDebug() << "number of books" << m_mapBooks.size();
-    qDebug() << "number of words" << m_mapWords.size();
-
-    bool downloaded = m_mapBooksStatus.value(bookName);
-    if (downloaded == true)
+    if (WordBook::getBook(bookName).get() != nullptr)
     {
-        sptr<WordBook> book = m_mapBooks.value(bookName);
-        if (book.get() != nullptr)
-        {
-            emit(bookDownloaded(bookName));
-            qDebug() << "downloaded" << bookName;
-        }
-        else
-        {
-            qDebug() << "The code should NOT run to this line!";
-        }
+        // the book exists locally, nothing to do
+        return;
     }
     else
     {
-        // it's OK even if the book is already in downloading!
         sendRequestGetABook(bookName);
         sendRequestGetWordsOfBook(bookName);
     }
@@ -549,8 +550,7 @@ void ServerAgent::downloadBook(QString bookName)
 
 void ServerAgent::getBookList()
 {
-    auto books = m_mapBooksStatus.keys(true);
-    if (books.size() == 0)
+    if (m_booksInServer.size() == 0)
     {
         // no book yet, send message to server to get books
         sendRequestGetAllBooks();
@@ -558,6 +558,6 @@ void ServerAgent::getBookList()
     else
     {
         // books are already available
-        emit(bookListReady(books));
+        emit(bookListReady(m_booksInServer));
     }
 }

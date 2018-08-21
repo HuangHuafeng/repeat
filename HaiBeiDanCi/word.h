@@ -28,6 +28,8 @@ class Word
     const QString &getDefinition() const;
     QString getDefinitionDIV() const;
 
+    bool dbsave();
+
     static bool createDatabaseTables();
     static void readAllWordsFromDatabase();
 
@@ -35,9 +37,10 @@ class Word
     static sptr<Word> getWord(const QString &spelling, bool create = false);
     static int getWordId(const QString &spelling);
     static bool isInDatabase(const QString &spelling);
+    static void storeWordFromServer(sptr<Word> word);
 
   private:
-    bool dbsaveDefinition();
+    //bool dbsaveDefinition();
 
   private:
     QString m_spelling;

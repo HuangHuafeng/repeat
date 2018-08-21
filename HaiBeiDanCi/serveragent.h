@@ -49,11 +49,12 @@ private:
     int m_numberOfWordsToDownload;
     int m_numberOfWordsDownloaded;
 
+    QList<QString> m_booksInServer;
     QMap<QString, sptr<WordBook>> m_mapBooks;
-    QMap<QString, bool> m_mapBooksStatus;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
 
-    QMap<QString, sptr<Word>> m_mapWords;
+    void completeBookDownload(QString bookName);
+    void saveBookToLocalDatabase(QString bookName);
 
     int readMessageCode();
     int handleMessage(int messageCode);

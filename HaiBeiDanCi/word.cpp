@@ -13,6 +13,52 @@ Word::Word(QString word, QString definition, int id) : m_spelling(word),
 {
 }
 
+bool Word::dbsave()
+{
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
+    if (Word::isInDatabase(m_spelling) == true)
+    {
+        // the word is already in database, update
+        query.prepare("UPDATE words SET definition=:definition WHERE word=:word");
+    }
+    else
+    {
+        // insert
+        if (m_id == 0)
+        {
+            // no id yet, let the database decide the id
+            query.prepare("INSERT INTO words(word, definition) VALUES(:word, :definition)");
+        }
+        else
+        {
+            // already have an id, keep it as the word may downloaded from the server
+            query.prepare("INSERT INTO words(id, word, definition) VALUES(:id, :word, :definition)");
+            query.bindValue(":id", m_id);
+        }
+    }
+    query.bindValue(":word", m_spelling);
+    query.bindValue(":definition", m_definition);
+    if (query.exec() == false)
+    {
+        WordDB::databaseError(query, "saving word \"" + m_spelling + "\"");
+        return false;
+    }
+
+    if (m_id == 0)
+    {
+        // update the id
+        m_id = query.lastInsertId().toInt();
+    }
+
+    return true;
+}
+
+/*
 bool Word::dbsaveDefinition()
 {
     auto ptrQuery = WordDB::createSqlQuery();
@@ -47,6 +93,7 @@ bool Word::dbsaveDefinition()
 
     return true;
 }
+*/
 
 void Word::setId(int id)
 {
@@ -128,6 +175,31 @@ int Word::getWordId(const QString &spelling)
 bool Word::isInDatabase(const QString &spelling)
 {
     return Word::getWordId(spelling) != 0;
+}
+
+// static
+void Word::storeWordFromServer(sptr<Word> word)
+{
+    if (word.get() == nullptr)
+    {
+        return;
+    }
+
+    if (Word::getWord(word->getSpelling()).get() != nullptr)
+    {
+        return;
+    }
+
+    if (Word::isInDatabase(word->getSpelling()) == true)
+    {
+        // WON'T reach here as "Word::getWord(word->getSpelling()).get() != nullptr" already resturns
+        return;
+    }
+
+    word->dbsave();
+    m_allWordsMutex.lock();
+    m_allWords.insert(word->getSpelling(), word);
+    m_allWordsMutex.unlock();
 }
 
 // static

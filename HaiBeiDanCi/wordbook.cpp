@@ -49,6 +49,54 @@ bool WordBook::dbsave()
         return false;
     }
     auto query = *ptrQuery;
+
+    if (WordBook::isInDatabase(m_name) == true)
+    {
+        // update
+        query.prepare("UPDATE wordbooks SET introduction=:introduction WHERE id=:id AND name=:name");
+        query.bindValue(":id", m_id);
+    }
+    else
+    {
+        // insert
+        if (m_id != 0)
+        {
+            // a book from server
+            query.prepare("INSERT INTO wordbooks(id, name, introduction) VALUES(:id, :name, :introduction)");
+            query.bindValue(":id", m_id);
+        }
+        else
+        {
+            // insert
+            query.prepare("INSERT INTO wordbooks(name, introduction) VALUES(:name, :introduction)");
+        }
+    }
+    query.bindValue(":name", m_name);
+    query.bindValue(":introduction", m_introduction);
+    if (query.exec() == false)
+    {
+        WordDB::databaseError(query, "saving book \"" + m_name + "\"");
+        return false;
+    }
+
+    if (m_id == 0)
+    {
+        // update the id
+        m_id = query.lastInsertId().toInt();
+    }
+
+    return true;
+}
+
+/*
+bool WordBook::dbsave()
+{
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+    auto query = *ptrQuery;
     if (m_id != 0)
     {
         // update
@@ -81,6 +129,7 @@ bool WordBook::dbsave()
 
     return true;
 }
+*/
 
 QVector<QString> WordBook::getAllWords(int number)
 {
@@ -384,6 +433,27 @@ QVector<QString> WordBook::getWordsInBook(QString bookName)
     }
 
     return wordList;
+}
+
+// static
+void WordBook::storeBookFromServer(sptr<WordBook> book, const QVector<QString> &wordList)
+{
+    if (book.get() == nullptr)
+    {
+        return;
+    }
+
+    if (WordBook::getBook(book->getName()) != nullptr)
+    {
+        // the book already exists in local database!
+        return;
+    }
+
+    book->dbsave();
+    book->dbsaveAddWords(wordList);
+    m_allBooksMutex.lock();
+    m_allBooks.insert(book->getName(), book);
+    m_allBooksMutex.unlock();
 }
 
 // static

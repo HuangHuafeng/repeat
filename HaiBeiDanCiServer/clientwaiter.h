@@ -37,8 +37,10 @@ private:
     bool handleRequestGetWords();
     bool handleRequestGetAWord();
     bool handleRequestGetABook();
+    bool handleRequestGetFile();
 
     void sendWordsOfBook(const QString bookName);
+    void sendFile(const QString fileName);
 
     // the following functions all send ONE message
     void sendResponseNoOperation();
@@ -49,7 +51,9 @@ private:
     void sendResponseAllDataSent(int messageCode);
     void sendResponseAllDataSentForRequestGetWordsOfBook(const QString bookName);
     void sendResponseAllDataSentForRequestGetWords(const QString bookName);
+    void sendResponseAllDataSentForRequestGetFile(const QString fileName, bool errorHappened);
     void sendResponseUnknownRequest(int messageCode);
+    void sendResponseGetFile(const QString fileName, const char *s, uint len);
 
 };
 

@@ -1,4 +1,5 @@
 #include "clientwaiter.h"
+#include "../HaiBeiDanCi/mysettings.h"
 
 #include <QtNetwork>
 
@@ -178,6 +179,10 @@ int ClientWaiter::handleMessage(int messageCode)
         handleResult = handleRequestGetABook();
         break;
 
+    case ServerClientProtocol::RequestGetFile:
+        handleResult = handleRequestGetFile();
+        break;
+
     default:
         qDebug() << "got unknown message with code" << messageCode << "in handleMessage()";
         unknowMessage = true;
@@ -330,6 +335,17 @@ void ClientWaiter::sendResponseAllDataSentForRequestGetWordsOfBook(const QString
     m_tcpSocket->write(block);
 }
 
+void ClientWaiter::sendResponseAllDataSentForRequestGetFile(const QString fileName, bool errorHappened)
+{
+    int responseCode = ServerClientProtocol::ResponseAllDataSent;
+    int messageCode = ServerClientProtocol::RequestGetFile;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseCode << messageCode << fileName << errorHappened;
+    m_tcpSocket->write(block);
+}
+
 void ClientWaiter::sendResponseAllDataSentForRequestGetWords(const QString bookName)
 {
     int responseCode = ServerClientProtocol::ResponseAllDataSent;
@@ -364,6 +380,27 @@ bool ClientWaiter::handleRequestGetABook()
     }
 
     sendResponseGetABook(*book);
+
+    return true;
+}
+
+bool ClientWaiter::handleRequestGetFile()
+{
+    funcTracker ft("handleRequestGetFile()");
+
+    // read the name of the book
+    QDataStream in(m_tcpSocket);
+    QString fileName;
+    in.startTransaction();
+    in >> fileName;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to get book name in handleRequestGetFile()";
+        return false;
+    }
+
+    sendFile(fileName);
 
     return true;
 }
@@ -424,6 +461,59 @@ void ClientWaiter::sendWordsOfBook(const QString bookName)
     sendResponseGetWordsOfBook(bookName, leftWords);
 
     sendResponseAllDataSentForRequestGetWordsOfBook(bookName);
+}
+
+void ClientWaiter::sendFile(const QString fileName)
+{
+    //
+    QString localFile = MySettings::dataDirectory() + "/" + fileName;
+    qDebug() << "send file" << localFile;
+
+    QFile toSend(localFile);
+    if (toSend.open(QIODevice::ReadOnly | QIODevice::ExistingOnly) == false)
+    {
+        return;
+    }
+
+    const int fileSize = static_cast<int>(toSend.size());
+    int sentBytes = 0;
+    int counter = 0;
+    bool errorHappened = false;
+    QDataStream fileDS(&toSend);
+    while (sentBytes < fileSize)
+    {
+        char buf[ServerClientProtocol::MaximumBytesForFileTransfer + 1] = {0};
+        auto readBytes = fileDS.readRawData(buf, ServerClientProtocol::MaximumBytesForFileTransfer);
+        if (readBytes == -1)
+        {
+            errorHappened = true;
+            break;
+        }
+
+        counter ++;
+        const QString partName = ServerClientProtocol::partPrefix(counter) + fileName;
+        sendResponseGetFile(partName, buf, static_cast<uint>(readBytes));
+        sentBytes += readBytes;
+        qDebug() << "send" << readBytes << "bytes of total" << fileSize;
+    }
+
+    sendResponseAllDataSentForRequestGetFile(fileName, errorHappened);
+
+    if (errorHappened == true)
+    {
+        qDebug() << "error happend when sending file" << fileName;
+    }
+}
+
+void ClientWaiter::sendResponseGetFile(const QString fileName, const char *s, uint len)
+{
+    int responseCode = ServerClientProtocol::ResponseGetFile;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseCode << fileName;
+    out.writeBytes(s, len);
+    m_tcpSocket->write(block);
 }
 
 void ClientWaiter::sendResponseGetWordsOfBook(const QString bookName, const QVector<QString> &wordList)

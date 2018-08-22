@@ -1,5 +1,6 @@
 #include "serveragent.h"
 #include "serverclientprotocol.h"
+#include "mysettings.h"
 
 ServerAgent * ServerAgent::m_serveragent = nullptr;
 
@@ -113,8 +114,7 @@ void ServerAgent::requestWords(QString bookName, QVector<QString> wordList)
 
     m_numberOfWordsToDownload = wordList.size() + wordsToGet.size();
     m_numberOfWordsDownloaded = 0;
-    float percentage = 1.0f * m_numberOfWordsDownloaded / m_numberOfWordsToDownload;
-    emit(downloadProgress(percentage));
+    emit(downloadProgress(0.0f));
 
     if (wordsToGet.size() > 0)
     {
@@ -123,7 +123,7 @@ void ServerAgent::requestWords(QString bookName, QVector<QString> wordList)
     else
     {
         // no need to download any word, download of the book completes here
-        emit(bookDataDownloadedFromServer(bookName));
+        emit(internalBookDataDownloaded(bookName));
     }
 }
 
@@ -155,9 +155,24 @@ void ServerAgent::onServerHeartBeat()
     sendRequestNoOperation();
 }
 
-void ServerAgent::onBookDataDownloadedFromServer(QString bookName)
+void ServerAgent::onInternalBookDataDownloaded(QString bookName)
 {
     completeBookDownload(bookName);
+}
+
+void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool errorHappened)
+{
+    bool error = errorHappened;
+
+    if (errorHappened == false)
+    {
+        error = saveFileFromServer(fileName);
+    }
+
+    if (error == false)
+    {
+        emit(fileDownloaded(fileName));
+    }
 }
 
 int ServerAgent::handleMessage(int messageCode)
@@ -195,6 +210,10 @@ int ServerAgent::handleMessage(int messageCode)
 
     case ServerClientProtocol::ResponseAllDataSent:
         handleResult = handleResponseAllDataSent();
+        break;
+
+    case ServerClientProtocol::ResponseGetFile:
+        handleResult = handleResponseGetFile();
         break;
 
     default:
@@ -328,6 +347,10 @@ bool ServerAgent::handleResponseAllDataSent()
         handleResult = handleResponseAllDataSentForRequestGetWords();
         break;
 
+    case ServerClientProtocol::RequestGetFile:
+        handleResult = handleResponseAllDataSentForRequestGetFile();
+        break;
+
     default:
         qDebug() << "unhandled message code" << messageCode << "in handleResponseAllDataSent()";
         handleResult = false;
@@ -382,6 +405,26 @@ void ServerAgent::completeBookDownload(QString bookName)
     m_numberOfWordsToDownload = 0;
 }
 
+bool ServerAgent::saveFileFromServer(QString fileName)
+{
+    QString localFile = MySettings::dataDirectory() + "/" + fileName;
+    QFile toSave(localFile);
+
+    QString folder = localFile.section('/', 0, -2);
+    QDir::current().mkpath(folder);
+
+    if (toSave.open(QIODevice::WriteOnly) == false)
+    {
+        qInfo("Could not open %s for writing: %s", localFile.toUtf8().constData(), toSave.errorString().toUtf8().constData());
+        return false;
+    }
+
+    QByteArray content = m_mapFileContent.value(fileName);
+    toSave.write(content.constData(), content.size());
+
+    return true;
+}
+
 bool ServerAgent::handleResponseAllDataSentForRequestGetWords()
 {
     QDataStream in(m_tcpSocket);
@@ -397,11 +440,37 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetWords()
 
     if (bookName.startsWith(ServerClientProtocol::partPrefix()) == false)
     {
-        emit(bookDataDownloadedFromServer(bookName));
+        emit(internalBookDataDownloaded(bookName));
     }
     else
     {
         qDebug() << "received part" << bookName;
+    }
+
+    return true;
+}
+
+bool ServerAgent::handleResponseAllDataSentForRequestGetFile()
+{
+    QDataStream in(m_tcpSocket);
+    QString fileName;
+    bool errorHappened;
+    in.startTransaction();
+    in >> fileName >> errorHappened;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read books in handleResponseAllDataSentForRequestGetFile()";
+        return false;
+    }
+
+    if (fileName.startsWith(ServerClientProtocol::partPrefix()) == false)
+    {
+        emit(internalFileDataDownloaded(fileName, errorHappened));
+    }
+    else
+    {
+        qDebug() << "received part" << fileName;
     }
 
     return true;
@@ -416,7 +485,7 @@ bool ServerAgent::handleResponseGetABook()
     if (in.commitTransaction() == false)
     {
         // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read words of the book in handleResponseGetWordsOfBook()";
+        qDebug() << "failed to read words of the book in handleResponseGetABook()";
         return false;
     }
 
@@ -424,6 +493,30 @@ bool ServerAgent::handleResponseGetABook()
     sptr<WordBook> newBook = new WordBook(book);
     m_mapBooks.insert(book.getName(), newBook);
     //qDebug() << book.getId() << book.getName() << book.getIntroduction();
+
+    return true;
+}
+
+bool ServerAgent::handleResponseGetFile()
+{
+    QString fileName;
+    char *data;
+    uint len;
+    QDataStream in(m_tcpSocket);
+    in.startTransaction();
+    in >> fileName;
+    in.readBytes(data, len);
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read words of the book in handleResponseGetFile()";
+        return false;
+    }
+
+    fileName = fileName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
+    auto currentContent = m_mapFileContent.value(fileName);
+    auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
+    m_mapFileContent.insert(fileName, newContent);
 
     return true;
 }
@@ -465,7 +558,8 @@ void ServerAgent::connectToServer()
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onError(QAbstractSocket::SocketError)));
     connect(m_tcpSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onStateChanged(QAbstractSocket::SocketState)));
 
-    connect(this, SIGNAL(bookDataDownloadedFromServer(QString)), this, SLOT(onBookDataDownloadedFromServer(QString)), Qt::ConnectionType::QueuedConnection);
+    connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)), Qt::ConnectionType::QueuedConnection);
+    connect(this, SIGNAL(internalFileDataDownloaded(QString, bool)), this, SLOT(onInternalFileDataDownloaded(QString, bool)), Qt::ConnectionType::QueuedConnection);
 
     //connect(this, SIGNAL(responseGetABook(const WordBook &)), this, SLOT(onResponseGetABook(const WordBook &)));
     //connect(this, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));
@@ -571,6 +665,17 @@ void ServerAgent::sendRequestGetWordsWithSmallMessages(QString bookName, QVector
     sendRequestGetWords(bookName, leftWords);
 }
 
+void ServerAgent::sendRequestGetFile(QString fileName)
+{
+    connectToServer();
+    int messageCode = ServerClientProtocol::RequestGetFile;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << messageCode << fileName;
+    m_tcpSocket->write(block);
+}
+
 void ServerAgent::downloadBook(QString bookName)
 {
     if (WordBook::getBook(bookName).get() != nullptr)
@@ -583,6 +688,11 @@ void ServerAgent::downloadBook(QString bookName)
         sendRequestGetABook(bookName);
         sendRequestGetWordsOfBook(bookName);
     }
+}
+
+void ServerAgent::downloadFile(QString fileName)
+{
+    sendRequestGetFile(fileName);
 }
 
 void ServerAgent::getBookList()

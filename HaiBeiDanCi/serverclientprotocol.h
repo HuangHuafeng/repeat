@@ -36,6 +36,7 @@ public:
 
     typedef enum {
         MaximumWordsInAMessage = 500,
+        MaximumBytesForFileTransfer = 1024 * 1,    // 50k
     } MessageParameters;
 
     typedef enum {
@@ -45,6 +46,7 @@ public:
         RequestGetWords = RequestNoOperation + 3,
         RequestGetAWord = RequestNoOperation + 4,
         RequestGetABook = RequestNoOperation + 5,
+        RequestGetFile = RequestNoOperation + 6,
         RequestBye = RequestNoOperation + 1000,
     } RequestCode;
 
@@ -55,6 +57,7 @@ public:
         ResponseGetWords = ResponseNoOperation + 3,
         ResponseGetAWord = ResponseNoOperation + 4,
         ResponseGetABook = ResponseNoOperation + 5,
+        ResponseGetFile = ResponseNoOperation + 6,
         ResponseFailedToRequest = ResponseNoOperation + 1000,
         ResponseUnknownRequest = ResponseNoOperation + 1001,
         ResponseAllDataSent = ResponseNoOperation + 1002,

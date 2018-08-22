@@ -671,6 +671,7 @@
      <string>Server</string>
     </property>
     <addaction name="actionBooks"/>
+    <addaction name="actionFiles"/>
    </widget>
    <addaction name="menu_Help"/>
    <addaction name="menuData"/>
@@ -703,6 +704,11 @@
   <action name="actionBooks">
    <property name="text">
     <string>Books</string>
+   </property>
+  </action>
+  <action name="actionFiles">
+   <property name="text">
+    <string>Files</string>
    </property>
   </action>
  </widget>

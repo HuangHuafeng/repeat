@@ -451,7 +451,13 @@ void MainWindow::on_actionBooks_triggered()
 {
     ServerDataDialog sdd(this);
     sdd.exec();
+}
 
-    //TestDialog td(this);
-    //td.exec();
+void MainWindow::on_actionFiles_triggered()
+{
+    ServerAgent *serveragent = ServerAgent::instance();
+    serveragent->downloadFile("media/LDOCE6.css");
+    serveragent->downloadFile("media/img/spkr_b.png");
+    serveragent->downloadFile("media/img/spkr_g.png");
+    serveragent->downloadFile("media/img/spkr_r.png");
 }

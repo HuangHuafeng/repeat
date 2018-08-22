@@ -23,18 +23,21 @@ public:
 
     static ServerAgent * instance();
 
-    void downloadBook(QString bookName);
     void getBookList();
+    void downloadBook(QString bookName);
+    void downloadFile(QString fileName);
 
 signals:
     void bookListReady(const QList<QString> books);
     void bookDownloaded(QString bookName);
     void wordDownloaded(QString spelling);
     void downloadProgress(float percentage);
+    void fileDownloaded(QString fileName);
 
     // this signal is sent after data related to a book is downloaded from the server
     // the agent should connect to this signal to save the book as saving a book may time-consuming
-    void bookDataDownloadedFromServer(QString bookName);
+    void internalBookDataDownloaded(QString bookName);
+    void internalFileDataDownloaded(QString fileName, bool errorHappened);
 
 private slots:
     void onConnected();
@@ -44,7 +47,8 @@ private slots:
     void onStateChanged(QAbstractSocket::SocketState socketState);
 
     void onServerHeartBeat();
-    void onBookDataDownloadedFromServer(QString bookName);
+    void onInternalBookDataDownloaded(QString bookName);
+    void onInternalFileDataDownloaded(QString fileName, bool errorHappened);
 
 private:
     explicit ServerAgent(const QString &hostName, quint16 port = 61027, QObject *parent = nullptr);
@@ -60,11 +64,16 @@ private:
     QList<QString> m_booksInServer;
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
+    QMap<QString, QByteArray>  m_mapFileContent;
 
     QTimer m_timerServerHeartBeat;
 
     void completeBookDownload(QString bookName);
+    bool saveFileFromServer(QString fileName);
 
+    // these handle*() functions should be fast as the socket is busy (receving data)
+    // if they take long time, it can cause slow the socket to buffer data
+    // thus result unnecessary failure in read transition
     int readMessageCode();
     int handleMessage(int messageCode);
     bool handleResponseNoOperation();
@@ -77,6 +86,8 @@ private:
     bool handleResponseAllDataSent();
     bool handleResponseAllDataSentForRequestGetWordsOfBook();
     bool handleResponseAllDataSentForRequestGetWords();
+    bool handleResponseAllDataSentForRequestGetFile();
+    bool handleResponseGetFile();
 
     void connectToServer();
     void sendRequestNoOperation();
@@ -86,6 +97,7 @@ private:
     void sendRequestGetABook(QString bookName);
     void sendRequestGetWords(QString bookName, QVector<QString> wordList);
     void sendRequestGetWordsWithSmallMessages(QString bookName, QVector<QString> wordList);
+    void sendRequestGetFile(QString fileName);
 
     void requestWords(QString bookName, QVector<QString> wordList);
 };

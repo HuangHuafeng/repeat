@@ -335,14 +335,14 @@ void ClientWaiter::sendResponseAllDataSentForRequestGetWordsOfBook(const QString
     m_tcpSocket->write(block);
 }
 
-void ClientWaiter::sendResponseAllDataSentForRequestGetFile(const QString fileName, bool errorHappened)
+void ClientWaiter::sendResponseAllDataSentForRequestGetFile(const QString fileName, bool succeeded)
 {
     int responseCode = ServerClientProtocol::ResponseAllDataSent;
     int messageCode = ServerClientProtocol::RequestGetFile;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << messageCode << fileName << errorHappened;
+    out << responseCode << messageCode << fileName << succeeded;
     m_tcpSocket->write(block);
 }
 
@@ -396,12 +396,14 @@ bool ClientWaiter::handleRequestGetFile()
     if (in.commitTransaction() == false)
     {
         // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to get book name in handleRequestGetFile()";
+        qDebug() << "failed to get file name in handleRequestGetFile()";
         return false;
     }
 
-    sendFile(fileName);
+    bool succeeded = sendFile(fileName);
+    sendResponseAllDataSentForRequestGetFile(fileName, succeeded);
 
+    // the message has been processed, so return true regardless if succeeded or not
     return true;
 }
 
@@ -463,22 +465,22 @@ void ClientWaiter::sendWordsOfBook(const QString bookName)
     sendResponseAllDataSentForRequestGetWordsOfBook(bookName);
 }
 
-void ClientWaiter::sendFile(const QString fileName)
+bool ClientWaiter::sendFile(const QString fileName)
 {
-    //
     QString localFile = MySettings::dataDirectory() + "/" + fileName;
     qDebug() << "send file" << localFile;
 
     QFile toSend(localFile);
     if (toSend.open(QIODevice::ReadOnly | QIODevice::ExistingOnly) == false)
     {
-        return;
+        qDebug() << "cannot open file" << fileName << "because" << toSend.errorString();
+        return false;
     }
 
     const int fileSize = static_cast<int>(toSend.size());
     int sentBytes = 0;
     int counter = 0;
-    bool errorHappened = false;
+    bool succeeded = true;
     QDataStream fileDS(&toSend);
     while (sentBytes < fileSize)
     {
@@ -486,7 +488,7 @@ void ClientWaiter::sendFile(const QString fileName)
         auto readBytes = fileDS.readRawData(buf, ServerClientProtocol::MaximumBytesForFileTransfer);
         if (readBytes == -1)
         {
-            errorHappened = true;
+            succeeded = false;
             break;
         }
 
@@ -497,12 +499,7 @@ void ClientWaiter::sendFile(const QString fileName)
         qDebug() << "send" << readBytes << "bytes of total" << fileSize;
     }
 
-    sendResponseAllDataSentForRequestGetFile(fileName, errorHappened);
-
-    if (errorHappened == true)
-    {
-        qDebug() << "error happend when sending file" << fileName;
-    }
+    return succeeded;
 }
 
 void ClientWaiter::sendResponseGetFile(const QString fileName, const char *s, uint len)

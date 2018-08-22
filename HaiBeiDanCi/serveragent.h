@@ -32,12 +32,12 @@ signals:
     void bookDownloaded(QString bookName);
     void wordDownloaded(QString spelling);
     void downloadProgress(float percentage);
-    void fileDownloaded(QString fileName);
+    void fileDownloaded(QString fileName, bool succeeded);
 
     // this signal is sent after data related to a book is downloaded from the server
     // the agent should connect to this signal to save the book as saving a book may time-consuming
     void internalBookDataDownloaded(QString bookName);
-    void internalFileDataDownloaded(QString fileName, bool errorHappened);
+    void internalFileDataDownloaded(QString fileName, bool succeeded);
 
 private slots:
     void onConnected();
@@ -48,7 +48,7 @@ private slots:
 
     void onServerHeartBeat();
     void onInternalBookDataDownloaded(QString bookName);
-    void onInternalFileDataDownloaded(QString fileName, bool errorHappened);
+    void onInternalFileDataDownloaded(QString fileName, bool succeeded);
 
 private:
     explicit ServerAgent(const QString &hostName, quint16 port = 61027, QObject *parent = nullptr);

@@ -1,5 +1,6 @@
 #include "dictschemehandler.h"
 #include "mysettings.h"
+#include "serveragent.h"
 
 #include <QWebEngineUrlRequestJob>
 #include <QCoreApplication>
@@ -13,16 +14,30 @@ DictSchemeHandler::DictSchemeHandler(QObject *parent) : QWebEngineUrlSchemeHandl
 {
     installSchemeHandler();
 
-    connect(&m_downloadManager, SIGNAL(fileDownloaded(QString)), this, SLOT(onFileDownloaded(QString)));
+    ServerAgent *serveragent = ServerAgent::instance();
+    connect(serveragent, SIGNAL(fileDownloaded(QString, bool)), this, SLOT(onFileDownloaded(QString, bool)));
 }
 
 DictSchemeHandler::~DictSchemeHandler()
 {
 }
 
-void DictSchemeHandler::onFileDownloaded(QString fileName)
+void DictSchemeHandler::onFileDownloaded(QString fileName, bool succeeded)
 {
-    m_mediaPlayer.play(fileName);
+    if (m_filesInDownloading.contains(fileName) == true)
+    {
+        // this is a file that DictSchemeHandler asked to download
+        m_filesInDownloading.removeOne(fileName);   // remove from the list
+        if (succeeded == true)
+        {
+            QString audioFile = MySettings::dataDirectory() + "/" + fileName;
+            m_mediaPlayer.play(audioFile);
+        }
+        else
+        {
+            qDebug() << "cannot play" << fileName << "because downloading from the server failed";
+        }
+    }
 }
 
 void DictSchemeHandler::installSchemeHandler()
@@ -65,8 +80,9 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
         m_mediaPlayer.play(audioFile);
     } else
     {
-        const QString mhu = MySettings::mediaHttpUrl();
-        QUrl url(mhu + path);
-        m_downloadManager.download(url, audioFile);
+        const QString fileName = path.mid(1);
+        m_filesInDownloading.append(fileName);
+        ServerAgent *serveragent = ServerAgent::instance();
+        serveragent->downloadFile(fileName);
     }
 }

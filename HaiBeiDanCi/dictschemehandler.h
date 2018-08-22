@@ -2,7 +2,6 @@
 #define DICTSCHEMEHANDLER_H
 
 #include "mediaplayer.h"
-#include "downloadmanager.h"
 
 #include <QWebEngineUrlSchemeHandler>
 #include <QWebEngineView>
@@ -12,7 +11,7 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
     Q_OBJECT
 
     MediaPlayer m_mediaPlayer;
-    DownloadManager m_downloadManager;
+    QVector<QString> m_filesInDownloading;
 
   private:
     void handleSchemeHhfaudio(QWebEngineUrlRequestJob *request);
@@ -23,7 +22,7 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
     }
 
 private slots:
-    void onFileDownloaded(QString fileName);
+    void onFileDownloaded(QString fileName, bool succeeded);
 
   public:
     DictSchemeHandler(QObject *parent = Q_NULLPTR);

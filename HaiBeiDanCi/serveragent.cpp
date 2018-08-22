@@ -160,19 +160,18 @@ void ServerAgent::onInternalBookDataDownloaded(QString bookName)
     completeBookDownload(bookName);
 }
 
-void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool errorHappened)
+void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool succeeded)
 {
-    bool error = errorHappened;
+    funcTracker ft("onInternalFileDataDownloaded()");
 
-    if (errorHappened == false)
+    bool ok = succeeded;
+
+    if (succeeded == true)
     {
-        error = saveFileFromServer(fileName);
+        ok = saveFileFromServer(fileName);
     }
 
-    if (error == false)
-    {
-        emit(fileDownloaded(fileName));
-    }
+    emit(fileDownloaded(fileName, ok));
 }
 
 int ServerAgent::handleMessage(int messageCode)
@@ -421,6 +420,7 @@ bool ServerAgent::saveFileFromServer(QString fileName)
 
     QByteArray content = m_mapFileContent.value(fileName);
     toSave.write(content.constData(), content.size());
+    m_mapFileContent.remove(fileName);  // remove the content since it's now saved to the disk
 
     return true;
 }
@@ -452,11 +452,12 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetWords()
 
 bool ServerAgent::handleResponseAllDataSentForRequestGetFile()
 {
+    funcTracker ft("handleResponseAllDataSentForRequestGetFile()");
     QDataStream in(m_tcpSocket);
     QString fileName;
-    bool errorHappened;
+    bool succeeded;
     in.startTransaction();
-    in >> fileName >> errorHappened;
+    in >> fileName >> succeeded;
     if (in.commitTransaction() == false)
     {
         // in this case, the transaction is restored by commitTransaction()
@@ -466,7 +467,7 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetFile()
 
     if (fileName.startsWith(ServerClientProtocol::partPrefix()) == false)
     {
-        emit(internalFileDataDownloaded(fileName, errorHappened));
+        emit(internalFileDataDownloaded(fileName, succeeded));
     }
     else
     {

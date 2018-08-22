@@ -11,7 +11,10 @@ ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent)
     m_timerServerHeartBeat(this)
 {
     connect(&m_timerServerHeartBeat, SIGNAL(timeout()), this, SLOT(onServerHeartBeat()));
-    m_timerServerHeartBeat.start(10 * 1000);
+
+    // the following should NOT be in connectToServer()
+    connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)), Qt::ConnectionType::QueuedConnection);
+    connect(this, SIGNAL(internalFileDataDownloaded(QString, bool)), this, SLOT(onInternalFileDataDownloaded(QString, bool)), Qt::ConnectionType::QueuedConnection);
 }
 
 ServerAgent::~ServerAgent()
@@ -83,10 +86,15 @@ void ServerAgent::onReadyRead()
 void ServerAgent::onConnected()
 {
     qDebug() << "onConnected()";
+
+    // start heartbeat timer
+    m_timerServerHeartBeat.start(1000 * MySettings::heartbeatIntervalInSeconds());
 }
 
 void ServerAgent::onDisconnected()
 {
+    // stop heartbeat timer
+    m_timerServerHeartBeat.stop();
     m_tcpSocket->deleteLater();
     m_tcpSocket = nullptr;
 }
@@ -419,6 +427,7 @@ bool ServerAgent::saveFileFromServer(QString fileName)
     }
 
     QByteArray content = m_mapFileContent.value(fileName);
+    qDebug() << fileName << "size" << content.size();
     toSave.write(content.constData(), content.size());
     m_mapFileContent.remove(fileName);  // remove the content since it's now saved to the disk
 
@@ -514,6 +523,7 @@ bool ServerAgent::handleResponseGetFile()
         return false;
     }
 
+    qDebug() << "recevied data" << len;
     fileName = fileName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
     auto currentContent = m_mapFileContent.value(fileName);
     auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
@@ -558,9 +568,6 @@ void ServerAgent::connectToServer()
     connect(m_tcpSocket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onError(QAbstractSocket::SocketError)));
     connect(m_tcpSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onStateChanged(QAbstractSocket::SocketState)));
-
-    connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)), Qt::ConnectionType::QueuedConnection);
-    connect(this, SIGNAL(internalFileDataDownloaded(QString, bool)), this, SLOT(onInternalFileDataDownloaded(QString, bool)), Qt::ConnectionType::QueuedConnection);
 
     //connect(this, SIGNAL(responseGetABook(const WordBook &)), this, SLOT(onResponseGetABook(const WordBook &)));
     //connect(this, SIGNAL(responseGetWordsOfBook(QString, QVector<QString>)), this, SLOT(onResponseGetWordsOfBook(QString, QVector<QString>)));

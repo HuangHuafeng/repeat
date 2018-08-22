@@ -75,8 +75,10 @@ class MySettings : public QObject
     static float vagueIncrease();
 
     static void saveIncorrectDecrease(float deccrease);
-    static float incorrectDecrease();
     static float incorrectIncrease();
+
+    static int heartbeatIntervalInSeconds();
+    static int maximumConsecutiveHeartbeat();
 
     static MySettings *instance();
 

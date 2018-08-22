@@ -439,6 +439,40 @@ QDateTime MySettings::lastUpdateTime()
     return QDateTime::fromString(lutSting, Qt::ISODate);
 }
 
+int MySettings::heartbeatIntervalInSeconds()
+{
+    QString stringValue = MySettings::getSettingString("heartbeatIntervalInSeconds");
+    int valueInSetting;
+    if (stringValue.isEmpty() == false)
+    {
+        valueInSetting = stringValue.toInt();
+    }
+    else
+    {
+        // default to 10 seconds
+        valueInSetting = 10;
+    }
+
+    return valueInSetting;
+}
+
+int MySettings::maximumConsecutiveHeartbeat()
+{
+    QString stringValue = MySettings::getSettingString("maximumConsecutiveHeartbeat");
+    int valueInSetting;
+    if (stringValue.isEmpty() == false)
+    {
+        valueInSetting = stringValue.toInt();
+    }
+    else
+    {
+        // default to 12 (2 minutes)
+        valueInSetting = 12;
+    }
+
+    return valueInSetting;
+}
+
 void MySettings::downloadInfoFileFromGitHub(QString saveToFileName)
 {
     QString urlString = MySettings::infoFileHttpUrl();

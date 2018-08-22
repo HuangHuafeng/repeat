@@ -28,6 +28,7 @@ void ClientWaiter::run()
 
     qDebug("%s:%d connected", m_tcpSocket->peerAddress().toString().toLatin1().constData(), m_tcpSocket->peerPort());
 
+    int consecutiveHeartbeat = 0;
     int currentMessage = 0;
     while (1)
     {
@@ -43,8 +44,20 @@ void ClientWaiter::run()
             int handleResult = handleMessage(currentMessage);
             if (handleResult == 0)
             {
+                if (currentMessage == ServerClientProtocol::RequestNoOperation)
+                {
+                    consecutiveHeartbeat ++;
+                    if (consecutiveHeartbeat > MySettings::maximumConsecutiveHeartbeat())
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    consecutiveHeartbeat = 0;
+                }
                 // successfully processed the message
-                qDebug() << "successfully handled message with code" << currentMessage << endl;
+                //qDebug() << "successfully handled message with code" << currentMessage << endl;
                 currentMessage = 0;
                 continue;
             }

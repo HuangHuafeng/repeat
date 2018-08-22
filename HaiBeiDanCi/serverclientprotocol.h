@@ -36,7 +36,7 @@ public:
 
     typedef enum {
         MaximumWordsInAMessage = 500,
-        MaximumBytesForFileTransfer = 1024 * 1,    // 50k
+        MaximumBytesForFileTransfer = 1024 * 32,    // 32k, most of the files are less than 20k in this app
     } MessageParameters;
 
     typedef enum {

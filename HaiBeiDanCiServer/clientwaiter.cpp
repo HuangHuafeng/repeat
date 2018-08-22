@@ -482,9 +482,10 @@ bool ClientWaiter::sendFile(const QString fileName)
     int counter = 0;
     bool succeeded = true;
     QDataStream fileDS(&toSend);
+    char *buf = new char[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
     while (sentBytes < fileSize)
     {
-        char buf[ServerClientProtocol::MaximumBytesForFileTransfer + 1] = {0};
+        //char buf[] = {0};
         auto readBytes = fileDS.readRawData(buf, ServerClientProtocol::MaximumBytesForFileTransfer);
         if (readBytes == -1)
         {
@@ -498,6 +499,8 @@ bool ClientWaiter::sendFile(const QString fileName)
         sentBytes += readBytes;
         qDebug() << "send" << readBytes << "bytes of total" << fileSize;
     }
+
+    delete[] buf;
 
     return succeeded;
 }

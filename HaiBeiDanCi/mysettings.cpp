@@ -477,8 +477,8 @@ int MySettings::downloadIntervalInMilliseconds()
     }
     else
     {
-        // default to 50 ms, looks more smooth
-        valueInSetting = 50;
+        // default to 250 ms, we want to make this slow
+        valueInSetting = 250;
     }
 
     return valueInSetting;

@@ -790,7 +790,6 @@ void ServerAgent::onSendMessage()
         sendTheFirstMessage();
         requestsForARound --;
     }
-    qDebug() << "onSendMessage() called";
 }
 
 void ServerAgent::sendTheFirstMessage()
@@ -802,7 +801,6 @@ void ServerAgent::sendTheFirstMessage()
 
     m_tcpSocket->write(m_messages.at(0));
     m_messages.pop_front();
-    qDebug() << "messages left:" << m_messages.size();
 }
 
 /*

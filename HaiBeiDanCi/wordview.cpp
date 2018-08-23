@@ -42,7 +42,7 @@ void WordView::loadHtml(QString fileName)
         m_channel.registerObject(QString("wordview"), this);
         page()->setWebChannel(&m_channel);
 
-        QUrl baseUrl("file://" + MySettings::dataDirectory() + "/");
+        QUrl baseUrl("file:///" + MySettings::dataDirectory() + "/");
         setHtml(htmlFile.readAll().data(), baseUrl);
     }
     else

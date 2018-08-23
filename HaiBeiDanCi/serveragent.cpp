@@ -611,6 +611,11 @@ void ServerAgent::connectToServer()
     }
 }
 
+
+/**
+ * @brief ServerAgent::sendRequestNoOperation
+ * this is used as heartbeat at this moment, so it sends the message directly
+ */
 void ServerAgent::sendRequestNoOperation()
 {
     connectToServer();
@@ -619,8 +624,8 @@ void ServerAgent::sendRequestNoOperation()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << messageCode;
-    //m_tcpSocket->write(block);
-    m_messages.append(block);
+    m_tcpSocket->write(block);
+    //m_messages.append(block);
 }
 
 void ServerAgent::sendRequestGetAllBooks()

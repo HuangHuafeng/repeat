@@ -25,11 +25,8 @@ MySettings *MySettings::instance()
     if (m_settings == nullptr)
     {
         m_settings = new MySettings();
-        if (m_settings != nullptr)
-        {
-            connect(&m_settings->m_downloadManager, SIGNAL(fileDownloaded(QString)), m_settings, SLOT(onInfoFileDownloadedFromGithub(QString)));
-            m_settings->loadSettingsFromInfoFile();
-        }
+        connect(&m_settings->m_downloadManager, SIGNAL(fileDownloaded(QString)), m_settings, SLOT(onInfoFileDownloadedFromGithub(QString)));
+        m_settings->loadSettingsFromInfoFile();
     }
 
     return m_settings;
@@ -66,6 +63,12 @@ void MySettings::saveUpdateInterval(int days)
     settings.endGroup();
 }
 
+/**
+ * @brief MySettings::updateInterval
+ * @return
+ * this is going to be called in loadSettingsFromInfoFile()
+ * So it should be a pure static method
+ */
 int MySettings::updateInterval()
 {
     QSettings settings;
@@ -75,17 +78,8 @@ int MySettings::updateInterval()
 
     if (updInt == -1)
     {
-        // there's no local setting, try to get the setting from info.txt
-        QString updIntString = MySettings::getSettingString("updateInterval");
-        if (updIntString.isEmpty() == false)
-        {
-            updInt = updIntString.toInt();
-        }
-        else
-        {
-            // default to one week if we cannot find any setting
-            updInt = 7;
-        }
+        // default to one week if we cannot find any setting
+        updInt = 7;
     }
 
     return updInt;
@@ -528,7 +522,12 @@ void MySettings::readInfoFile(QString infoFileName)
     }
 
     QByteArray json = infoFile.readAll();
-    m_infoFromGithub = QJsonDocument::fromJson(json);
+    QJsonParseError jpe;
+    m_infoFromGithub = QJsonDocument::fromJson(json, &jpe);
+    if (m_infoFromGithub.isNull() == true)
+    {
+        qDebug() << "failed to load setting from" << infoFileName << "because of" << jpe.errorString();
+    }
 }
 
 void MySettings::onInfoFileDownloadedFromGithub(QString fileName)

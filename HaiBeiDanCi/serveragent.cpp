@@ -769,13 +769,6 @@ const QMap<QString, int> &ServerAgent::downloadMultipleFiles(QList<QString> file
         }
     }
 
-    /*
-    if (m_filesToDownload.isEmpty() == false)
-    {
-        m_downloadTimer.start(MySettings::downloadIntervalInMilliseconds());
-    }
-    */
-
     return m_filesToDownload;
 }
 
@@ -797,6 +790,7 @@ void ServerAgent::onSendMessage()
         sendTheFirstMessage();
         requestsForARound --;
     }
+    qDebug() << "onSendMessage() called";
 }
 
 void ServerAgent::sendTheFirstMessage()

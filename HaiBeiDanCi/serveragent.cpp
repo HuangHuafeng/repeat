@@ -8,9 +8,11 @@ ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent)
     m_serverHostName(hostName),
     m_serverPort(port),
     m_tcpSocket(nullptr),
+    m_downloadTimer(this),
     m_timerServerHeartBeat(this)
 {
     connect(&m_timerServerHeartBeat, SIGNAL(timeout()), this, SLOT(onServerHeartBeat()));
+    connect(&m_downloadTimer, SIGNAL(timeout()), this, SLOT(sendDownloadRequestsToServer()));
 
     // the following should NOT be in connectToServer()
     connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)), Qt::ConnectionType::QueuedConnection);
@@ -30,7 +32,6 @@ ServerAgent * ServerAgent::instance()
 
     return m_serveragent;
 }
-
 
 /**
  * @brief ServerAgent::onReadyRead
@@ -170,16 +171,37 @@ void ServerAgent::onInternalBookDataDownloaded(QString bookName)
 
 void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool succeeded)
 {
-    funcTracker ft("onInternalFileDataDownloaded()");
-
+    //funcTracker ft("onInternalFileDataDownloaded()");
     bool ok = succeeded;
-
+    int saveResult = 3; // failed
     if (succeeded == true)
     {
-        ok = saveFileFromServer(fileName);
+        if (saveFileFromServer(fileName) == true)
+        {
+            saveResult = 2; // successfully saved
+        }
+        else
+        {
+            saveResult = 3; // failed
+            ok = false;
+        }
     }
 
+    m_filesToDownload.insert(fileName, saveResult);
     emit(fileDownloaded(fileName, ok));
+
+    int downloadSucceeded = m_filesToDownload.keys(2).size();
+    int downloadFailed = m_filesToDownload.keys(3).size();
+    int downloadTotal = m_filesToDownload.size();
+    float percentage = (downloadSucceeded + downloadFailed) * 1.0f / downloadTotal;
+    emit(downloadProgress(percentage));
+
+    if (downloadSucceeded + downloadFailed == downloadTotal)
+    {
+        // download finished
+        m_downloadTimer.stop();
+        m_filesToDownload.clear();
+    }
 }
 
 int ServerAgent::handleMessage(int messageCode)
@@ -427,7 +449,7 @@ bool ServerAgent::saveFileFromServer(QString fileName)
     }
 
     QByteArray content = m_mapFileContent.value(fileName);
-    qDebug() << fileName << "size" << content.size();
+    qDebug() << "saving" << fileName << "size" << content.size();
     toSave.write(content.constData(), content.size());
     m_mapFileContent.remove(fileName);  // remove the content since it's now saved to the disk
 
@@ -461,7 +483,7 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetWords()
 
 bool ServerAgent::handleResponseAllDataSentForRequestGetFile()
 {
-    funcTracker ft("handleResponseAllDataSentForRequestGetFile()");
+    //funcTracker ft("handleResponseAllDataSentForRequestGetFile()");
     QDataStream in(m_tcpSocket);
     QString fileName;
     bool succeeded;
@@ -523,7 +545,7 @@ bool ServerAgent::handleResponseGetFile()
         return false;
     }
 
-    qDebug() << "recevied data" << len;
+    //qDebug() << "recevied data of" << fileName << len;
     fileName = fileName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
     auto currentContent = m_mapFileContent.value(fileName);
     auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
@@ -701,6 +723,75 @@ void ServerAgent::downloadBook(QString bookName)
 void ServerAgent::downloadFile(QString fileName)
 {
     sendRequestGetFile(fileName);
+}
+
+const QMap<QString, int> &ServerAgent::downloadMultipleFiles(QList<QString> fileList)
+{
+    const QString dd = MySettings::dataDirectory() + "/";
+    for (int i = 0;i < fileList.size();i ++)
+    {
+        QString fileName = fileList.at(i);
+        if (QFile::exists(dd + fileName) == false)
+        {
+            if (m_filesToDownload.contains(fileName) == false)
+            {
+                m_filesToDownload.insert(fileName, 0);
+            }
+            else
+            {
+                // it's already in the list, so we don't touch it to spoil the state
+            }
+        }
+    }
+
+    if (m_filesToDownload.isEmpty() == false)
+    {
+        m_downloadTimer.start(MySettings::downloadIntervalInMilliseconds());
+    }
+
+    return m_filesToDownload;
+}
+
+void ServerAgent::cancelDownloadMultipleFiles()
+{
+    m_downloadTimer.stop();
+    auto filesLeft = m_filesToDownload.keys(0);
+    for (int i = 0;i < filesLeft.size();i ++)
+    {
+        m_filesToDownload.remove(filesLeft.at(i));
+    }
+}
+
+void ServerAgent::sendDownloadRequestsToServer()
+{
+    /*
+    if (m_pd && m_pd->wasCanceled())
+    {
+        m_downloadTimer.stop();
+        m_pd->hide();
+        m_pd->deleteLater();
+        m_pd = nullptr;
+        return;
+    }
+    */
+
+    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
+    // check how many files are requested by not received
+    int requestsInProcessing = m_filesToDownload.keys(1).size();
+    if (requestsInProcessing > requestsForARound)
+    {
+        // we are still waiting requests to be replied from the server, so skip this round
+        return;
+    }
+
+    auto filesToDownload = m_filesToDownload.keys(0);
+    for (int i = 0;i < filesToDownload.size() && requestsForARound > 0;i ++)
+    {
+        QString fileName = filesToDownload.at(i);
+        m_filesToDownload.insert(fileName, 1);  // mark it as request has been sent
+        downloadFile(fileName);
+        requestsForARound --;
+    }
 }
 
 void ServerAgent::getBookList()

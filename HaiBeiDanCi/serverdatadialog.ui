@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>480</width>
-    <height>299</height>
+    <width>560</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,14 @@
        <item>
         <widget class="QPushButton" name="pbDownloadBook">
          <property name="text">
-          <string>Download</string>
+          <string>Download book</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pbDownloadMediaFiles">
+         <property name="text">
+          <string>Download media files</string>
          </property>
         </widget>
        </item>

@@ -26,6 +26,8 @@ public:
     void getBookList();
     void downloadBook(QString bookName);
     void downloadFile(QString fileName);
+    const QMap<QString, int> & downloadMultipleFiles(QList<QString> fileList);
+    void cancelDownloadMultipleFiles();
 
 signals:
     void bookListReady(const QList<QString> books);
@@ -47,6 +49,7 @@ private slots:
     void onStateChanged(QAbstractSocket::SocketState socketState);
 
     void onServerHeartBeat();
+    void sendDownloadRequestsToServer();
     void onInternalBookDataDownloaded(QString bookName);
     void onInternalFileDataDownloaded(QString fileName, bool succeeded);
 
@@ -65,6 +68,10 @@ private:
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
     QMap<QString, QByteArray>  m_mapFileContent;
+
+    QMap<QString, int> m_filesToDownload;   // 0 - not requested yet, 1 - request sent, 2 - succeeded and saved, 3 - failed
+    QTimer m_downloadTimer;
+    int m_filesDownloaded;
 
     QTimer m_timerServerHeartBeat;
 

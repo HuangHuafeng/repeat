@@ -27,6 +27,7 @@ class Word
     int getId() const;
     const QString &getDefinition() const;
     QString getDefinitionDIV() const;
+    QList<QString> mediaFiles() const;
 
     bool dbsave();
 

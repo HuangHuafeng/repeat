@@ -137,6 +137,25 @@ QString Word::getDefinitionDIV() const
     return div;
 }
 
+QList<QString> Word::mediaFiles() const
+{
+    QList<QString> mf;
+
+    const QRegularExpression mfre("media/[^\"<>']*\\.(mp3|js|css|png|jpg)");
+    QRegularExpressionMatchIterator it = mfre.globalMatch(m_definition);
+    while (it.hasNext())
+    {
+        QRegularExpressionMatch match = it.next();
+        QString onemf = match.captured(0);
+        if (mf.contains(onemf) == false)
+        {
+            mf.append(onemf);
+        }
+    }
+
+    return mf;
+}
+
 // static
 QList<QString> Word::getAllWords()
 {

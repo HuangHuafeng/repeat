@@ -69,8 +69,6 @@ class MainWindow : public QMainWindow
 
     void on_actionBooks_triggered();
 
-    void on_actionFiles_triggered();
-
 private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;

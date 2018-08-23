@@ -473,6 +473,40 @@ int MySettings::maximumConsecutiveHeartbeat()
     return valueInSetting;
 }
 
+int MySettings::downloadIntervalInMilliseconds()
+{
+    QString stringValue = MySettings::getSettingString("downloadIntervalInMilliseconds");
+    int valueInSetting;
+    if (stringValue.isEmpty() == false)
+    {
+        valueInSetting = stringValue.toInt();
+    }
+    else
+    {
+        // default to 50 ms, looks more smooth
+        valueInSetting = 50;
+    }
+
+    return valueInSetting;
+}
+
+int MySettings::numberOfRequestInEveryDownloadRound()
+{
+    QString stringValue = MySettings::getSettingString("numberOfRequestInEveryDownloadRound");
+    int valueInSetting;
+    if (stringValue.isEmpty() == false)
+    {
+        valueInSetting = stringValue.toInt();
+    }
+    else
+    {
+        // default to 10 request (file)
+        valueInSetting = 10;
+    }
+
+    return valueInSetting;
+}
+
 void MySettings::downloadInfoFileFromGitHub(QString saveToFileName)
 {
     QString urlString = MySettings::infoFileHttpUrl();

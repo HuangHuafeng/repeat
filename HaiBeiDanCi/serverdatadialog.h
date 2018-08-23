@@ -23,18 +23,24 @@ private slots:
     void onBookListReady(const QList<QString> books);
     void onBookDownloaded(QString bookName);
     void onDownloadProgress(float percentage);
+    //void onFileDownloaded(QString fileName, bool/*succeeded*/);
     //void onWordDownloaded(QString spelling);
 
     void on_pbDownloadBook_clicked();
 
     void on_pbClose_clicked();
 
+    void on_pbDownloadMediaFiles_clicked();
+
 private:
     Ui::ServerDataDialog *ui;
 
     QProgressDialog *m_pd;
+    int m_pdMaximum;
 
     void updateBookStatus(QString bookName);
+    void createProgressDialog(const QString &labelText, const QString &cancelButtonText);
+    void destroyProgressDialog();
 
 };
 

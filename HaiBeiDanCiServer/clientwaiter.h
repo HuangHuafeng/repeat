@@ -34,6 +34,7 @@ private:
     bool handleRequestNoOperation();
     bool handleRequestGetAllBooks();
     bool handleRequestGetWordsOfBook();
+    bool handleRequestGetWordsOfBookFinished();
     bool handleRequestGetWords();
     bool handleRequestGetAWord();
     bool handleRequestGetABook();
@@ -54,6 +55,7 @@ private:
     void sendResponseAllDataSentForRequestGetFile(const QString fileName, bool succeeded);
     void sendResponseUnknownRequest(int messageCode);
     void sendResponseGetFile(const QString fileName, const char *s, uint len);
+    void sendResponseGetWordsOfBookFinished(const QString bookName);
 
 };
 

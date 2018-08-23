@@ -47,6 +47,7 @@ public:
         RequestGetAWord = RequestNoOperation + 4,
         RequestGetABook = RequestNoOperation + 5,
         RequestGetFile = RequestNoOperation + 6,
+        RequestGetWordsOfBookFinished = RequestNoOperation + 7, // used to echo to the client to let it aware that downloading words finished
         RequestBye = RequestNoOperation + 1000,
     } RequestCode;
 
@@ -58,6 +59,7 @@ public:
         ResponseGetAWord = ResponseNoOperation + 4,
         ResponseGetABook = ResponseNoOperation + 5,
         ResponseGetFile = ResponseNoOperation + 6,
+        ResponseGetWordsOfBookFinished = ResponseNoOperation + 7,
         ResponseFailedToRequest = ResponseNoOperation + 1000,
         ResponseUnknownRequest = ResponseNoOperation + 1001,
         ResponseAllDataSent = ResponseNoOperation + 1002,

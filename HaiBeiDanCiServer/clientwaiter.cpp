@@ -196,6 +196,10 @@ int ClientWaiter::handleMessage(int messageCode)
         handleResult = handleRequestGetFile();
         break;
 
+    case ServerClientProtocol::RequestGetWordsOfBookFinished:
+        handleResult = handleRequestGetWordsOfBookFinished();
+        break;
+
     default:
         qDebug() << "got unknown message with code" << messageCode << "in handleMessage()";
         unknowMessage = true;
@@ -348,6 +352,16 @@ void ClientWaiter::sendResponseAllDataSentForRequestGetWordsOfBook(const QString
     m_tcpSocket->write(block);
 }
 
+void ClientWaiter::sendResponseGetWordsOfBookFinished(const QString bookName)
+{
+    int responseCode = ServerClientProtocol::ResponseGetWordsOfBookFinished;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseCode << bookName;
+    m_tcpSocket->write(block);
+}
+
 void ClientWaiter::sendResponseAllDataSentForRequestGetFile(const QString fileName, bool succeeded)
 {
     int responseCode = ServerClientProtocol::ResponseAllDataSent;
@@ -447,6 +461,27 @@ bool ClientWaiter::handleRequestGetWordsOfBook()
     }
 
     sendWordsOfBook(bookName);
+
+    return true;
+}
+
+bool ClientWaiter::handleRequestGetWordsOfBookFinished()
+{
+    funcTracker ft("handleRequestGetWordsOfBook()");
+
+    // read the name of the book
+    QDataStream in(m_tcpSocket);
+    QString bookName;
+    in.startTransaction();
+    in >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to get book name in handleRequestGetWordsOfBook()";
+        return false;
+    }
+
+    sendResponseGetWordsOfBookFinished(bookName);
 
     return true;
 }

@@ -40,6 +40,7 @@ signals:
     // the agent should connect to this signal to save the book as saving a book may time-consuming
     void internalBookDataDownloaded(QString bookName);
     void internalFileDataDownloaded(QString fileName, bool succeeded);
+    //void internalWordsDownloadFinished();
 
 private slots:
     void onConnected();
@@ -49,7 +50,8 @@ private slots:
     void onStateChanged(QAbstractSocket::SocketState socketState);
 
     void onServerHeartBeat();
-    void sendDownloadRequestsToServer();
+    //void sendDownloadRequestsToServer();
+    void onSendMessage();
     void onInternalBookDataDownloaded(QString bookName);
     void onInternalFileDataDownloaded(QString fileName, bool succeeded);
 
@@ -61,19 +63,19 @@ private:
     quint16 m_serverPort;
     QTcpSocket *m_tcpSocket;
 
-    int m_numberOfWordsToDownload;
-    int m_numberOfWordsDownloaded;
-
     QList<QString> m_booksInServer;
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
     QMap<QString, QByteArray>  m_mapFileContent;
 
+    QMap<QString, int> m_wordsToDownload;   // 0 - not requested yet, 1 - request sent, 2 - succeeded and saved, 3 - failed
     QMap<QString, int> m_filesToDownload;   // 0 - not requested yet, 1 - request sent, 2 - succeeded and saved, 3 - failed
     QTimer m_downloadTimer;
-    int m_filesDownloaded;
+    QTimer m_messageTimer;
 
     QTimer m_timerServerHeartBeat;
+
+    QVector<QByteArray> m_messages;
 
     void completeBookDownload(QString bookName);
     bool saveFileFromServer(QString fileName);
@@ -95,18 +97,24 @@ private:
     bool handleResponseAllDataSentForRequestGetWords();
     bool handleResponseAllDataSentForRequestGetFile();
     bool handleResponseGetFile();
+    bool handleResponseGetWordsOfBookFinished();
 
     void connectToServer();
     void sendRequestNoOperation();
     void sendRequestGetAllBooks();
     void sendRequestGetWordsOfBook(QString bookName);
+    void sendRequestGetWordsOfBookFinished(QString bookName);
     void sendRequestGetAWord(QString spelling);
     void sendRequestGetABook(QString bookName);
     void sendRequestGetWords(QString bookName, QVector<QString> wordList);
     void sendRequestGetWordsWithSmallMessages(QString bookName, QVector<QString> wordList);
     void sendRequestGetFile(QString fileName);
 
-    void requestWords(QString bookName, QVector<QString> wordList);
+    void downloadWordsOfBook(QString bookName);
+    void requestFiles();
+    void requestWords();
+
+    void sendTheFirstMessage();
 };
 
 #endif // SERVERAGENT_H

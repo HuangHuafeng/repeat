@@ -26,6 +26,7 @@ class WordBook
     bool hasWord(int wordId);
     bool dbsave();
     bool dbsaveAddWords(const QVector<QString> &words);
+    void v2DbsaveAddWords(const QVector<QString> &words);
     bool addWord(QString spelling);
 
     QVector<QString> getAllWords(int number = 0);

@@ -78,8 +78,8 @@ int MySettings::updateInterval()
 
     if (updInt == -1)
     {
-        // default to one week if we cannot find any setting
-        updInt = 7;
+        // default to 0 so it's updated everytime
+        updInt = 0;
     }
 
     return updInt;
@@ -410,7 +410,13 @@ QString MySettings::mediaHttpUrl()
 
 QString MySettings::infoFileHttpUrl()
 {
-    return MySettings::getSettingString("infohttp");
+    QString infoHttp = MySettings::getSettingString("infoFileHttpUrl");
+    if (infoHttp.isEmpty() == true)
+    {
+        infoHttp = "https://raw.githubusercontent.com/HuangHuafeng/repeat/master/HaiBeiDanCi/info.json";
+    }
+
+    return infoHttp;
 }
 
 void MySettings::saveLastUpdateTime()
@@ -504,11 +510,6 @@ int MySettings::numberOfRequestInEveryDownloadRound()
 void MySettings::downloadInfoFileFromGitHub(QString saveToFileName)
 {
     QString urlString = MySettings::infoFileHttpUrl();
-    if (urlString.isEmpty() == true)
-    {
-        urlString = "https://raw.githubusercontent.com/HuangHuafeng/repeat/master/HaiBeiDanCi/info.json";
-    }
-
     m_downloadManager.download(urlString, saveToFileName);
 }
 
@@ -566,10 +567,17 @@ void MySettings::updateInfoFileNow()
 
     if (QFile::exists(infoFileName) == true)
     {
-        // delete the info file
-        if (QFile::remove(infoFileName) == false)
+        QString backupFile = infoFileName + ".bak";
+        // delete the backup file
+        if (QFile::remove(backupFile) == false)
         {
-            qDebug("failed to remove old info file");
+            qDebug("failed to remove the old backup file!");
+        }
+
+        // save the current one as backup
+        if (QFile::rename(infoFileName, backupFile) == false)
+        {
+            qDebug("failed to create info file backup!");
         }
     }
 

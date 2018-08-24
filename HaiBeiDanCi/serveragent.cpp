@@ -142,15 +142,12 @@ void ServerAgent::onInternalBookDataDownloaded(QString bookName)
 {
     QElapsedTimer t;
     t.start();
-    // store the words to database
-    //Word::storeMultipleWordFromServer(m_mapWords);
-    Word::batchStoreMultipleWordFromServer(m_mapWords);
-    m_mapWords.clear();
-    qDebug() << t.elapsed();
 
-    t.restart();
+    Word::v2StoreMultipleWordFromServer(m_mapWords);
+    m_mapWords.clear();
     completeBookDownload(bookName);
-    qDebug() << t.elapsed();
+
+    qDebug() << "onInternalBookDataDownloaded() used" << t.elapsed();
 }
 
 int ServerAgent::handleMessage(int messageCode)
@@ -463,18 +460,8 @@ void ServerAgent::completeBookDownload(QString bookName)
         return;
     }
 
-    // we should emit adding words to book?!
-    WordBook::storeBookFromServer(book);
     auto wordList = m_mapBooksWordList.value(bookName);
-    auto storedBook = WordBook::getBook(bookName);
-    auto numberOfAdded = 0;
-    auto total = wordList.size();
-    for (int i = 0;i < total;i ++)
-    {
-        storedBook->addWord(wordList.at(i));
-        numberOfAdded ++;
-        emit(downloadProgress(1.0f * numberOfAdded / total));
-    }
+    WordBook::storeBookFromServer(book, wordList);
 
     emit(bookDownloaded(bookName));
 }

@@ -41,6 +41,7 @@ class Word
     static void storeWordFromServer(sptr<Word> word);
     static void storeMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords);
     static void batchStoreMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords);
+    static void v2StoreMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords);
 
   private:
     //bool dbsaveDefinition();

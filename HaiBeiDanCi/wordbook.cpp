@@ -356,6 +356,39 @@ bool WordBook::addWord(QString spelling)
     return true;
 }
 
+void WordBook::v2DbsaveAddWords(const QVector<QString> &words)
+{
+    QVariantList wordIds;
+    QVariantList bookIds;
+    for (int i = 0; i < words.size(); i++)
+    {
+        auto word = Word::getWord(words.at(i));
+        if (word.get() != nullptr)
+        {
+            wordIds << word->getId();
+            bookIds << getId();
+        }
+    }
+
+    auto database = WordDB::connectedDatabase();
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr || database.get() == nullptr)
+    {
+        return;
+    }
+    database->transaction();
+    auto query = *ptrQuery;
+    query.prepare("INSERT INTO words_in_books(word_id, book_id) VALUES(?, ?)");
+    query.addBindValue(wordIds);
+    query.addBindValue(bookIds);
+    if (query.execBatch() == false)
+    {
+        WordDB::databaseError(query, "add words to book");
+        return;
+    }
+    database->commit();
+}
+
 bool WordBook::dbsaveAddWords(const QVector<QString> &words)
 {
     bool retValue = true;
@@ -450,7 +483,7 @@ void WordBook::storeBookFromServer(sptr<WordBook> book, const QVector<QString> &
     }
 
     book->dbsave();
-    book->dbsaveAddWords(wordList);
+    book->v2DbsaveAddWords(wordList);
     m_allBooksMutex.lock();
     m_allBooks.insert(book->getName(), book);
     m_allBooksMutex.unlock();

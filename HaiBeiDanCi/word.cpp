@@ -3,6 +3,8 @@
 
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+#include <QElapsedTimer>
+#include <QtDebug>
 
 QMap<QString, sptr<Word>> Word::m_allWords;
 QMutex Word::m_allWordsMutex;
@@ -241,6 +243,47 @@ void Word::storeMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords)
         }
         it ++;
     }
+}
+
+void Word::v2StoreMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords)
+{
+    auto it = mapWords.begin();
+    QVariantList ids;
+    QVariantList spellings;
+    QVariantList definitions;
+    m_allWordsMutex.lock();
+    while (it != mapWords.end())
+    {
+        auto word = (*it);
+        if (word.get() != nullptr)
+        {
+            m_allWords.insert(word->getSpelling(), word);
+            ids << word->getId();
+            spellings << word->getSpelling();
+            definitions << word->getDefinition();
+        }
+        it ++;
+    }
+    m_allWordsMutex.unlock();
+
+    auto database = WordDB::connectedDatabase();
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr || database.get() == nullptr)
+    {
+        return;
+    }
+    database->transaction();
+    auto query = *ptrQuery;
+    query.prepare("INSERT INTO words VALUES(?, ?, ?)");
+    query.addBindValue(ids);
+    query.addBindValue(spellings);
+    query.addBindValue(definitions);
+    if (query.execBatch() == false)
+    {
+        WordDB::databaseError(query, "storing words from server");
+        return;
+    }
+    database->commit();
 }
 
 void Word::batchStoreMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords)

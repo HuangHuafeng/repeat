@@ -2,13 +2,14 @@
 #include "serverclientprotocol.h"
 #include "mysettings.h"
 
+#include <QApplication>
+
 ServerAgent * ServerAgent::m_serveragent = nullptr;
 
 ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent) : QObject(parent),
     m_serverHostName(hostName),
     m_serverPort(port),
     m_tcpSocket(nullptr),
-    m_downloadTimer(this),
     m_messageTimer(this),
     m_timerServerHeartBeat(this)
 {
@@ -152,39 +153,6 @@ void ServerAgent::onInternalBookDataDownloaded(QString bookName)
     qDebug() << t.elapsed();
 }
 
-void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool succeeded)
-{
-    //funcTracker ft("onInternalFileDataDownloaded()");
-    bool ok = succeeded;
-    int saveResult = 3; // failed
-    if (succeeded == true)
-    {
-        if (saveFileFromServer(fileName) == true)
-        {
-            saveResult = 2; // successfully saved
-        }
-        else
-        {
-            saveResult = 3; // failed
-            ok = false;
-        }
-    }
-
-    m_filesToDownload.insert(fileName, saveResult);
-    emit(fileDownloaded(fileName, ok));
-
-    int downloadSucceeded = m_filesToDownload.keys(2).size();
-    int downloadFailed = m_filesToDownload.keys(3).size();
-    int downloadTotal = m_filesToDownload.size();
-    float percentage = (downloadSucceeded + downloadFailed) * 1.0f / downloadTotal;
-    emit(downloadProgress(percentage));
-
-    if (downloadSucceeded + downloadFailed == downloadTotal)
-    {
-        m_filesToDownload.clear();
-    }
-}
-
 int ServerAgent::handleMessage(int messageCode)
 {
     if (m_tcpSocket == nullptr)
@@ -312,6 +280,42 @@ bool ServerAgent::handleResponseGetWordsOfBook()
     return true;
 }
 
+void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool succeeded)
+{
+    //funcTracker ft("onInternalFileDataDownloaded()");
+    if (m_filesToDownload.value(fileName) == WaitingDataFromServer)
+    {
+        bool ok = succeeded;
+        DownloadStatus saveResult = DownloadFailed; // failed
+        if (succeeded == true)
+        {
+            if (saveFileFromServer(fileName) == true)
+            {
+                saveResult = DownloadSucceeded; // successfully saved
+            }
+            else
+            {
+                saveResult = DownloadFailed; // failed
+                ok = false;
+            }
+        }
+
+        m_filesToDownload.insert(fileName, saveResult);
+        emit(fileDownloaded(fileName, ok));
+    }
+
+    float percentage = getProgressPercentage(m_filesToDownload);
+    emit(downloadProgress(percentage));
+
+    if (percentage >= 1.0f)
+    {
+        // don't clear it, no meaning!
+        //m_filesToDownload.clear();
+    }
+
+    QApplication::processEvents();
+}
+
 bool ServerAgent::handleResponseGetAWord()
 {
     Word word;
@@ -326,32 +330,36 @@ bool ServerAgent::handleResponseGetAWord()
     }
 
     // store the word
+    QString spelling = word.getSpelling();
     sptr<Word> newWord = new Word(word);
-    m_mapWords.insert(word.getSpelling(), newWord); // just insert it as the word should NOT exist at this moment
+    m_mapWords.insert(spelling, newWord); // just insert it as the word should NOT exist at this moment
 
-    /*
-    emit(wordDownloaded(word.getSpelling()));
-
-    m_numberOfWordsDownloaded ++;
-    float percentage = 1.0f * m_numberOfWordsDownloaded / m_numberOfWordsToDownload;
-    emit(downloadProgress(percentage));
-    */
-
-    m_wordsToDownload.insert(word.getSpelling(), 2);
-    emit(wordDownloaded(word.getSpelling()));
-
-    int downloadSucceeded = m_wordsToDownload.keys(2).size();
-    int downloadFailed = m_wordsToDownload.keys(3).size();
-    int downloadTotal = m_wordsToDownload.size();
-    float percentage = (downloadSucceeded + downloadFailed) * 1.0f / downloadTotal;
-    emit(downloadProgress(percentage));
-
-    if (downloadSucceeded + downloadFailed == downloadTotal)
+    if (m_wordsToDownload.value(spelling) == WaitingDataFromServer)
     {
-        m_wordsToDownload.clear();
+        m_wordsToDownload.insert(spelling, DownloadSucceeded);
+        emit(wordDownloaded(spelling));
+    }
+
+    float percentage = getProgressPercentage(m_wordsToDownload);
+    emit(downloadProgress(percentage));
+
+    if (percentage >= 1.0f)
+    {
+        // we should NOT clear it here, as we need it in handleResponseGetWordsOfBookFinished()
+        //m_wordsToDownload.clear();
     }
 
     return true;
+}
+
+float ServerAgent::getProgressPercentage(const QMap<QString, DownloadStatus> mapToDownload)
+{
+    int finished = mapToDownload.keys(DownloadSucceeded).size()
+            + mapToDownload.keys(DownloadFailed).size()
+            + mapToDownload.keys(DownloadCancelled).size();
+    int total = mapToDownload.size();
+
+    return finished * 1.0f / total;
 }
 
 bool ServerAgent::handleResponseAllDataSent()
@@ -403,9 +411,24 @@ bool ServerAgent::handleResponseGetWordsOfBookFinished()
         return false;
     }
 
-    // downloading the words finished, the book data is ready
-    emit(internalBookDataDownloaded(bookName));
-    qDebug() << bookName << "in handleResponseGetWordsOfBookFinished()";
+    // it's possible that the user cancel the downloading, but we still got this message
+    // so we check if there's cancel from the user
+    int numberOfCancelledWords = m_wordsToDownload.keys(DownloadCancelled).size();
+    if (numberOfCancelledWords == 0)
+    {
+        // downloading the words finished, the book data is ready
+        emit(internalBookDataDownloaded(bookName));
+        // m_mapWords would be cleared after saving the words in OnInternalBookDataDownloaded()
+        qDebug() << bookName << "downloaded in handleResponseGetWordsOfBookFinished()";
+    }
+    else
+    {
+        qDebug() << bookName << "download cancelled in handleResponseGetWordsOfBookFinished()";
+        m_mapWords.clear();
+    }
+
+    // don't clear it. It will be cleared once it's going to be used again in downloadWordsOfBook()
+    //m_wordsToDownload.clear();
 
     return true;
 }
@@ -764,8 +787,9 @@ void ServerAgent::downloadFile(QString fileName)
     sendRequestGetFile(fileName);
 }
 
-const QMap<QString, int> &ServerAgent::downloadMultipleFiles(QList<QString> fileList)
+const QMap<QString, ServerAgent::DownloadStatus> &ServerAgent::downloadMultipleFiles(QList<QString> fileList)
 {
+    m_filesToDownload.clear();
     const QString dd = MySettings::dataDirectory() + "/";
     for (int i = 0;i < fileList.size();i ++)
     {
@@ -774,7 +798,7 @@ const QMap<QString, int> &ServerAgent::downloadMultipleFiles(QList<QString> file
         {
             if (m_filesToDownload.contains(fileName) == false)
             {
-                m_filesToDownload.insert(fileName, 1);  // mark it as request has been sent
+                m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
                 sendRequestGetFile(fileName);
             }
             else
@@ -787,14 +811,38 @@ const QMap<QString, int> &ServerAgent::downloadMultipleFiles(QList<QString> file
     return m_filesToDownload;
 }
 
-void ServerAgent::cancelDownloadMultipleFiles()
+void ServerAgent::cancelDownloading()
 {
-    m_downloadTimer.stop();
-    auto filesLeft = m_filesToDownload.keys(0);
+    cancelDownloadingFiles();
+    cancelDownloadingWords();
+
+    // just discard the messages!
+    m_messages.clear();
+}
+
+void ServerAgent::cancelDownloadingFiles()
+{
+    auto filesLeft = m_filesToDownload.keys(WaitingDataFromServer);
     for (int i = 0;i < filesLeft.size();i ++)
     {
-        m_filesToDownload.remove(filesLeft.at(i));
+        //m_filesToDownload.remove(filesLeft.at(i));
+        m_filesToDownload.insert(filesLeft.at(i), DownloadCancelled);
     }
+
+    // the files downloaded have already been saved to disk, so no actions
+}
+
+void ServerAgent::cancelDownloadingWords()
+{
+    auto wordsLeft = m_wordsToDownload.keys(WaitingDataFromServer);
+    for (int i = 0;i < wordsLeft.size();i ++)
+    {
+        //m_filesToDownload.remove(filesLeft.at(i));
+        m_wordsToDownload.insert(wordsLeft.at(i), DownloadCancelled);
+    }
+
+    // the downloaded words are in m_mapWords, so clear them
+    m_mapWords.clear();
 }
 
 void ServerAgent::onSendMessage()
@@ -890,6 +938,7 @@ void ServerAgent::requestWords()
 
 void ServerAgent::downloadWordsOfBook(QString bookName)
 {
+    m_wordsToDownload.clear();
     auto wordList = m_mapBooksWordList.value(bookName);
     // get the list of words which are not available locally
     for (int i = 0;i < wordList.size();i ++)
@@ -898,7 +947,7 @@ void ServerAgent::downloadWordsOfBook(QString bookName)
 
         if (Word::getWord(spelling).get() == nullptr && m_wordsToDownload.contains(spelling) == false)
         {
-            m_wordsToDownload.insert(spelling, 1);  // mark it as request has been sent
+            m_wordsToDownload.insert(spelling, WaitingDataFromServer);  // mark it as request has been sent
             sendRequestGetAWord(spelling);
         }
     }

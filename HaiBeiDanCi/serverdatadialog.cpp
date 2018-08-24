@@ -96,7 +96,7 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
 
     auto bookName = ci->text(0);
 
-    createProgressDialog(QObject::tr("Downloading ") + "\"" + bookName + "\"", QString());
+    createProgressDialog(QObject::tr("Downloading ") + "\"" + bookName + "\"", QObject::tr("Cancel"));
 
     ServerAgent *serveragent = ServerAgent::instance();
     serveragent->downloadBook(bookName);
@@ -110,7 +110,7 @@ void ServerDataDialog::onDownloadProgress(float percentage)
         {
             destroyProgressDialog();
             ServerAgent *serveragent = ServerAgent::instance();
-            serveragent->cancelDownloadMultipleFiles();
+            serveragent->cancelDownloading();
         }
         else
         {

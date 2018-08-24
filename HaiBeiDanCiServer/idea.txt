@@ -1,3 +1,8 @@
 * improve database performance. HOW?
 * add sequence number for message
 * improve the info.json update
+* report progress when saving words to database?
+* when downloading words, saving words to database concurrently, but NOT in the handleResponseGetAWord()!!!
+* check the crash when downloading media files in Windows
+* for downloading words from the server, it might be better to download one and save one, instead of downloading all and then save
+(because it can fail in the network transition?)

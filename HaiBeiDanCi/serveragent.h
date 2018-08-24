@@ -19,6 +19,13 @@ class ServerAgent : public QObject
     Q_OBJECT
 
 public:
+    typedef enum {
+        WaitingDataFromServer = 1,
+        DownloadSucceeded = 2,
+        DownloadFailed = 3,
+        DownloadCancelled = 4,
+    } DownloadStatus;
+
     virtual ~ServerAgent();
 
     static ServerAgent * instance();
@@ -26,8 +33,8 @@ public:
     void getBookList();
     void downloadBook(QString bookName);
     void downloadFile(QString fileName);
-    const QMap<QString, int> & downloadMultipleFiles(QList<QString> fileList);
-    void cancelDownloadMultipleFiles();
+    const QMap<QString, ServerAgent::DownloadStatus> &downloadMultipleFiles(QList<QString> fileList);
+    void cancelDownloading();
 
 signals:
     void bookListReady(const QList<QString> books);
@@ -40,7 +47,7 @@ signals:
     // the agent should connect to this signal to save the book as saving a book may time-consuming
     void internalBookDataDownloaded(QString bookName);
     void internalFileDataDownloaded(QString fileName, bool succeeded);
-    //void internalWordsDownloadFinished();
+    void internalAWordDataDownloaded();
 
 private slots:
     void onConnected();
@@ -65,13 +72,12 @@ private:
 
     QList<QString> m_booksInServer;
     QMap<QString, sptr<WordBook>> m_mapBooks;
-    QMap<QString, sptr<Word>> m_mapWords;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
+    QMap<QString, sptr<Word>> m_mapWords;
     QMap<QString, QByteArray>  m_mapFileContent;
 
-    QMap<QString, int> m_wordsToDownload;   // 0 - not requested yet, 1 - request sent, 2 - succeeded and saved, 3 - failed
-    QMap<QString, int> m_filesToDownload;   // 0 - not requested yet, 1 - request sent, 2 - succeeded and saved, 3 - failed
-    QTimer m_downloadTimer;
+    QMap<QString, DownloadStatus> m_wordsToDownload;
+    QMap<QString, DownloadStatus> m_filesToDownload;
     QTimer m_messageTimer;
 
     QTimer m_timerServerHeartBeat;
@@ -116,6 +122,9 @@ private:
     void requestWords();
 
     void sendTheFirstMessage();
+    float getProgressPercentage(const QMap<QString, DownloadStatus> mapToDownload);
+    void cancelDownloadingWords();
+    void cancelDownloadingFiles();
 };
 
 #endif // SERVERAGENT_H

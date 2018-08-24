@@ -1,3 +1,16 @@
 {
-"mediahttp": "http://192.168.49.108"
+    "defaultEasiness": "",
+    "cardMaximumInterval": "",
+    "cardDefaultInterval": "",
+    "cardDefaultIntervalForIncorrect": "",
+    "perfectIncrease": "",
+    "correctIncrease": "",
+    "incorrectDecrease": "",
+    "vagueDecrease": "",
+    "infohttp": "",
+    "mediahttp": "",
+    "heartbeatIntervalInSeconds": "",
+    "maximumConsecutiveHeartbeat": "",
+    "downloadIntervalInMilliseconds": "",
+    "numberOfRequestInEveryDownloadRound": ""
 }

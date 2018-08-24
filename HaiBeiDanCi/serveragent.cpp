@@ -2,8 +2,6 @@
 #include "serverclientprotocol.h"
 #include "mysettings.h"
 
-#include <QApplication>
-
 ServerAgent * ServerAgent::m_serveragent = nullptr;
 
 ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent) : QObject(parent),
@@ -19,9 +17,11 @@ ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent)
 
     m_messageTimer.start(MySettings::downloadIntervalInMilliseconds());
 
+    connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)));
+    connect(this, SIGNAL(internalFileDataDownloaded(QString, bool)), this, SLOT(onInternalFileDataDownloaded(QString, bool)));
     // the following should NOT be in connectToServer()
-    connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)), Qt::ConnectionType::QueuedConnection);
-    connect(this, SIGNAL(internalFileDataDownloaded(QString, bool)), this, SLOT(onInternalFileDataDownloaded(QString, bool)), Qt::ConnectionType::QueuedConnection);
+    //connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)), Qt::ConnectionType::QueuedConnection);
+    //connect(this, SIGNAL(internalFileDataDownloaded(QString, bool)), this, SLOT(onInternalFileDataDownloaded(QString, bool)), Qt::ConnectionType::QueuedConnection);
 }
 
 ServerAgent::~ServerAgent()
@@ -312,8 +312,6 @@ void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool succeeded)
         // don't clear it, no meaning!
         //m_filesToDownload.clear();
     }
-
-    QApplication::processEvents();
 }
 
 bool ServerAgent::handleResponseGetAWord()

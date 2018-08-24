@@ -1,5 +1,5 @@
 .DS_Store
 *.qm
 build-*
-**/*.pro.*
+**/*.pro.user*
 

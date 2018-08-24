@@ -43,3 +43,6 @@ HEADERS += \
     ../HaiBeiDanCi/wordcard.h \
     ../HaiBeiDanCi/memoryitem.h \
     ../golddict/sptr.hh
+
+DISTFILES += \
+    idea.txt

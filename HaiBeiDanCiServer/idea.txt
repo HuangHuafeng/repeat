@@ -1,0 +1,3 @@
+* improve database performance. HOW?
+* add sequence number for message
+* improve the info.json update

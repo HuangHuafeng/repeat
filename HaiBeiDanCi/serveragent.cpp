@@ -303,6 +303,10 @@ void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool succeeded)
         m_filesToDownload.insert(fileName, saveResult);
         emit(fileDownloaded(fileName, ok));
     }
+    else
+    {
+        m_mapFileContent.remove(fileName);  // remove the content since it's cancelled
+    }
 
     float percentage = getProgressPercentage(m_filesToDownload);
     emit(downloadProgress(percentage));
@@ -780,29 +784,35 @@ void ServerAgent::downloadBook(QString bookName)
     }
 }
 
+/**
+ * @brief ServerAgent::downloadFile
+ * @param fileName
+ * assumes teh file does not exist, overwrite it if it exists!
+ */
 void ServerAgent::downloadFile(QString fileName)
 {
-    sendRequestGetFile(fileName);
+    if (m_filesToDownload.contains(fileName) == false)
+    {
+        m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
+        sendRequestGetFile(fileName);
+    }
+    else
+    {
+        // it's already in the list, so we don't touch it to spoil the state
+    }
 }
 
 const QMap<QString, ServerAgent::DownloadStatus> &ServerAgent::downloadMultipleFiles(QList<QString> fileList)
 {
     m_filesToDownload.clear();
+    m_mapFileContent.clear();
     const QString dd = MySettings::dataDirectory() + "/";
     for (int i = 0;i < fileList.size();i ++)
     {
         QString fileName = fileList.at(i);
         if (QFile::exists(dd + fileName) == false)
         {
-            if (m_filesToDownload.contains(fileName) == false)
-            {
-                m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
-                sendRequestGetFile(fileName);
-            }
-            else
-            {
-                // it's already in the list, so we don't touch it to spoil the state
-            }
+            downloadFile(fileName);
         }
     }
 

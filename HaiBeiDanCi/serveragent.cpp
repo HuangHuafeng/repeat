@@ -147,7 +147,7 @@ void ServerAgent::onInternalBookDataDownloaded(QString bookName)
     m_mapWords.clear();
     completeBookDownload(bookName);
 
-    qDebug() << "onInternalBookDataDownloaded() used" << t.elapsed();
+    qDebug() << "Used" << t.elapsed() << "ms in onInternalBookDataDownloaded()";
 }
 
 int ServerAgent::handleMessage(int messageCode)

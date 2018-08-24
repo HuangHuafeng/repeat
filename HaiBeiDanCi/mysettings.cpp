@@ -460,8 +460,8 @@ int MySettings::maximumConsecutiveHeartbeat()
     }
     else
     {
-        // default to 12 (2 minutes)
-        valueInSetting = 12;
+        // default to 60 (10 minutes with heartbeat every 10 seconds)
+        valueInSetting = 60;
     }
 
     return valueInSetting;

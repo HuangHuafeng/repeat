@@ -39,6 +39,8 @@ class Word
     static int getWordId(const QString &spelling);
     static bool isInDatabase(const QString &spelling);
     static void storeWordFromServer(sptr<Word> word);
+    static void storeMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords);
+    static void batchStoreMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords);
 
   private:
     //bool dbsaveDefinition();

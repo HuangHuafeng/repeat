@@ -32,6 +32,12 @@ void ClientWaiter::run()
     int currentMessage = 0;
     while (1)
     {
+        if (consecutiveHeartbeat > MySettings::maximumConsecutiveHeartbeat())
+        {
+            // there's no request from the client
+            break;
+        }
+
         if (currentMessage == 0)
         {
             // last message processed completed, it's time for a new message
@@ -47,17 +53,13 @@ void ClientWaiter::run()
                 if (currentMessage == ServerClientProtocol::RequestNoOperation)
                 {
                     consecutiveHeartbeat ++;
-                    if (consecutiveHeartbeat > MySettings::maximumConsecutiveHeartbeat())
-                    {
-                        break;
-                    }
                 }
                 else
                 {
                     consecutiveHeartbeat = 0;
                 }
                 // successfully processed the message
-                //qDebug() << "successfully handled message with code" << currentMessage << endl;
+                qDebug() << QDateTime::currentDateTime().toString() << "successfully handled message with code" << currentMessage << consecutiveHeartbeat;
                 currentMessage = 0;
                 continue;
             }
@@ -90,11 +92,13 @@ void ClientWaiter::run()
         else
         {
             // if we cannot read a msssage code, it means there's no data
-            // so we wait for 30 seconds by default, we can add a setting later
+            // so we wait for 30 seconds (the default) for simplicity
             if (m_tcpSocket->waitForReadyRead() == false)
             {
-                // time out, then we stop waiting for message from the client
-                break;
+                // time out, treat this as received a heartbeat
+                consecutiveHeartbeat ++;
+                // we don't break here, we will ONLY close the connection when consecutiveHeartbeat excceeds!!!
+                //break;
             }
             else
             {

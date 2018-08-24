@@ -79,6 +79,7 @@ class MySettings : public QObject
 
     static int heartbeatIntervalInSeconds();
     static int maximumConsecutiveHeartbeat();
+    static int maximumReadTimeout();
     static int downloadIntervalInMilliseconds();
     static int numberOfRequestInEveryDownloadRound();
 

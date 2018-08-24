@@ -139,7 +139,17 @@ void ServerAgent::onServerHeartBeat()
 
 void ServerAgent::onInternalBookDataDownloaded(QString bookName)
 {
+    QElapsedTimer t;
+    t.start();
+    // store the words to database
+    //Word::storeMultipleWordFromServer(m_mapWords);
+    Word::batchStoreMultipleWordFromServer(m_mapWords);
+    m_mapWords.clear();
+    qDebug() << t.elapsed();
+
+    t.restart();
     completeBookDownload(bookName);
+    qDebug() << t.elapsed();
 }
 
 void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool succeeded)
@@ -317,7 +327,7 @@ bool ServerAgent::handleResponseGetAWord()
 
     // store the word
     sptr<Word> newWord = new Word(word);
-    Word::storeWordFromServer(newWord);
+    m_mapWords.insert(word.getSpelling(), newWord); // just insert it as the word should NOT exist at this moment
 
     /*
     emit(wordDownloaded(word.getSpelling()));
@@ -795,6 +805,7 @@ void ServerAgent::onSendMessage()
         sendTheFirstMessage();
         requestsForARound --;
     }
+    //qDebug() << "MySettings::downloadIntervalInMilliseconds() is" << MySettings::downloadIntervalInMilliseconds();
 }
 
 void ServerAgent::sendTheFirstMessage()

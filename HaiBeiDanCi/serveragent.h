@@ -65,6 +65,7 @@ private:
 
     QList<QString> m_booksInServer;
     QMap<QString, sptr<WordBook>> m_mapBooks;
+    QMap<QString, sptr<Word>> m_mapWords;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
     QMap<QString, QByteArray>  m_mapFileContent;
 

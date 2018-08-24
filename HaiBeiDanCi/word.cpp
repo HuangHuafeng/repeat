@@ -221,6 +221,66 @@ void Word::storeWordFromServer(sptr<Word> word)
     m_allWordsMutex.unlock();
 }
 
+/**
+ * @brief Word::storeMultipleWordFromServer
+ * @param mapWords
+ * should use batch execute to store these words
+ */
+void Word::storeMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords)
+{
+    auto it = mapWords.begin();
+    while (it != mapWords.end())
+    {
+        auto word = (*it);
+        if (word.get() != nullptr)
+        {
+            word->dbsave();
+            m_allWordsMutex.lock();
+            m_allWords.insert(word->getSpelling(), word);
+            m_allWordsMutex.unlock();
+        }
+        it ++;
+    }
+}
+
+void Word::batchStoreMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords)
+{
+    auto it = mapWords.begin();
+    QVariantList ids;
+    QVariantList spellings;
+    QVariantList definitions;
+    m_allWordsMutex.lock();
+    while (it != mapWords.end())
+    {
+        auto word = (*it);
+        if (word.get() != nullptr)
+        {
+            m_allWords.insert(word->getSpelling(), word);
+            ids << word->getId();
+            spellings << word->getSpelling();
+            definitions << word->getDefinition();
+        }
+        it ++;
+    }
+    m_allWordsMutex.unlock();
+
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return;
+    }
+    auto query = *ptrQuery;
+    query.prepare("INSERT INTO words VALUES(?, ?, ?)");
+    query.addBindValue(ids);
+    query.addBindValue(spellings);
+    query.addBindValue(definitions);
+    if (query.execBatch() == false)
+    {
+        WordDB::databaseError(query, "storing words from server");
+        return;
+    }
+}
+
 // static
 bool Word::createDatabaseTables()
 {

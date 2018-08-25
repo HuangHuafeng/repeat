@@ -119,6 +119,11 @@ void ServerDataDialog::onDownloadProgress(float percentage)
             m_pd->setValue(value);
         }
     }
+
+    if (percentage >= 1.0f)
+    {
+        destroyProgressDialog();
+    }
 }
 
 void ServerDataDialog::onBookDownloaded(QString bookName)

@@ -3,6 +3,7 @@
 * check the crash when downloading media files in Windows
 * building the list of media files could take time, so we should show progress dialog
 * downloading info.json meet ssl issue!
+* saving files to disk is slow, maybe good to use a separate thread.(This should have low priority!)
 
 
 // DONE

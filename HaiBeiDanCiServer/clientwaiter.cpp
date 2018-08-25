@@ -11,16 +11,11 @@ ClientWaiter::ClientWaiter(qintptr socketDescriptor, QObject *parent)
 void ClientWaiter::run()
 {
     m_tcpSocket = new QTcpSocket(nullptr);
-    if (m_tcpSocket == nullptr)
-    {
-        return;
-    }
 
     // it's required to create the database connection
     // as we need to query database to like WordBook::getAllWords()
     WordDB::prepareDatabaseForThisThread();
 
-    qDebug() << "run() start";
     if (!m_tcpSocket->setSocketDescriptor(m_socketDescriptor)) {
         emit error(m_tcpSocket->error());
         return;
@@ -29,28 +24,32 @@ void ClientWaiter::run()
     qDebug("%s:%d connected", m_tcpSocket->peerAddress().toString().toLatin1().constData(), m_tcpSocket->peerPort());
 
     int consecutiveHeartbeat = 0;
-    int currentMessage = 0;
+    static sptr<MessageHeader> currentMessage;
+    static uint readMessageHeaderConsecutiveFailure = 0;
     while (1)
     {
         if (consecutiveHeartbeat > MySettings::maximumConsecutiveHeartbeat())
         {
-            // there's no request from the client
+            // no data/request from the client for a while
             break;
         }
 
-        if (currentMessage == 0)
+        qDebug() << "consecutiveHeartbeat:" << consecutiveHeartbeat;
+
+        if (currentMessage.get() == nullptr)
         {
             // last message processed completed, it's time for a new message
-            currentMessage = readMessageCode();
+            currentMessage = readMessageHeader();
         }
 
-        if (currentMessage != 0)
+        if (currentMessage.get() != nullptr)
         {
             // we have a message, try to process it
-            int handleResult = handleMessage(currentMessage);
+            readMessageHeaderConsecutiveFailure = 0;
+            int handleResult = handleMessage(*currentMessage);
             if (handleResult == 0)
             {
-                if (currentMessage == ServerClientProtocol::RequestNoOperation)
+                if (currentMessage->code() == ServerClientProtocol::RequestNoOperation)
                 {
                     consecutiveHeartbeat ++;
                 }
@@ -59,56 +58,66 @@ void ClientWaiter::run()
                     consecutiveHeartbeat = 0;
                 }
                 // successfully processed the message
-                qDebug() << QDateTime::currentDateTime().toString() << "successfully handled message with code" << currentMessage << consecutiveHeartbeat;
-                currentMessage = 0;
+                qDebug() << QDateTime::currentDateTime().toString() << "successfully handled message:";
+                qDebug("%s", currentMessage->toString().toUtf8().constData());
+                // successfully processed the message
+                currentMessage = sptr<MessageHeader>();
                 continue;
             }
             else if (handleResult == 1)
             {
-                qDebug() << "failed to handle message with code" << currentMessage;
+                qDebug() << QDateTime::currentDateTime().toString() << "failed to handle message:";
+                qDebug("%s", currentMessage->toString().toUtf8().constData());
 
-                // failed to process the message, probably means the content of the message is NOT fully available
-                // so quit the loop and contine in next call of onReadyRead()
-                if (m_tcpSocket->waitForReadyRead() == false)
+                if (waitForMoreData() == false)
                 {
-                    // time out, then we stop waiting for message from the client
-                    break;
-                }
-                else
-                {
-                    // new message from client, continue to handle the message
-                    continue;
+                    consecutiveHeartbeat ++;
                 }
             }
             else
             {
-                // handleResult == -1, unknown message!
+                qDebug() << QDateTime::currentDateTime().toString() << "unknown message:";
+                qDebug("%s", currentMessage->toString().toUtf8().constData());
+
                 // discard the message and continue trying to get the next message
-                sendResponseUnknownRequest(currentMessage);
-                currentMessage = 0;
-                continue;
+                currentMessage = sptr<MessageHeader>();
             }
         }
         else
         {
-            // if we cannot read a msssage code, it means there's no data
-            // so we wait for 30 seconds (the default) for simplicity
-            if (m_tcpSocket->waitForReadyRead() == false)
+            if (waitForMoreData() == false)
             {
-                // time out, treat this as received a heartbeat
                 consecutiveHeartbeat ++;
-                // we don't break here, we will ONLY close the connection when consecutiveHeartbeat excceeds!!!
-                //break;
-            }
-            else
-            {
-                // new message from client, continue to handle the message
-                continue;
             }
         }
     }
 
     disconnectPeer();
+}
+
+/**
+ * @brief ClientWaiter::waitForMoreData
+ * @return
+ * true if there's new data
+ * false timeout, no new data
+ */
+bool ClientWaiter::waitForMoreData()
+{
+    if (m_tcpSocket == nullptr)
+    {
+        return false;
+    }
+
+    // wait for 30 seconds (the default) for simplicity
+    if (m_tcpSocket->waitForReadyRead() == false)
+    {
+        return false;
+    }
+    else
+    {
+        // new message from client
+        return true;
+    }
 }
 
 void ClientWaiter::disconnectPeer()
@@ -126,39 +135,43 @@ void ClientWaiter::disconnectPeer()
     qDebug() << "disconnected.";
 }
 
-void ClientWaiter::sendResponseUnknownRequest(int messageCode)
+void ClientWaiter::sendResponseUnknownRequest(const MessageHeader &msgHeader)
 {
+    MessageHeader responseHeader(ServerClientProtocol::ResponseUnknownRequest, msgHeader.sequenceNumber());
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    int responseCode = ServerClientProtocol::ResponseUnknownRequest;
-    out << responseCode << messageCode;
+    out << responseHeader;
     m_tcpSocket->write(block);
 }
 
-int ClientWaiter::readMessageCode()
+sptr<MessageHeader> ClientWaiter::readMessageHeader()
 {
     if (m_tcpSocket == nullptr)
     {
-        return 0;
+        return sptr<MessageHeader>();
     }
 
-    int messageCode;
+    sptr<MessageHeader> mh = new MessageHeader(-1, -1, -1);
     QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> messageCode;
+    in >> *mh;
     if (in.commitTransaction() == true)
     {
-        return messageCode;
+        return mh;
     }
     else
     {
         // in this case, the transaction is restored by commitTransaction()
-        //qInfo("failed to read message code in readMessageCode(), probably no data from peer");
-        return 0;
+        return sptr<MessageHeader>();
     }
 }
 
-int ClientWaiter::handleMessage(int messageCode)
+void ClientWaiter::handleUnknownMessage(const MessageHeader &msgHeader)
+{
+    sendResponseUnknownRequest(msgHeader);
+}
+
+int ClientWaiter::handleMessage(const MessageHeader &msgHeader)
 {
     if (m_tcpSocket == nullptr)
     {
@@ -167,45 +180,45 @@ int ClientWaiter::handleMessage(int messageCode)
 
     bool handleResult = false;
     bool unknowMessage = false;
-    switch (messageCode) {
+    switch (msgHeader.code()) {
     case ServerClientProtocol::RequestBye:
         handleResult = true;
         break;
 
     case ServerClientProtocol::RequestNoOperation:
-        handleResult = handleRequestNoOperation();
+        handleResult = handleRequestNoOperation(msgHeader);
         break;
 
     case ServerClientProtocol::RequestGetAllBooks:
-        handleResult = handleRequestGetAllBooks();
+        handleResult = handleRequestGetAllBooks(msgHeader);
         break;
 
     case ServerClientProtocol::RequestGetWordsOfBook:
-        handleResult = handleRequestGetWordsOfBook();
+        handleResult = handleRequestGetWordsOfBook(msgHeader);
         break;
 
     case ServerClientProtocol::RequestGetAWord:
-        handleResult = handleRequestGetAWord();
+        handleResult = handleRequestGetAWord(msgHeader);
         break;
 
     case ServerClientProtocol::RequestGetWords:
-        handleResult = handleRequestGetWords();
+        handleResult = handleRequestGetWords(msgHeader);
         break;
 
     case ServerClientProtocol::RequestGetABook:
-        handleResult = handleRequestGetABook();
+        handleResult = handleRequestGetABook(msgHeader);
         break;
 
     case ServerClientProtocol::RequestGetFile:
-        handleResult = handleRequestGetFile();
+        handleResult = handleRequestGetFile(msgHeader);
         break;
 
     case ServerClientProtocol::RequestGetWordsOfBookFinished:
-        handleResult = handleRequestGetWordsOfBookFinished();
+        handleResult = handleRequestGetWordsOfBookFinished(msgHeader);
         break;
 
     default:
-        qDebug() << "got unknown message with code" << messageCode << "in handleMessage()";
+        handleUnknownMessage(msgHeader);
         unknowMessage = true;
         break;
 
@@ -231,43 +244,41 @@ int ClientWaiter::handleMessage(int messageCode)
     return retVal;
 }
 
-bool ClientWaiter::handleRequestNoOperation()
+bool ClientWaiter::handleRequestNoOperation(const MessageHeader &msgHeader)
 {
     qDebug() << "Heartbeat received from the client";
-    sendResponseNoOperation();
+    sendResponseNoOperation(msgHeader);
     return true;
 }
 
-bool ClientWaiter::handleRequestGetAllBooks()
+bool ClientWaiter::handleRequestGetAllBooks(const MessageHeader &msgHeader)
 {
     funcTracker ft("handleRequestGetAllBooks()");
 
     auto books = WordBook::getAllBooks();
-    sendResponseGetAllBooks(books);
+    sendResponseGetAllBooks(msgHeader, books);
     return true;
 }
 
-void ClientWaiter::sendResponseNoOperation()
+void ClientWaiter::sendResponseNoOperation(const MessageHeader &msgHeader)
 {
-    int responseCode = ServerClientProtocol::ResponseNoOperation;
-
+    MessageHeader responseHeader(ServerClientProtocol::ResponseNoOperation, msgHeader.sequenceNumber());
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode;
+    out << responseHeader;
     m_tcpSocket->write(block);
 }
 
-void ClientWaiter::sendResponseGetAllBooks(const QList<QString> &books)
+void ClientWaiter::sendResponseGetAllBooks(const MessageHeader &msgHeader, const QList<QString> &books)
 {
-    int responseCode = ServerClientProtocol::ResponseGetAllBooks;
-
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetAllBooks, msgHeader.sequenceNumber());
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << books;
+    out << responseHeader << books;
     m_tcpSocket->write(block);
 }
 
-bool ClientWaiter::handleRequestGetWords()
+bool ClientWaiter::handleRequestGetWords(const MessageHeader &msgHeader)
 {
     funcTracker ft("handleRequestGetWords()");
 
@@ -289,16 +300,16 @@ bool ClientWaiter::handleRequestGetWords()
         auto word = Word::getWord(wordList.at(i));
         if (word.get() != nullptr)
         {
-            sendResponseGetAWord(*word);
+            sendResponseGetAWord(msgHeader, *word);
         }
     }
 
-    sendResponseAllDataSentForRequestGetWords(bookName);
+    sendResponseAllDataSentForRequestGetWords(msgHeader, bookName);
 
     return true;
 }
 
-bool ClientWaiter::handleRequestGetAWord()
+bool ClientWaiter::handleRequestGetAWord(const MessageHeader &msgHeader)
 {
     funcTracker ft("handleRequestGetAWord()");
 
@@ -320,75 +331,65 @@ bool ClientWaiter::handleRequestGetAWord()
         return false;
     }
 
-    sendResponseGetAWord(*word);
+    sendResponseGetAWord(msgHeader, *word);
 
     return true;
 }
 
-void ClientWaiter::sendResponseGetAWord(const Word &word)
+void ClientWaiter::sendResponseGetAWord(const MessageHeader &msgHeader, const Word &word)
 {
-    int responseCode = ServerClientProtocol::ResponseGetAWord;
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetAWord, msgHeader.sequenceNumber());
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << word;
+    out << responseHeader << word;
     m_tcpSocket->write(block);
 }
 
-void ClientWaiter::sendResponseAllDataSent(int messageCode)
+void ClientWaiter::sendResponseAllDataSentForRequestGetWordsOfBook(const MessageHeader &msgHeader, const QString bookName)
 {
-    int responseCode = ServerClientProtocol::ResponseAllDataSent;
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << messageCode;
-    m_tcpSocket->write(block);
-}
-
-void ClientWaiter::sendResponseAllDataSentForRequestGetWordsOfBook(const QString bookName)
-{
-    int responseCode = ServerClientProtocol::ResponseAllDataSent;
+    MessageHeader responseHeader(ServerClientProtocol::ResponseAllDataSent, msgHeader.sequenceNumber());
     int messageCode = ServerClientProtocol::RequestGetWordsOfBook;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << messageCode << bookName;
+    out << responseHeader << messageCode << bookName;
     m_tcpSocket->write(block);
 }
 
-void ClientWaiter::sendResponseGetWordsOfBookFinished(const QString bookName)
+void ClientWaiter::sendResponseGetWordsOfBookFinished(const MessageHeader &msgHeader, const QString bookName)
 {
-    int responseCode = ServerClientProtocol::ResponseGetWordsOfBookFinished;
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetWordsOfBookFinished, msgHeader.sequenceNumber());
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << bookName;
+    out << responseHeader << bookName;
     m_tcpSocket->write(block);
 }
 
-void ClientWaiter::sendResponseAllDataSentForRequestGetFile(const QString fileName, bool succeeded)
+void ClientWaiter::sendResponseAllDataSentForRequestGetFile(const MessageHeader &msgHeader, const QString fileName, bool succeeded)
 {
-    int responseCode = ServerClientProtocol::ResponseAllDataSent;
+    MessageHeader responseHeader(ServerClientProtocol::ResponseAllDataSent, msgHeader.sequenceNumber());
     int messageCode = ServerClientProtocol::RequestGetFile;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << messageCode << fileName << succeeded;
+    out << responseHeader << messageCode << fileName << succeeded;
     m_tcpSocket->write(block);
 }
 
-void ClientWaiter::sendResponseAllDataSentForRequestGetWords(const QString bookName)
+void ClientWaiter::sendResponseAllDataSentForRequestGetWords(const MessageHeader &msgHeader, const QString bookName)
 {
-    int responseCode = ServerClientProtocol::ResponseAllDataSent;
+    MessageHeader responseHeader(ServerClientProtocol::ResponseAllDataSent, msgHeader.sequenceNumber());
     int messageCode = ServerClientProtocol::RequestGetWords;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << messageCode << bookName;
+    out << responseHeader << messageCode << bookName;
     m_tcpSocket->write(block);
 }
 
-bool ClientWaiter::handleRequestGetABook()
+bool ClientWaiter::handleRequestGetABook(const MessageHeader &msgHeader)
 {
     funcTracker ft("handleRequestGetABook()");
 
@@ -410,12 +411,12 @@ bool ClientWaiter::handleRequestGetABook()
         return false;
     }
 
-    sendResponseGetABook(*book);
+    sendResponseGetABook(msgHeader, *book);
 
     return true;
 }
 
-bool ClientWaiter::handleRequestGetFile()
+bool ClientWaiter::handleRequestGetFile(const MessageHeader &msgHeader)
 {
     funcTracker ft("handleRequestGetFile()");
 
@@ -431,24 +432,24 @@ bool ClientWaiter::handleRequestGetFile()
         return false;
     }
 
-    bool succeeded = sendFile(fileName);
-    sendResponseAllDataSentForRequestGetFile(fileName, succeeded);
+    bool succeeded = sendFile(msgHeader, fileName);
+    sendResponseAllDataSentForRequestGetFile(msgHeader, fileName, succeeded);
 
     // the message has been processed, so return true regardless if succeeded or not
     return true;
 }
 
-void ClientWaiter::sendResponseGetABook(const WordBook &book)
+void ClientWaiter::sendResponseGetABook(const MessageHeader &msgHeader, const WordBook &book)
 {
-    int responseCode = ServerClientProtocol::ResponseGetABook;
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetABook, msgHeader.sequenceNumber());
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << book;
+    out << responseHeader << book;
     m_tcpSocket->write(block);
 }
 
-bool ClientWaiter::handleRequestGetWordsOfBook()
+bool ClientWaiter::handleRequestGetWordsOfBook(const MessageHeader &msgHeader)
 {
     funcTracker ft("handleRequestGetWordsOfBook()");
 
@@ -464,12 +465,12 @@ bool ClientWaiter::handleRequestGetWordsOfBook()
         return false;
     }
 
-    sendWordsOfBook(bookName);
+    sendWordsOfBook(msgHeader, bookName);
 
     return true;
 }
 
-bool ClientWaiter::handleRequestGetWordsOfBookFinished()
+bool ClientWaiter::handleRequestGetWordsOfBookFinished(const MessageHeader &msgHeader)
 {
     funcTracker ft("handleRequestGetWordsOfBook()");
 
@@ -485,12 +486,12 @@ bool ClientWaiter::handleRequestGetWordsOfBookFinished()
         return false;
     }
 
-    sendResponseGetWordsOfBookFinished(bookName);
+    sendResponseGetWordsOfBookFinished(msgHeader, bookName);
 
     return true;
 }
 
-void ClientWaiter::sendWordsOfBook(const QString bookName)
+void ClientWaiter::sendWordsOfBook(const MessageHeader &msgHeader, const QString bookName)
 {
     auto book = WordBook::getBook(bookName);
     if (book == nullptr)
@@ -507,17 +508,17 @@ void ClientWaiter::sendWordsOfBook(const QString bookName)
         counter ++;
         const QString partName = ServerClientProtocol::partPrefix(counter) + bookName;
         QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-        sendResponseGetWordsOfBook(partName, subList);
+        sendResponseGetWordsOfBook(msgHeader, partName, subList);
         pos += ServerClientProtocol::MaximumWordsInAMessage;
     }
 
     QVector<QString> leftWords = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-    sendResponseGetWordsOfBook(bookName, leftWords);
+    sendResponseGetWordsOfBook(msgHeader, bookName, leftWords);
 
-    sendResponseAllDataSentForRequestGetWordsOfBook(bookName);
+    sendResponseAllDataSentForRequestGetWordsOfBook(msgHeader, bookName);
 }
 
-bool ClientWaiter::sendFile(const QString fileName)
+bool ClientWaiter::sendFile(const MessageHeader &msgHeader, const QString fileName)
 {
     QString localFile = MySettings::dataDirectory() + "/" + fileName;
     qDebug() << "send file" << localFile;
@@ -547,7 +548,7 @@ bool ClientWaiter::sendFile(const QString fileName)
 
         counter ++;
         const QString partName = ServerClientProtocol::partPrefix(counter) + fileName;
-        sendResponseGetFile(partName, buf, static_cast<uint>(readBytes));
+        sendResponseGetFile(msgHeader, partName, buf, static_cast<uint>(readBytes));
         sentBytes += readBytes;
         qDebug() << "send" << readBytes << "bytes of total" << fileSize;
     }
@@ -557,28 +558,28 @@ bool ClientWaiter::sendFile(const QString fileName)
     return succeeded;
 }
 
-void ClientWaiter::sendResponseGetFile(const QString fileName, const char *s, uint len)
+void ClientWaiter::sendResponseGetFile(const MessageHeader &msgHeader, const QString fileName, const char *s, uint len)
 {
-    int responseCode = ServerClientProtocol::ResponseGetFile;
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetFile, msgHeader.sequenceNumber());
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << fileName;
+    out << responseHeader << fileName;
     out.writeBytes(s, len);
     m_tcpSocket->write(block);
 }
 
-void ClientWaiter::sendResponseGetWordsOfBook(const QString bookName, const QVector<QString> &wordList)
+void ClientWaiter::sendResponseGetWordsOfBook(const MessageHeader &msgHeader, const QString bookName, const QVector<QString> &wordList)
 {
     if (wordList.size() > ServerClientProtocol::MaximumWordsInAMessage)
     {
         return;
     }
 
-    int responseCode = ServerClientProtocol::ResponseGetWordsOfBook;
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetWordsOfBook, msgHeader.sequenceNumber());
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseCode << bookName << wordList;
+    out << responseHeader << bookName << wordList;
     m_tcpSocket->write(block);
 }

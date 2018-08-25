@@ -27,35 +27,36 @@ private:
     QTcpSocket *m_tcpSocket;
 
     void disconnectPeer();
+    bool waitForMoreData();
 
-    int readMessageCode();
-    int handleMessage(int messageCode);
+    sptr<MessageHeader> readMessageHeader();
+    int handleMessage(const MessageHeader &msgHeader);
+    void handleUnknownMessage(const MessageHeader &msgHeader);
 
-    bool handleRequestNoOperation();
-    bool handleRequestGetAllBooks();
-    bool handleRequestGetWordsOfBook();
-    bool handleRequestGetWordsOfBookFinished();
-    bool handleRequestGetWords();
-    bool handleRequestGetAWord();
-    bool handleRequestGetABook();
-    bool handleRequestGetFile();
+    bool handleRequestNoOperation(const MessageHeader &msgHeader);
+    bool handleRequestGetAllBooks(const MessageHeader &msgHeader);
+    bool handleRequestGetWordsOfBook(const MessageHeader &msgHeader);
+    bool handleRequestGetWordsOfBookFinished(const MessageHeader &msgHeader);
+    bool handleRequestGetWords(const MessageHeader &msgHeader);
+    bool handleRequestGetAWord(const MessageHeader &msgHeader);
+    bool handleRequestGetABook(const MessageHeader &msgHeader);
+    bool handleRequestGetFile(const MessageHeader &msgHeader);
 
-    void sendWordsOfBook(const QString bookName);
-    bool sendFile(const QString fileName);
+    void sendWordsOfBook(const MessageHeader &msgHeader, const QString bookName);
+    bool sendFile(const MessageHeader &msgHeader, const QString fileName);
 
     // the following functions all send ONE message
-    void sendResponseNoOperation();
-    void sendResponseGetAllBooks(const QList<QString> &books);
-    void sendResponseGetAWord(const Word &word);
-    void sendResponseGetABook(const WordBook &book);
-    void sendResponseGetWordsOfBook(const QString bookName, const QVector<QString> &wordList);
-    void sendResponseAllDataSent(int messageCode);
-    void sendResponseAllDataSentForRequestGetWordsOfBook(const QString bookName);
-    void sendResponseAllDataSentForRequestGetWords(const QString bookName);
-    void sendResponseAllDataSentForRequestGetFile(const QString fileName, bool succeeded);
-    void sendResponseUnknownRequest(int messageCode);
-    void sendResponseGetFile(const QString fileName, const char *s, uint len);
-    void sendResponseGetWordsOfBookFinished(const QString bookName);
+    void sendResponseNoOperation(const MessageHeader &msgHeader);
+    void sendResponseGetAllBooks(const MessageHeader &msgHeader, const QList<QString> &books);
+    void sendResponseGetAWord(const MessageHeader &msgHeader, const Word &word);
+    void sendResponseGetABook(const MessageHeader &msgHeader, const WordBook &book);
+    void sendResponseGetWordsOfBook(const MessageHeader &msgHeader, const QString bookName, const QVector<QString> &wordList);
+    void sendResponseAllDataSentForRequestGetWordsOfBook(const MessageHeader &msgHeader, const QString bookName);
+    void sendResponseAllDataSentForRequestGetWords(const MessageHeader &msgHeader, const QString bookName);
+    void sendResponseAllDataSentForRequestGetFile(const MessageHeader &msgHeader, const QString fileName, bool succeeded);
+    void sendResponseUnknownRequest(const MessageHeader &msgHeader);
+    void sendResponseGetFile(const MessageHeader &msgHeader, const QString fileName, const char *s, uint len);
+    void sendResponseGetWordsOfBookFinished(const MessageHeader &msgHeader, const QString bookName);
 
 };
 

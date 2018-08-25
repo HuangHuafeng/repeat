@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QRegExp>
+#include <QDataStream>
 
 /**
  * a message between the server and the client should:
@@ -17,7 +18,7 @@
 class ServerClientProtocol
 {
 public:
-    static QString partPrefix(int partNumber = -1)
+    static QString partPrefix(qint32 partNumber = -1)
     {
         if (partNumber == -1)
         {
@@ -104,5 +105,31 @@ public:
 private:
     QString m_funcName;
 };
+
+class MessageHeader
+{
+    qint32 m_code;
+    qint32 m_sequenceNumber;  // sequence number of this message
+    qint32 m_respondsTo;  // this message responds to the message with sequence number "respondsTo" from the peer
+    //qint32 m_version;     // version of the message, not needed yet
+
+    static qint32 m_currentSequenceNumber;
+
+public:
+    MessageHeader(qint32 code = 0, qint32 respondsTo = 0, qint32 sequenceNumber = 0);
+
+    qint32 code() const;
+    qint32 sequenceNumber() const;
+    qint32 respondsTo() const;
+
+    void setCode(qint32 code);
+    void setSequenceNumber(qint32 sequenceNumber);
+    void setRespondsTo(qint32 respondsTo);
+
+    QString toString() const;
+};
+
+QDataStream &operator<<(QDataStream &ds, const MessageHeader &word);
+QDataStream &operator>>(QDataStream &ds, MessageHeader &word);
 
 #endif // SERVERCLIENTPROTOCOL_H

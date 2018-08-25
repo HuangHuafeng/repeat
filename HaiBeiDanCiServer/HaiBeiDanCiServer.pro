@@ -25,7 +25,8 @@ SOURCES += \
     ../HaiBeiDanCi/mysettings.cpp \
     ../HaiBeiDanCi/downloadmanager.cpp \
     ../HaiBeiDanCi/wordcard.cpp \
-    ../HaiBeiDanCi/memoryitem.cpp
+    ../HaiBeiDanCi/memoryitem.cpp \
+    ../HaiBeiDanCi/serverclientprotocol.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

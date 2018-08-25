@@ -1,11 +1,14 @@
+* add sequence number for message, ACTUALLY, we should have a  message header
+* change the progress dialog to an object, instead of using a point
+* check the crash when downloading media files in Windows
+* building the list of media files could take time, so we should show progress dialog
+* downloading info.json meet ssl issue!
+
+
+// DONE
 DONE * improve database performance. HOW? (transaction(), commit())
-* add sequence number for message
 DONE * improve the info.json update
 NOT NEEDED AS saving NOW VERY QUICK * report progress when saving words to database?
 NOT NEEDED AS saving NOW VERY QUICK * when downloading words, saving words to database concurrently, but NOT in the handleResponseGetAWord()!!!
 NOT NEEDED AS saving NOW VERY QUICK * for downloading words from the server, it might be better to download one and save one, instead of downloading all and then save
 (because it can fail in the network transition?)
-* change the progress dialog to an object, instead of using a point
-* check the crash when downloading media files in Windows
-* building the list of media files could take time, so we should show progress dialog
-* downloading info.json meet ssl issue!

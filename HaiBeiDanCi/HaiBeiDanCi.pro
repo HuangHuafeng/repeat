@@ -45,7 +45,9 @@ SOURCES += \
     downloadmanager.cpp \
     serverdatadialog.cpp \
     testdialog.cpp \
-    serveragent.cpp
+    serveragent.cpp \
+    serverclientprotocol.cpp \
+    serverclientprotocol.cpp
 
 HEADERS += \
         mainwindow.h \

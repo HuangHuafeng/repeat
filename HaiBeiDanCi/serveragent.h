@@ -3,6 +3,7 @@
 
 #include "wordbook.h"
 #include "../golddict/sptr.hh"
+#include "serverclientprotocol.h"
 
 #include <QObject>
 #include <QtNetwork>
@@ -90,21 +91,22 @@ private:
     // these handle*() functions should be fast as the socket is busy (receving data)
     // if they take long time, it can cause slow the socket to buffer data
     // thus result unnecessary failure in read transition
-    int readMessageCode();
-    int handleMessage(int messageCode);
-    bool handleResponseNoOperation();
-    bool handleUnknownMessage(int messageCode);
-    bool handleResponseGetAllBooks();
-    bool handleResponseGetWordsOfBook();
-    bool handleResponseUnknownRequest();
-    bool handleResponseGetABook();
-    bool handleResponseGetAWord();
-    bool handleResponseAllDataSent();
-    bool handleResponseAllDataSentForRequestGetWordsOfBook();
-    bool handleResponseAllDataSentForRequestGetWords();
-    bool handleResponseAllDataSentForRequestGetFile();
-    bool handleResponseGetFile();
-    bool handleResponseGetWordsOfBookFinished();
+    sptr<MessageHeader> readMessageHeader();
+    int handleMessage(const MessageHeader &msgHead);
+    bool handleResponseNoOperation(const MessageHeader &msgHead);
+    bool handleUnknownMessage(const MessageHeader &msgHead);
+    bool handleResponseGetAllBooks(const MessageHeader &msgHead);
+    bool handleResponseGetWordsOfBook(const MessageHeader &msgHead);
+    bool handleResponseUnknownRequest(const MessageHeader &msgHead);
+    bool handleResponseGetABook(const MessageHeader &msgHead);
+    bool handleResponseGetAWord(const MessageHeader &msgHead);
+    bool handleResponseGetFile(const MessageHeader &msgHead);
+    bool handleResponseGetWordsOfBookFinished(const MessageHeader &msgHead);
+
+    bool handleResponseAllDataSent(const MessageHeader &msgHead);
+    bool handleResponseAllDataSentForRequestGetWordsOfBook(const MessageHeader &msgHead);
+    bool handleResponseAllDataSentForRequestGetWords(const MessageHeader &msgHead);
+    bool handleResponseAllDataSentForRequestGetFile(const MessageHeader &msgHead);
 
     void connectToServer();
     void sendRequestNoOperation();

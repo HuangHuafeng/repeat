@@ -7,7 +7,6 @@
 #include "wordbook.h"
 #include "preferencesdialog.h"
 #include "serverdatadialog.h"
-#include "testdialog.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>

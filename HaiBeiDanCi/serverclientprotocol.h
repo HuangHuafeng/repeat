@@ -41,53 +41,34 @@ public:
     } MessageParameters;
 
     typedef enum {
-        RequestNoOperation = 10000,
-        RequestGetAllBooks = RequestNoOperation + 1,
-        RequestGetWordsOfBook = RequestNoOperation + 2,     // should be careful, not too big
-        RequestGetWords = RequestNoOperation + 3,
-        RequestGetAWord = RequestNoOperation + 4,
-        RequestGetABook = RequestNoOperation + 5,
-        RequestGetFile = RequestNoOperation + 6,
-        RequestGetWordsOfBookFinished = RequestNoOperation + 7, // used to echo to the client to let it aware that downloading words finished
-        RequestBye = RequestNoOperation + 1000,
-    } RequestCode;
+        RequestNoOperation = 10000, // Yes
+        RequestGetAllBooks = RequestNoOperation + 1,    // Yes, 1:1
+        RequestGetAWord = RequestNoOperation + 2,   // Yes, 1:1
+        RequestGetABook = RequestNoOperation + 3,   // Yes, 1:1
+        RequestGetBookWordList = RequestNoOperation + 4, // Yes, n:1
+        RequestGetFile = RequestNoOperation + 5,    // Yes, n:1
+        RequestGetWordsOfBookFinished = RequestNoOperation + 6, // Yes, 1:1 // used to echo to the client to let it aware that downloading words finished
+        RequestBye = RequestNoOperation + 7,    // Yes, 1:0
+    } ClientToServerMessageCode;
 
     typedef enum {
-        ResponseNoOperation = 20000,
-        ResponseGetAllBooks = ResponseNoOperation + 1,
-        ResponseGetWordsOfBook = ResponseNoOperation + 2, // Resp:Req is n:1
-        ResponseGetWords = ResponseNoOperation + 3,
-        ResponseGetAWord = ResponseNoOperation + 4,
-        ResponseGetABook = ResponseNoOperation + 5,
-        ResponseGetFile = ResponseNoOperation + 6,
-        ResponseGetWordsOfBookFinished = ResponseNoOperation + 7,
-        ResponseFailedToRequest = ResponseNoOperation + 1000,
-        ResponseUnknownRequest = ResponseNoOperation + 1001,
-        ResponseAllDataSent = ResponseNoOperation + 1002,
-    } ResponseCode;
+        ResponseNoOperation = 20000,    // Yes
+        ResponseGetAllBooks = ResponseNoOperation + 1,  // Yes
+        ResponseGetAWord = ResponseNoOperation + 2, // Yes
+        ResponseGetABook = ResponseNoOperation + 3, // Yes
+
+        ResponseGetBookWordList = ResponseNoOperation + 4,   // Yes
+        ResponseBookWordListAllSent = ResponseGetBookWordList + 1000,   // Yes
+
+        ResponseGetFile = ResponseNoOperation + 5,  // Yes
+        ResponseGetFileFinished = ResponseGetFile + 1000,
+
+        ResponseGetWordsOfBookFinished = ResponseNoOperation + 6,   // Yes
+
+        ResponseFailedToRequest = ResponseNoOperation + 9000,   // Yes
+        ResponseUnknownRequest = ResponseNoOperation + 9001,    // Yes
+    } ServerToClientMessageCode;
 };
-
-/****
- * Request format:
- * NoOperation: RequestCode
- * Bye: RequestCode
- * GetAllBooks: RequestCode
- * GetWordsOfBook: RequestCode + book name
- * GetWord: RequestCode + list of spellings
- * RequestGetAWord: RequestCode + spelling
- * RequestGetABook: RequestCode + book name
- ****/
-
-/****
- * Response format:
- * GetAllBooksResponse: ResponseCode + list of names
- * GetWordsOfBookResponse: ResponseCode + book name + list of spellings
- * GetWordResponse: ResponseCode + list of Words
- * ResponseFailedToRequest: ResponseCode + RequestCode
- * ResponseGetAWord: ResponseCode + (Word serialization)
- * ResponseGetABook: ResponseCode + (WordBook serialization)
- * ResponseAllDataSent: ResponseCode + RequestCode
- ****/
 
 class funcTracker
 {

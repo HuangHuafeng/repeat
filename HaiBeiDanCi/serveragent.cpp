@@ -173,16 +173,9 @@ int ServerAgent::handleMessage(const MessageHeader &msgHeader)
     case ServerClientProtocol::ResponseNoOperation:
         handleResult = handleResponseNoOperation(msgHeader);
         break;
-    case ServerClientProtocol::ResponseUnknownRequest:
-        handleResult = handleResponseUnknownRequest(msgHeader);
-        break;
 
     case ServerClientProtocol::ResponseGetAllBooks:
         handleResult = handleResponseGetAllBooks(msgHeader);
-        break;
-
-    case ServerClientProtocol::ResponseGetWordsOfBook:
-        handleResult = handleResponseGetWordsOfBook(msgHeader);
         break;
 
     case ServerClientProtocol::ResponseGetAWord:
@@ -193,16 +186,28 @@ int ServerAgent::handleMessage(const MessageHeader &msgHeader)
         handleResult = handleResponseGetABook(msgHeader);
         break;
 
+    case ServerClientProtocol::ResponseGetBookWordList:
+        handleResult = handleResponseGetBookWordList(msgHeader);
+        break;
+
+    case ServerClientProtocol::ResponseBookWordListAllSent:
+        handleResult = handleResponseBookWordListAllSent(msgHeader);
+        break;
+
     case ServerClientProtocol::ResponseGetFile:
         handleResult = handleResponseGetFile(msgHeader);
+        break;
+
+    case ServerClientProtocol::ResponseGetFileFinished:
+        handleResult = handleResponseGetFileFinished(msgHeader);
         break;
 
     case ServerClientProtocol::ResponseGetWordsOfBookFinished:
         handleResult = handleResponseGetWordsOfBookFinished(msgHeader);
         break;
 
-    case ServerClientProtocol::ResponseAllDataSent:
-        handleResult = handleResponseAllDataSent(msgHeader);
+    case ServerClientProtocol::ResponseUnknownRequest:
+        handleResult = handleResponseUnknownRequest(msgHeader);
         break;
 
     default:
@@ -270,7 +275,29 @@ bool ServerAgent::handleResponseGetAllBooks(const MessageHeader &msgHeader)
     return true;
 }
 
-bool ServerAgent::handleResponseGetWordsOfBook(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseBookWordListAllSent(const MessageHeader &msgHeader)
+{
+    // avoid unused parameter warning
+    msgHeader.toString();
+
+    QDataStream in(m_tcpSocket);
+    QString bookName;
+    in.startTransaction();
+    in >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read book name in handleResponseBookWordListAllSent()";
+        return false;
+    }
+
+    // we've received the words of the book, get the definition of these words
+    downloadWordsOfBook(bookName);
+
+    return true;
+}
+
+bool ServerAgent::handleResponseGetBookWordList(const MessageHeader &msgHeader)
 {
     // avoid unused parameter warning
     msgHeader.toString();
@@ -380,45 +407,6 @@ float ServerAgent::getProgressPercentage(const QMap<QString, DownloadStatus> map
     int total = mapToDownload.size();
 
     return finished * 1.0f / total;
-}
-
-bool ServerAgent::handleResponseAllDataSent(const MessageHeader &msgHeader)
-{
-    // avoid unused parameter warning
-    msgHeader.toString();
-
-    QDataStream in(m_tcpSocket);
-    int messageCode;
-    in.startTransaction();
-    in >> messageCode;
-    if (in.commitTransaction() == false)
-    {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read books in handleResponseGetAllBooks()";
-        return false;
-    }
-
-    bool handleResult = false;
-    switch (messageCode) {
-    case ServerClientProtocol::RequestGetWordsOfBook:
-        handleResult = handleResponseAllDataSentForRequestGetWordsOfBook(msgHeader);
-        break;
-
-    case ServerClientProtocol::RequestGetWords:
-        handleResult = handleResponseAllDataSentForRequestGetWords(msgHeader);
-        break;
-
-    case ServerClientProtocol::RequestGetFile:
-        handleResult = handleResponseAllDataSentForRequestGetFile(msgHeader);
-        break;
-
-    default:
-        qDebug() << "unhandled message code" << messageCode << "in handleResponseAllDataSent()";
-        handleResult = false;
-        break;
-    }
-
-    return handleResult;
 }
 
 bool ServerAgent::handleResponseGetWordsOfBookFinished(const MessageHeader &msgHeader)
@@ -560,7 +548,7 @@ bool ServerAgent::handleResponseAllDataSentForRequestGetFile(const MessageHeader
     if (in.commitTransaction() == false)
     {
         // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read books in handleResponseAllDataSentForRequestGetFile()";
+        qDebug() << "failed to read file name and result in handleResponseAllDataSentForRequestGetFile()";
         return false;
     }
 
@@ -624,6 +612,29 @@ bool ServerAgent::handleResponseGetFile(const MessageHeader &msgHeader)
     auto currentContent = m_mapFileContent.value(fileName);
     auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
     m_mapFileContent.insert(fileName, newContent);
+
+    return true;
+}
+
+bool ServerAgent::handleResponseGetFileFinished(const MessageHeader &msgHeader)
+{
+    // avoid unused parameter warning
+    msgHeader.toString();
+
+    //funcTracker ft("handleResponseAllDataSentForRequestGetFile()");
+    QDataStream in(m_tcpSocket);
+    QString fileName;
+    bool succeeded;
+    in.startTransaction();
+    in >> fileName >> succeeded;
+    if (in.commitTransaction() == false)
+    {
+        // in this case, the transaction is restored by commitTransaction()
+        qDebug() << "failed to read books in handleResponseAllDataSentForRequestGetFile()";
+        return false;
+    }
+
+    emit(internalFileDataDownloaded(fileName, succeeded));
 
     return true;
 }
@@ -707,10 +718,10 @@ void ServerAgent::sendRequestGetAllBooks()
     m_messages.append(block);
 }
 
-void ServerAgent::sendRequestGetWordsOfBook(QString bookName)
+void ServerAgent::sendRequestGetBookWordList(QString bookName)
 {
     connectToServer();
-    MessageHeader msgHeader(ServerClientProtocol::RequestGetWordsOfBook);
+    MessageHeader msgHeader(ServerClientProtocol::RequestGetBookWordList);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -755,41 +766,6 @@ void ServerAgent::sendRequestGetABook(QString bookName)
     m_messages.append(block);
 }
 
-void ServerAgent::sendRequestGetWords(QString bookName, QVector<QString> wordList)
-{
-    if (wordList.size() > ServerClientProtocol::MaximumWordsInAMessage)
-    {
-        return;
-    }
-
-    connectToServer();
-    MessageHeader msgHeader(ServerClientProtocol::RequestGetWords);
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader << bookName << wordList;
-     //m_tcpSocket->write(block);
-    m_messages.append(block);
-}
-
-void ServerAgent::sendRequestGetWordsWithSmallMessages(QString bookName, QVector<QString> wordList)
-{
-    int total = wordList.size();
-    int pos = 0;
-    int counter = 0;
-    while (pos + ServerClientProtocol::MaximumWordsInAMessage < total)
-    {
-        counter ++;
-        QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-        const QString partName = ServerClientProtocol::partPrefix(counter) + bookName;
-        sendRequestGetWords(partName, subList);
-        pos += ServerClientProtocol::MaximumWordsInAMessage;
-    };
-
-    QVector<QString> leftWords = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-    sendRequestGetWords(bookName, leftWords);
-}
-
 void ServerAgent::sendRequestGetFile(QString fileName)
 {
     connectToServer();
@@ -812,7 +788,7 @@ void ServerAgent::downloadBook(QString bookName)
     else
     {
         sendRequestGetABook(bookName);
-        sendRequestGetWordsOfBook(bookName);
+        sendRequestGetBookWordList(bookName);
     }
 }
 
@@ -906,75 +882,6 @@ void ServerAgent::sendTheFirstMessage()
     m_tcpSocket->write(m_messages.at(0));
     m_messages.pop_front();
 }
-
-/*
-void ServerAgent::sendDownloadRequestsToServer()
-{
-    requestFiles();
-    requestWords();
-
-    if (m_filesToDownload.isEmpty() == true && m_wordsToDownload.isEmpty() == true)
-    {
-        // download finished
-        m_downloadTimer.stop();
-        qDebug() << "nothing to be downloaded, stopped the timer";
-    }
-}
-
-void ServerAgent::requestFiles()
-{
-    if (m_filesToDownload.isEmpty() == true)
-    {
-        // if there's no files to download, return
-        return;
-    }
-
-    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
-    // check how many files are requested by not received
-    int requestsInProcessing = m_filesToDownload.keys(1).size();
-    if (requestsInProcessing > requestsForARound)
-    {
-        // we are still waiting requests to be replied from the server, so skip this round
-        return;
-    }
-
-    auto filesToDownload = m_filesToDownload.keys(0);
-    for (int i = 0;i < filesToDownload.size() && requestsForARound > 0;i ++)
-    {
-        QString fileName = filesToDownload.at(i);
-        m_filesToDownload.insert(fileName, 1);  // mark it as request has been sent
-        sendRequestGetFile(fileName);
-        requestsForARound --;
-    }
-}
-
-void ServerAgent::requestWords()
-{
-    if (m_wordsToDownload.isEmpty() == true)
-    {
-        // if there's no word to download, return
-        return;
-    }
-
-    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
-    // check how many files are requested by not received
-    int requestsInProcessing = m_wordsToDownload.keys(1).size();
-    if (requestsInProcessing > requestsForARound)
-    {
-        // we are still waiting requests to be replied from the server, so skip this round
-        return;
-    }
-
-    auto wordsToDownload = m_wordsToDownload.keys(0);
-    for (int i = 0;i < wordsToDownload.size() && requestsForARound > 0;i ++)
-    {
-        QString spelling = wordsToDownload.at(i);
-        m_wordsToDownload.insert(spelling, 1);  // mark it as request has been sent
-        sendRequestGetAWord(spelling);
-        requestsForARound --;
-    }
-}
-*/
 
 void ServerAgent::downloadWordsOfBook(QString bookName)
 {

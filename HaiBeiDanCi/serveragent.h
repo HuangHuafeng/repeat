@@ -58,7 +58,6 @@ private slots:
     void onStateChanged(QAbstractSocket::SocketState socketState);
 
     void onServerHeartBeat();
-    //void sendDownloadRequestsToServer();
     void onSendMessage();
     void onInternalBookDataDownloaded(QString bookName);
     void onInternalFileDataDownloaded(QString fileName, bool succeeded);
@@ -92,26 +91,28 @@ private:
     // if they take long time, it can cause slow the socket to buffer data
     // thus result unnecessary failure in read transition
     sptr<MessageHeader> readMessageHeader();
-    int handleMessage(const MessageHeader &msgHead);
-    bool handleResponseNoOperation(const MessageHeader &msgHead);
-    bool handleUnknownMessage(const MessageHeader &msgHead);
-    bool handleResponseGetAllBooks(const MessageHeader &msgHead);
-    bool handleResponseGetWordsOfBook(const MessageHeader &msgHead);
-    bool handleResponseUnknownRequest(const MessageHeader &msgHead);
-    bool handleResponseGetABook(const MessageHeader &msgHead);
-    bool handleResponseGetAWord(const MessageHeader &msgHead);
-    bool handleResponseGetFile(const MessageHeader &msgHead);
-    bool handleResponseGetWordsOfBookFinished(const MessageHeader &msgHead);
+    int handleMessage(const MessageHeader &msgHeader);
+    bool handleResponseNoOperation(const MessageHeader &msgHeader);
+    bool handleUnknownMessage(const MessageHeader &msgHeader);
+    bool handleResponseGetAllBooks(const MessageHeader &msgHeader);
+    bool handleResponseGetBookWordList(const MessageHeader &msgHeader);
+    bool handleResponseBookWordListAllSent(const MessageHeader &msgHeader);
+    bool handleResponseUnknownRequest(const MessageHeader &msgHeader);
+    bool handleResponseGetABook(const MessageHeader &msgHeader);
+    bool handleResponseGetAWord(const MessageHeader &msgHeader);
+    bool handleResponseGetFile(const MessageHeader &msgHeader);
+    bool handleResponseGetFileFinished(const MessageHeader &msgHeader);
+    bool handleResponseGetWordsOfBookFinished(const MessageHeader &msgHeader);
 
-    bool handleResponseAllDataSent(const MessageHeader &msgHead);
-    bool handleResponseAllDataSentForRequestGetWordsOfBook(const MessageHeader &msgHead);
-    bool handleResponseAllDataSentForRequestGetWords(const MessageHeader &msgHead);
-    bool handleResponseAllDataSentForRequestGetFile(const MessageHeader &msgHead);
+    bool handleResponseAllDataSent(const MessageHeader &msgHeader);
+    bool handleResponseAllDataSentForRequestGetWordsOfBook(const MessageHeader &msgHeader);
+    bool handleResponseAllDataSentForRequestGetWords(const MessageHeader &msgHeader);
+    bool handleResponseAllDataSentForRequestGetFile(const MessageHeader &msgHeader);
 
     void connectToServer();
     void sendRequestNoOperation();
     void sendRequestGetAllBooks();
-    void sendRequestGetWordsOfBook(QString bookName);
+    void sendRequestGetBookWordList(QString bookName);
     void sendRequestGetWordsOfBookFinished(QString bookName);
     void sendRequestGetAWord(QString spelling);
     void sendRequestGetABook(QString bookName);

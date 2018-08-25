@@ -44,9 +44,7 @@ SOURCES += \
     preferencesdialog.cpp \
     downloadmanager.cpp \
     serverdatadialog.cpp \
-    testdialog.cpp \
     serveragent.cpp \
-    serverclientprotocol.cpp \
     serverclientprotocol.cpp
 
 HEADERS += \
@@ -70,7 +68,6 @@ HEADERS += \
     preferencesdialog.h \
     downloadmanager.h \
     serverdatadialog.h \
-    testdialog.h \
     serverclientprotocol.h \
     serveragent.h
 
@@ -79,8 +76,7 @@ FORMS += \
     studywindow.ui \
     browserwindow.ui \
     preferencesdialog.ui \
-    serverdatadialog.ui \
-    testdialog.ui
+    serverdatadialog.ui
 
 SUBDIRS += \
     HaiBeiDanCi.pro

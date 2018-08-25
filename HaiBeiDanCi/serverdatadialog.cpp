@@ -8,13 +8,14 @@
 ServerDataDialog::ServerDataDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ServerDataDialog),
-    m_pd(nullptr),
+    m_progressDialog(this),
     m_pdMaximum(100000)
 {
     ui->setupUi(this);
 
     connect(ui->twBooks, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
 
+    initializeProgressDialog();
 
     QStringList header;
     header.append(QObject::tr("Book Name"));
@@ -104,25 +105,17 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
 
 void ServerDataDialog::onDownloadProgress(float percentage)
 {
-    if (m_pd != nullptr)
-    {
-        if (m_pd->wasCanceled() == true)
-        {
-            destroyProgressDialog();
-            ServerAgent *serveragent = ServerAgent::instance();
-            serveragent->cancelDownloading();
-        }
-        else
-        {
-            int value = static_cast<int>(m_pdMaximum * percentage);
-            // Warning: If the progress dialog is modal (see QProgressDialog::QProgressDialog()), setValue() calls QApplication::processEvents(), so take care that this does not cause undesirable re-entrancy in your code. For example, don't use a QProgressDialog inside a paintEvent()!
-            m_pd->setValue(value);
-        }
-    }
-
-    if (percentage >= 1.0f)
+    if (m_progressDialog.wasCanceled() == true)
     {
         destroyProgressDialog();
+        ServerAgent *serveragent = ServerAgent::instance();
+        serveragent->cancelDownloading();
+    }
+    else
+    {
+        int value = static_cast<int>(m_pdMaximum * percentage);
+        // Warning: If the progress dialog is modal (see QProgressDialog::QProgressDialog()), setValue() calls QApplication::processEvents(), so take care that this does not cause undesirable re-entrancy in your code. For example, don't use a QProgressDialog inside a paintEvent()!
+        m_progressDialog.setValue(value);
     }
 }
 
@@ -203,33 +196,21 @@ void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
     }
 }
 
+void ServerDataDialog::initializeProgressDialog()
+{
+    m_progressDialog.setModal(true);
+    m_progressDialog.setRange(0, m_pdMaximum);
+    m_progressDialog.cancel();
+}
+
 void ServerDataDialog::createProgressDialog(const QString &labelText, const QString &cancelButtonText)
 {
-    if (m_pd == nullptr)
-    {
-        m_pd = new QProgressDialog(labelText,
-                                   cancelButtonText,
-                                   0,
-                                   m_pdMaximum,
-                                   this);
-        m_pd->setModal(true);
-        m_pd->resize(m_pd->size() + QSize(20, 0));
-        m_pd->show();
-
-        m_downloadStartTime = QDateTime::currentDateTime();
-    }
+    m_progressDialog.reset();
+    m_progressDialog.setLabelText("    " + labelText + "    ");
+    m_progressDialog.setCancelButtonText(cancelButtonText);
+    m_progressDialog.setValue(0);;
 }
 
 void ServerDataDialog::destroyProgressDialog()
 {
-    if (m_pd != nullptr)
-    {
-        m_pd->hide();
-        m_pd->deleteLater();
-        m_pd = nullptr;
-
-        auto currentTime = QDateTime::currentDateTime();
-        qDebug() << "downloading took:" << m_downloadStartTime.msecsTo(currentTime) << "ms";
-    }
 }
-

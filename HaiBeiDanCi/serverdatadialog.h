@@ -38,6 +38,8 @@ private:
     QProgressDialog *m_pd;
     int m_pdMaximum;
 
+    QDateTime m_downloadStartTime;
+
     void updateBookStatus(QString bookName);
     void createProgressDialog(const QString &labelText, const QString &cancelButtonText);
     void destroyProgressDialog();

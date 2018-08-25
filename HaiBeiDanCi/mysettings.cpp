@@ -78,8 +78,8 @@ int MySettings::updateInterval()
 
     if (updInt == -1)
     {
-        // default to 0 so it's updated everytime
-        updInt = 0;
+        // default to 1 so it's updated every day
+        updInt = 1;
     }
 
     return updInt;
@@ -483,8 +483,8 @@ int MySettings::downloadIntervalInMilliseconds()
     }
     else
     {
-        // default to 250 ms, we want to make this slow
-        valueInSetting = 250;
+        // default to 40 ms, we would like to send message as fast as possilbe as we have a flow control
+        valueInSetting = 40;
     }
 
     return valueInSetting;
@@ -500,8 +500,8 @@ int MySettings::numberOfRequestInEveryDownloadRound()
     }
     else
     {
-        // default to 10 request (file)
-        valueInSetting = 10;
+        // default to 40 messages every round, should not be big because this can affect cancelling the downloading
+        valueInSetting = 40;
     }
 
     return valueInSetting;

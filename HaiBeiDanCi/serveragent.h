@@ -36,6 +36,7 @@ public:
     void downloadFile(QString fileName);
     const QMap<QString, ServerAgent::DownloadStatus> &downloadMultipleFiles(QList<QString> fileList);
     void cancelDownloading();
+    void disconnectServer();
 
 signals:
     void bookListReady(const QList<QString> books);
@@ -59,6 +60,7 @@ private slots:
 
     void onServerHeartBeat();
     void onSendMessage();
+    void onSendMessageSmart();
     void onInternalBookDataDownloaded(QString bookName);
     void onInternalFileDataDownloaded(QString fileName, bool succeeded);
 
@@ -83,6 +85,8 @@ private:
     QTimer m_timerServerHeartBeat;
 
     QVector<QByteArray> m_messages;
+    int m_lastResponded;
+    int m_messagesSent;
 
     void completeBookDownload(QString bookName);
     bool saveFileFromServer(QString fileName);
@@ -119,6 +123,7 @@ private:
     void sendRequestGetWords(QString bookName, QVector<QString> wordList);
     void sendRequestGetWordsWithSmallMessages(QString bookName, QVector<QString> wordList);
     void sendRequestGetFile(QString fileName);
+    void sendRequestBye();
 
     void downloadWordsOfBook(QString bookName);
     void requestFiles();

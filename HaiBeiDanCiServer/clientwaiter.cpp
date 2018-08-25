@@ -24,8 +24,8 @@ void ClientWaiter::run()
     qDebug("%s:%d connected", m_tcpSocket->peerAddress().toString().toLatin1().constData(), m_tcpSocket->peerPort());
 
     int consecutiveHeartbeat = 0;
-    static sptr<MessageHeader> currentMessage;
-    static uint readMessageHeaderConsecutiveFailure = 0;
+    sptr<MessageHeader> currentMessage;
+    uint readMessageHeaderConsecutiveFailure = 0;
     while (1)
     {
         if (consecutiveHeartbeat > MySettings::maximumConsecutiveHeartbeat())
@@ -84,7 +84,8 @@ void ClientWaiter::run()
             }
             else if (handleResult == -2)
             {
-                // client said bye
+                qDebug() << QDateTime::currentDateTime().toString() << "client said bye:";
+                qDebug("%s", currentMessage->toString().toUtf8().constData());
                 break;
             }
             else

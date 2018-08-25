@@ -13,9 +13,9 @@ ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent)
 {
     connect(&m_timerServerHeartBeat, SIGNAL(timeout()), this, SLOT(onServerHeartBeat()));
     //connect(&m_downloadTimer, SIGNAL(timeout()), this, SLOT(sendDownloadRequestsToServer()));
-    connect(&m_messageTimer, SIGNAL(timeout()), this, SLOT(onSendMessage()));
 
-    m_messageTimer.start(MySettings::downloadIntervalInMilliseconds());
+    //connect(&m_messageTimer, SIGNAL(timeout()), this, SLOT(onSendMessage()));
+    connect(&m_messageTimer, SIGNAL(timeout()), this, SLOT(onSendMessageSmart()));
 
     connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)));
     connect(this, SIGNAL(internalFileDataDownloaded(QString, bool)), this, SLOT(onInternalFileDataDownloaded(QString, bool)));
@@ -66,6 +66,17 @@ void ServerAgent::onReadyRead()
             {
                 qDebug("successfully handled message: %s", currentMessage->toString().toUtf8().constData());
 
+                // if it's not a heartbeat message, update the counters
+                if (currentMessage->code() != ServerClientProtocol::ResponseNoOperation)
+                {
+                    m_lastResponded = currentMessage->respondsTo();
+                    if (m_messagesSent < m_lastResponded)
+                    {
+                        // this can happen if the user cancels the downloading
+                        m_messagesSent = m_lastResponded;
+                    }
+                }
+
                 // successfully processed the message
                 currentMessage = sptr<MessageHeader>();
             }
@@ -103,13 +114,20 @@ void ServerAgent::onConnected()
 {
     qDebug() << "onConnected()";
 
+    // renew the counters by a temporary message
+    MessageHeader toBeDiscarded;
+    m_messagesSent = toBeDiscarded.sequenceNumber();
+    m_lastResponded = toBeDiscarded.sequenceNumber();
+
     // start heartbeat timer
     m_timerServerHeartBeat.start(1000 * MySettings::heartbeatIntervalInSeconds());
+    // start sending message
+    m_messageTimer.start(MySettings::downloadIntervalInMilliseconds());
 }
 
 void ServerAgent::onDisconnected()
 {
-    // stop heartbeat timer
+    m_messageTimer.stop();
     m_timerServerHeartBeat.stop();
     m_tcpSocket->deleteLater();
     m_tcpSocket = nullptr;
@@ -706,6 +724,23 @@ void ServerAgent::sendRequestNoOperation()
     //m_messages.append(block);
 }
 
+void ServerAgent::sendRequestBye()
+{
+    if (m_tcpSocket == nullptr)
+    {
+        // if it's NOT connected, no need to say good bye
+        return;
+    }
+
+    MessageHeader msgHeader(ServerClientProtocol::RequestBye);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader;
+    m_tcpSocket->write(block);
+    //m_messages.append(block);
+}
+
 void ServerAgent::sendRequestGetAllBooks()
 {
     connectToServer();
@@ -836,6 +871,11 @@ void ServerAgent::cancelDownloading()
     m_messages.clear();
 }
 
+void ServerAgent::disconnectServer()
+{
+    sendRequestBye();
+}
+
 void ServerAgent::cancelDownloadingFiles()
 {
     auto filesLeft = m_filesToDownload.keys(WaitingDataFromServer);
@@ -861,6 +901,24 @@ void ServerAgent::cancelDownloadingWords()
     m_mapWords.clear();
 }
 
+void ServerAgent::onSendMessageSmart()
+{
+    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
+    if ((m_messagesSent - m_lastResponded) > (requestsForARound / 5))
+    {
+        qDebug() << "waiting: m_messagesSent" << m_messagesSent << "m_lastResponded" << m_lastResponded << "requestsForARound" << requestsForARound;
+
+        // we are waiting for the messages to be processed
+        return;
+    }
+
+    while (requestsForARound > 0)
+    {
+        sendTheFirstMessage();
+        requestsForARound --;
+    }
+}
+
 void ServerAgent::onSendMessage()
 {
     int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
@@ -881,6 +939,7 @@ void ServerAgent::sendTheFirstMessage()
 
     m_tcpSocket->write(m_messages.at(0));
     m_messages.pop_front();
+    m_messagesSent ++;
 }
 
 void ServerAgent::downloadWordsOfBook(QString bookName)

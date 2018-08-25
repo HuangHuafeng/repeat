@@ -149,6 +149,9 @@ void ServerDataDialog::updateBookStatus(QString bookName)
 
 void ServerDataDialog::on_pbClose_clicked()
 {
+    ServerAgent *serveragent = ServerAgent::instance();
+    serveragent->disconnectServer();
+
     close();
 }
 
@@ -207,6 +210,8 @@ void ServerDataDialog::createProgressDialog(const QString &labelText, const QStr
         m_pd->setModal(true);
         m_pd->resize(m_pd->size() + QSize(20, 0));
         m_pd->show();
+
+        m_downloadStartTime = QDateTime::currentDateTime();
     }
 }
 
@@ -217,6 +222,9 @@ void ServerDataDialog::destroyProgressDialog()
         m_pd->hide();
         m_pd->deleteLater();
         m_pd = nullptr;
+
+        auto currentTime = QDateTime::currentDateTime();
+        qDebug() << "downloading took:" << m_downloadStartTime.msecsTo(currentTime) << "ms";
     }
 }
 

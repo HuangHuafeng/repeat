@@ -714,7 +714,7 @@
   </action>
   <action name="actionexit">
    <property name="text">
-    <string>exit</string>
+    <string>Exit</string>
    </property>
    <property name="menuRole">
     <enum>QAction::QuitRole</enum>

@@ -46,6 +46,10 @@ private:
     void createProgressDialog(const QString &labelText, const QString &cancelButtonText);
     void destroyProgressDialog();
 
+    QSet<QString> & removeExistingFiles(QSet<QString> &files);
+    void downloadBookPronounceFiles(QString bookName);
+    void downloadBookExampleAudioFiles(QString bookName);
+
 };
 
 #endif // SERVERDATADIALOG_H

@@ -124,8 +124,6 @@ void ServerDataDialog::onBookDownloaded(QString bookName)
 {
     updateBookStatus(bookName);
     onItemSelectionChanged();
-
-    on_pbDownloadPronounceFiles_clicked();
 }
 
 void ServerDataDialog::updateBookStatus(QString bookName)
@@ -163,38 +161,7 @@ void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
     }
 
     auto bookName = ci->text(0);
-    sptr<WordBook> book = WordBook::getBook(bookName);
-    if (book.get() == nullptr)
-    {
-        return;
-    }
-
-    // build the list of media files
-    QList<QString> mediaFiles;
-    QVector<QString> wordList = book->getAllWords();
-    const QString dd = MySettings::dataDirectory() + "/";
-    for (int i = 0;i < wordList.size();i ++)
-    {
-        QString spelling = wordList.at(i);
-        sptr<Word> word = Word::getWord(spelling);
-        if (word.get() == nullptr)
-        {
-            continue;
-        }
-        mediaFiles += word->mediaFiles();
-    }
-
-    ServerAgent *serveragent = ServerAgent::instance();
-    auto filesToDownload = serveragent->downloadMultipleFiles(mediaFiles);
-    if (filesToDownload.isEmpty() == false)
-    {
-        // show the progress dialog
-        createProgressDialog(QObject::tr("Downloading meida files ..."), QObject::tr("Cancel"));
-    }
-    else
-    {
-        QMessageBox::information(this, MySettings::appName(), QObject::tr("All media files are already available locally!"));
-    }
+    downloadBookExampleAudioFiles(bookName);
 }
 
 void ServerDataDialog::on_pbDownloadPronounceFiles_clicked()
@@ -206,38 +173,7 @@ void ServerDataDialog::on_pbDownloadPronounceFiles_clicked()
     }
 
     auto bookName = ci->text(0);
-    sptr<WordBook> book = WordBook::getBook(bookName);
-    if (book.get() == nullptr)
-    {
-        return;
-    }
-
-    // build the list of media files
-    QList<QString> mediaFiles;
-    QVector<QString> wordList = book->getAllWords();
-    const QString dd = MySettings::dataDirectory() + "/";
-    for (int i = 0;i < wordList.size();i ++)
-    {
-        QString spelling = wordList.at(i);
-        sptr<Word> word = Word::getWord(spelling);
-        if (word.get() == nullptr)
-        {
-            continue;
-        }
-        mediaFiles += word->pronounceFiles();
-    }
-
-    ServerAgent *serveragent = ServerAgent::instance();
-    auto filesToDownload = serveragent->downloadMultipleFiles(mediaFiles);
-    if (filesToDownload.isEmpty() == false)
-    {
-        // show the progress dialog
-        createProgressDialog(QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
-    }
-    else
-    {
-        QMessageBox::information(this, MySettings::appName(), QObject::tr("All pronounce files are already available locally!"));
-    }
+    downloadBookPronounceFiles(bookName);
 }
 
 void ServerDataDialog::initializeProgressDialog()
@@ -257,4 +193,112 @@ void ServerDataDialog::createProgressDialog(const QString &labelText, const QStr
 
 void ServerDataDialog::destroyProgressDialog()
 {
+}
+
+QSet<QString> & ServerDataDialog::removeExistingFiles(QSet<QString> &files)
+{
+    ServerAgent *serveragent = ServerAgent::instance();
+    QSet<QString>::iterator it = files.begin();
+    while (it != files.end())
+    {
+        QString fileName = *it;
+        if (serveragent->fileExistsLocally(fileName) == true)
+        {
+            it = files.erase(it);
+        }
+        else
+        {
+            it ++;
+        }
+    }
+
+    return files;
+}
+
+void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
+{
+    sptr<WordBook> book = WordBook::getBook(bookName);
+    if (book.get() == nullptr)
+    {
+        return;
+    }
+
+    // build the list of media files
+    QSet<QString> interestedFiles;
+    QVector<QString> wordList = book->getAllWords();
+    QProgressDialog pd(QObject::tr("Preparing the list of files to be downloaded ..."), QObject::tr("Cancel"), 0, wordList.size(), this);
+    pd.setModal(true);
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        pd.setValue(i + 1);
+        if (pd.wasCanceled() == true)
+        {
+            return;
+        }
+
+        QString spelling = wordList.at(i);
+        sptr<Word> word = Word::getWord(spelling);
+        if (word.get() == nullptr)
+        {
+            continue;
+        }
+        QSet<QString> interestedWordFiles = word->pronounceFiles() + word->otherFiles();
+        interestedFiles += removeExistingFiles(interestedWordFiles);
+    }
+
+    ServerAgent *serveragent = ServerAgent::instance();
+    auto filesToDownload = serveragent->downloadMultipleFiles(interestedFiles);
+    if (filesToDownload.isEmpty() == false)
+    {
+        // show the progress dialog
+        createProgressDialog(QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
+    }
+    else
+    {
+        QMessageBox::information(this, MySettings::appName(), QObject::tr("All pronounce files are already available locally!"));
+    }
+}
+
+void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
+{
+    sptr<WordBook> book = WordBook::getBook(bookName);
+    if (book.get() == nullptr)
+    {
+        return;
+    }
+
+    // build the list of media files
+    QSet<QString> interestedFiles;
+    QVector<QString> wordList = book->getAllWords();
+    QProgressDialog pd(QObject::tr("Preparing the list of files to be downloaded ..."), QObject::tr("Cancel"), 0, wordList.size(), this);
+    pd.setModal(true);
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        pd.setValue(i + 1);
+        if (pd.wasCanceled() == true)
+        {
+            return;
+        }
+
+        QString spelling = wordList.at(i);
+        sptr<Word> word = Word::getWord(spelling);
+        if (word.get() == nullptr)
+        {
+            continue;
+        }
+        QSet<QString> interestedWordFiles = word->exampleAudioFiles() + word->otherFiles();
+        interestedFiles += removeExistingFiles(interestedWordFiles);
+    }
+
+    ServerAgent *serveragent = ServerAgent::instance();
+    auto filesToDownload = serveragent->downloadMultipleFiles(interestedFiles);
+    if (filesToDownload.isEmpty() == false)
+    {
+        // show the progress dialog
+        createProgressDialog(QObject::tr("Downloading meida files ..."), QObject::tr("Cancel"));
+    }
+    else
+    {
+        QMessageBox::information(this, MySettings::appName(), QObject::tr("All media files are already available locally!"));
+    }
 }

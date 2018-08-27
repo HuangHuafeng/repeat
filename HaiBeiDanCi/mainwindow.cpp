@@ -452,3 +452,8 @@ void MainWindow::on_actionBooks_triggered()
     sdd.exec();
 }
 
+
+void MainWindow::on_actionexit_triggered()
+{
+    QApplication::exit();
+}

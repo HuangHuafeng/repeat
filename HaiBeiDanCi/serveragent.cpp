@@ -845,18 +845,26 @@ void ServerAgent::downloadFile(QString fileName)
     }
 }
 
-const QMap<QString, ServerAgent::DownloadStatus> &ServerAgent::downloadMultipleFiles(QList<QString> fileList)
+bool ServerAgent::fileExistsLocally(QString fileName)
+{
+    const QString dd = MySettings::dataDirectory() + "/";
+    return QFile::exists(dd + fileName);
+}
+
+const QMap<QString, ServerAgent::DownloadStatus> &ServerAgent::downloadMultipleFiles(QSet<QString> files)
 {
     m_filesToDownload.clear();
     m_mapFileContent.clear();
-    const QString dd = MySettings::dataDirectory() + "/";
-    for (int i = 0;i < fileList.size();i ++)
+    QSet<QString>::const_iterator it = files.constBegin();
+    while (it != files.constEnd())
     {
-        QString fileName = fileList.at(i);
-        if (QFile::exists(dd + fileName) == false)
+        QString fileName = *it;
+        // ServerAgent downloads the file regardless the existence of the file!!!
+        //if (QFile::exists(dd + fileName) == false)
         {
             downloadFile(fileName);
         }
+        it ++;
     }
 
     return m_filesToDownload;

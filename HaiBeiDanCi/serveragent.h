@@ -34,7 +34,8 @@ public:
     void getBookList();
     void downloadBook(QString bookName);
     void downloadFile(QString fileName);
-    const QMap<QString, ServerAgent::DownloadStatus> &downloadMultipleFiles(QList<QString> fileList);
+    bool fileExistsLocally(QString fileName);
+    const QMap<QString, ServerAgent::DownloadStatus> &downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
     void disconnectServer();
 

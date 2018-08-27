@@ -26,9 +26,18 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pbDownloadPronounceFiles">
+         <property name="text">
+          <string>Download
+pronounce files</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="pbDownloadMediaFiles">
          <property name="text">
-          <string>Download media files</string>
+          <string>Download
+all media files</string>
          </property>
         </widget>
        </item>

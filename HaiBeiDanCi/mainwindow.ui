@@ -664,7 +664,6 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="action_About"/>
-    <addaction name="actionPreferences"/>
    </widget>
    <widget class="QMenu" name="menuData">
     <property name="title">
@@ -672,8 +671,16 @@
     </property>
     <addaction name="actionBooks"/>
    </widget>
-   <addaction name="menu_Help"/>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionPreferences"/>
+    <addaction name="actionexit"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menuData"/>
+   <addaction name="menu_Help"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -703,6 +710,14 @@
   <action name="actionBooks">
    <property name="text">
     <string>Books</string>
+   </property>
+  </action>
+  <action name="actionexit">
+   <property name="text">
+    <string>exit</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::QuitRole</enum>
    </property>
   </action>
  </widget>

@@ -30,6 +30,8 @@ private slots:
 
     void on_pbDownloadMediaFiles_clicked();
 
+    void on_pbDownloadPronounceFiles_clicked();
+
 private:
     Ui::ServerDataDialog *ui;
 

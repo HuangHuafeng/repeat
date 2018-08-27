@@ -28,6 +28,7 @@ class Word
     const QString &getDefinition() const;
     QString getDefinitionDIV() const;
     QList<QString> mediaFiles() const;
+    QList<QString> pronounceFiles() const;
 
     bool dbsave();
 
@@ -44,7 +45,7 @@ class Word
     static void v2StoreMultipleWordFromServer(const QMap<QString, sptr<Word>> mapWords);
 
   private:
-    //bool dbsaveDefinition();
+    QList<QString> otherMediaFiles() const;
 
   private:
     QString m_spelling;

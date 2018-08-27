@@ -141,9 +141,47 @@ QString Word::getDefinitionDIV() const
 
 QList<QString> Word::mediaFiles() const
 {
+    QList<QString> mf = pronounceFiles();
+
+    const QRegularExpression mfre("media/exa/[^\"<>']*\\.mp3");
+    QRegularExpressionMatchIterator it = mfre.globalMatch(m_definition);
+    while (it.hasNext())
+    {
+        QRegularExpressionMatch match = it.next();
+        QString onemf = match.captured(0);
+        if (mf.contains(onemf) == false)
+        {
+            mf.append(onemf);
+        }
+    }
+
+    return mf;
+}
+
+QList<QString> Word::pronounceFiles() const
+{
+    QList<QString> mf = otherMediaFiles();
+
+    const QRegularExpression mfre("media/hwd/[^\"<>']*\\.mp3");
+    QRegularExpressionMatchIterator it = mfre.globalMatch(m_definition);
+    while (it.hasNext())
+    {
+        QRegularExpressionMatch match = it.next();
+        QString onemf = match.captured(0);
+        if (mf.contains(onemf) == false)
+        {
+            mf.append(onemf);
+        }
+    }
+
+    return mf;
+}
+
+QList<QString> Word::otherMediaFiles() const
+{
     QList<QString> mf;
 
-    const QRegularExpression mfre("media/[^\"<>']*\\.(mp3|js|css|png|jpg)");
+    const QRegularExpression mfre("media/[^\"<>']*\\.(js|css|png|jpg)");
     QRegularExpressionMatchIterator it = mfre.globalMatch(m_definition);
     while (it.hasNext())
     {

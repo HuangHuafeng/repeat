@@ -1,12 +1,16 @@
-* add sequence number for message, ACTUALLY, we should have a  message header
-* change the progress dialog to an object, instead of using a point
-* check the crash when downloading media files in Windows
-* building the list of media files could take time, so we should show progress dialog
 * downloading info.json meet ssl issue!
+* add server setting in info.json
+* separate pronounce and example audio when downloading
+
+LOW PRIORITY
+* building the list of media files could take time, so we should show progress dialog
 * saving files to disk is slow, maybe good to use a separate thread.(This should have low priority!)
 
 
 // DONE
+DONE * add sequence number for message, ACTUALLY, we should have a  message header
+DONE * change the progress dialog to an object, instead of using a pointer
+DONE (should be related to the progress dialog pointer) * check the crash when downloading media files in Windows
 DONE * improve database performance. HOW? (transaction(), commit())
 DONE * improve the info.json update
 NOT NEEDED AS saving NOW VERY QUICK * report progress when saving words to database?

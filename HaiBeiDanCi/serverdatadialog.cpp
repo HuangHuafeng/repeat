@@ -58,6 +58,7 @@ void ServerDataDialog::onItemSelectionChanged()
     }
     ui->pbDownloadBook->setEnabled(downloaded == false);
     ui->pbDownloadMediaFiles->setEnabled(downloaded == true);
+    ui->pbDownloadPronounceFiles->setEnabled(downloaded == true);
 }
 
 void ServerDataDialog::onBookListReady(const QList<QString> books)
@@ -124,7 +125,7 @@ void ServerDataDialog::onBookDownloaded(QString bookName)
     updateBookStatus(bookName);
     onItemSelectionChanged();
 
-    destroyProgressDialog();
+    on_pbDownloadPronounceFiles_clicked();
 }
 
 void ServerDataDialog::updateBookStatus(QString bookName)
@@ -193,6 +194,49 @@ void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
     else
     {
         QMessageBox::information(this, MySettings::appName(), QObject::tr("All media files are already available locally!"));
+    }
+}
+
+void ServerDataDialog::on_pbDownloadPronounceFiles_clicked()
+{
+    auto ci = ui->twBooks->currentItem();
+    if (ci == nullptr)
+    {
+        return;
+    }
+
+    auto bookName = ci->text(0);
+    sptr<WordBook> book = WordBook::getBook(bookName);
+    if (book.get() == nullptr)
+    {
+        return;
+    }
+
+    // build the list of media files
+    QList<QString> mediaFiles;
+    QVector<QString> wordList = book->getAllWords();
+    const QString dd = MySettings::dataDirectory() + "/";
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        QString spelling = wordList.at(i);
+        sptr<Word> word = Word::getWord(spelling);
+        if (word.get() == nullptr)
+        {
+            continue;
+        }
+        mediaFiles += word->pronounceFiles();
+    }
+
+    ServerAgent *serveragent = ServerAgent::instance();
+    auto filesToDownload = serveragent->downloadMultipleFiles(mediaFiles);
+    if (filesToDownload.isEmpty() == false)
+    {
+        // show the progress dialog
+        createProgressDialog(QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
+    }
+    else
+    {
+        QMessageBox::information(this, MySettings::appName(), QObject::tr("All pronounce files are already available locally!"));
     }
 }
 

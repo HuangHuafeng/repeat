@@ -43,6 +43,7 @@ private:
 
     void sendBookWordList(const MessageHeader &msgHeader, const QString bookName);
     bool sendFile(const MessageHeader &msgHeader, const QString fileName);
+    bool okToSendFile(const QString fileName);
 
     // the following functions all send ONE message
     void sendResponseNoOperation(const MessageHeader &msgHeader);

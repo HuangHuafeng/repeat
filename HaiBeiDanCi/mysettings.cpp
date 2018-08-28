@@ -483,8 +483,8 @@ int MySettings::downloadIntervalInMilliseconds()
     }
     else
     {
-        // default to 40 ms, we would like to send message as fast as possilbe as we have a flow control
-        valueInSetting = 40;
+        // default to 100 ms, we would like to send message as fast as possilbe as we have a flow control
+        valueInSetting = 100;
     }
 
     return valueInSetting;

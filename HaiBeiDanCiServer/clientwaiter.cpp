@@ -481,8 +481,35 @@ void ClientWaiter::sendBookWordList(const MessageHeader &msgHeader, const QStrin
     sendResponseBookWordListAllSent(msgHeader, bookName);
 }
 
+bool ClientWaiter::okToSendFile(const QString fileName)
+{
+    if (fileName.startsWith("media", Qt::CaseInsensitive) == false)
+    {
+        return false;
+    }
+
+    QString ext = fileName.section('.', -1);
+    if (ext.compare("mp3", Qt::CaseInsensitive) != 0
+            && ext.compare("png", Qt::CaseInsensitive) != 0
+            && ext.compare("jpg", Qt::CaseInsensitive) != 0
+            && ext.compare("css", Qt::CaseInsensitive) != 0
+            && ext.compare("js", Qt::CaseInsensitive) != 0)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 bool ClientWaiter::sendFile(const MessageHeader &msgHeader, const QString fileName)
 {
+    // check if the file is OK to send, we cannot expose everything on the sever!!!
+    if (okToSendFile(fileName) != true)
+    {
+        qDebug() << "cannot send file" << fileName << "because it violates the security policy!";
+        return false;
+    }
+
     QString localFile = MySettings::dataDirectory() + "/" + fileName;
     qDebug() << "send file" << localFile;
 

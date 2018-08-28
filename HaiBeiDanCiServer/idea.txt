@@ -1,6 +1,9 @@
 * downloading info.json meet ssl issue!
 * add server setting in info.json
-* separate pronounce and example audio when downloading
+
+
+PARTLY DONE * add security to the server, currently it exposes anything to the client!!!
+
 
 LOW PRIORITY
 * building the list of media files could take time, so we should show progress dialog
@@ -8,6 +11,7 @@ LOW PRIORITY
 
 
 // DONE
+DONE * separate pronounce and example audio when downloading
 DONE * add sequence number for message, ACTUALLY, we should have a  message header
 DONE * change the progress dialog to an object, instead of using a pointer
 DONE (should be related to the progress dialog pointer) * check the crash when downloading media files in Windows

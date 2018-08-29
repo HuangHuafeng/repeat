@@ -6,7 +6,7 @@
     <message>
         <location filename="browserwindow.ui" line="14"/>
         <source>Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="browserwindow.ui" line="58"/>
@@ -16,7 +16,7 @@
     <message>
         <location filename="browserwindow.ui" line="61"/>
         <source>Space</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="browserwindow.ui" line="71"/>
@@ -31,7 +31,7 @@
     <message>
         <location filename="browserwindow.ui" line="127"/>
         <source>Left</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="browserwindow.ui" line="137"/>
@@ -46,55 +46,55 @@
     <message>
         <location filename="browserwindow.ui" line="156"/>
         <source>Right</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="21"/>
+        <location filename="browserwindow.cpp" line="20"/>
         <source>Word</source>
         <translation>单词</translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="22"/>
+        <location filename="browserwindow.cpp" line="21"/>
         <source>Expire</source>
         <translation>下次学习</translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="23"/>
+        <location filename="browserwindow.cpp" line="22"/>
         <source>Repetition</source>
         <translation>重复次数</translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="24"/>
+        <location filename="browserwindow.cpp" line="23"/>
         <source>Easiness</source>
         <translation>容易程度</translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="25"/>
+        <location filename="browserwindow.cpp" line="24"/>
         <source>Interval (day)</source>
         <translation>间隔(天)</translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="26"/>
+        <location filename="browserwindow.cpp" line="25"/>
         <source>Reviewed at</source>
         <translation>上次学习</translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="128"/>
+        <location filename="browserwindow.cpp" line="127"/>
         <source>&gt;99</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="140"/>
+        <location filename="browserwindow.cpp" line="139"/>
         <source>&lt;1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="150"/>
+        <location filename="browserwindow.cpp" line="149"/>
         <source>&gt;999</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="browserwindow.cpp" line="255"/>
+        <location filename="browserwindow.cpp" line="254"/>
         <source>browse words</source>
         <translation>浏览单词</translation>
     </message>
@@ -179,37 +179,52 @@
     <message>
         <location filename="mainwindow.ui" line="664"/>
         <source>&amp;Help</source>
-        <translation type="unfinished"></translation>
+        <translation>帮助(&amp;H)</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="682"/>
+        <location filename="mainwindow.ui" line="670"/>
+        <source>Server</source>
+        <translation>服务器</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="676"/>
+        <source>File</source>
+        <translation>文件</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="696"/>
         <source>&amp;About</source>
-        <translation type="unfinished"></translation>
+        <translation>关于(&amp;A)</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="690"/>
+        <location filename="mainwindow.ui" line="704"/>
         <source>Preferences...</source>
-        <translation type="unfinished"></translation>
+        <translation>设置</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="32"/>
+        <location filename="mainwindow.ui" line="712"/>
+        <source>Books</source>
+        <translation>单词本</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="717"/>
+        <source>Exit</source>
+        <translation>退出</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="36"/>
         <source>database error</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="77"/>
-        <source>Book Name</source>
-        <translation>单词本</translation>
-    </message>
-    <message>
-        <location filename="mainwindow.cpp" line="135"/>
         <location filename="mainwindow.cpp" line="146"/>
         <location filename="mainwindow.cpp" line="157"/>
         <location filename="mainwindow.cpp" line="168"/>
-        <location filename="mainwindow.cpp" line="182"/>
+        <location filename="mainwindow.cpp" line="179"/>
         <location filename="mainwindow.cpp" line="193"/>
         <location filename="mainwindow.cpp" line="204"/>
         <location filename="mainwindow.cpp" line="215"/>
+        <location filename="mainwindow.cpp" line="226"/>
         <source> words</source>
         <translation>个单词</translation>
     </message>
@@ -217,22 +232,22 @@
 <context>
     <name>MainWindow::MainWindow</name>
     <message>
-        <location filename="mainwindow.cpp" line="226"/>
+        <location filename="mainwindow.cpp" line="237"/>
         <source>No word to study!</source>
         <translation>没有单词！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="240"/>
+        <location filename="mainwindow.cpp" line="251"/>
         <source>failed to set the word list to study!</source>
         <translation>设置单词列表失败！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="250"/>
+        <location filename="mainwindow.cpp" line="261"/>
         <source>No word to Browse!</source>
         <translation>没有单词！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="264"/>
+        <location filename="mainwindow.cpp" line="275"/>
         <source>failed to set the word list to browse!</source>
         <translation>设置单词列表失败！</translation>
     </message>
@@ -318,7 +333,7 @@ file every</source>
     <message>
         <location filename="preferencesdialog.ui" line="207"/>
         <source>Directory</source>
-        <translation>数据文件所在目录</translation>
+        <translation>数据文件目录</translation>
     </message>
     <message>
         <location filename="preferencesdialog.ui" line="217"/>
@@ -333,69 +348,58 @@ file every</source>
     <message>
         <location filename="preferencesdialog.cpp" line="27"/>
         <source>Choose Data Directory</source>
-        <translation>选择数据文件路径</translation>
+        <translation>选择数据文件目录</translation>
     </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="mysettings.h" line="35"/>
+        <location filename="main.cpp" line="26"/>
         <source>HaiBeiDanCi</source>
         <translation>海贝单词</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="105"/>
+        <location filename="studywindow.cpp" line="104"/>
         <source>Congratulations! All cards finished!</source>
         <translation>已完成所有待学习单词!</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="128"/>
+        <location filename="studywindow.cpp" line="127"/>
         <source>minute</source>
         <translation>分钟</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="134"/>
+        <location filename="studywindow.cpp" line="133"/>
         <source>hour</source>
         <translation>小时</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="140"/>
+        <location filename="studywindow.cpp" line="139"/>
         <source>day</source>
         <translation>天</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="146"/>
+        <location filename="studywindow.cpp" line="145"/>
         <source>month</source>
         <translation>月</translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="149"/>
+        <location filename="studywindow.cpp" line="148"/>
         <source>long time later</source>
         <translation>很久以后</translation>
     </message>
     <message>
-        <location filename="wordbook.h" line="15"/>
+        <location filename="wordbook.h" line="16"/>
         <source>new book</source>
         <translation>新单词本</translation>
     </message>
     <message>
-        <location filename="wordbook.h" line="15"/>
+        <location filename="wordbook.h" line="16"/>
         <source>no introduction</source>
         <translation>介绍还没有写呢</translation>
     </message>
     <message>
-        <location filename="worddb.cpp" line="122"/>
-        <source>Database Error</source>
-        <translation>数据出错</translation>
-    </message>
-    <message>
-        <location filename="worddb.cpp" line="123"/>
-        <source>Unable to open database file!
-Click OK to exit.</source>
-        <translation>不能打开数据文件！</translation>
-    </message>
-    <message>
-        <location filename="worddb.cpp" line="152"/>
+        <location filename="worddb.cpp" line="146"/>
         <source>Database error when </source>
         <translation>数据出错：</translation>
     </message>
@@ -423,6 +427,97 @@ Click OK to exit the app.</source>
  Do you want to continue?</source>
         <translation>这将清除所有本地设置并且不可恢复！
 确定要这么做吗？</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="26"/>
+        <location filename="serverdatadialog.cpp" line="21"/>
+        <source>Book Name</source>
+        <translation>单词本</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="22"/>
+        <source>Status</source>
+        <translation>状态</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="101"/>
+        <source>Downloading </source>
+        <translation>正在下载</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="101"/>
+        <location filename="serverdatadialog.cpp" line="229"/>
+        <location filename="serverdatadialog.cpp" line="254"/>
+        <location filename="serverdatadialog.cpp" line="273"/>
+        <location filename="serverdatadialog.cpp" line="298"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="137"/>
+        <source>downloaded</source>
+        <translation>已下载</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="141"/>
+        <source>not downloaded</source>
+        <translation>未下载</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="229"/>
+        <location filename="serverdatadialog.cpp" line="273"/>
+        <source>Preparing the list of files to be downloaded ...</source>
+        <translation>正在检查哪些文件需要下载 ...</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="254"/>
+        <source>Downloading pronounce files ...</source>
+        <translation>正在下载单词发音的音频文件 ...</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="258"/>
+        <source>All pronounce files are already available locally!</source>
+        <translation>所有单词发音的音频文件已存在！</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="298"/>
+        <source>Downloading meida files ...</source>
+        <translation>正在下载单词例句的音频文件 ...</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.cpp" line="302"/>
+        <source>All media files are already available locally!</source>
+        <translation>所有单词例句的音频文件已存在！</translation>
+    </message>
+</context>
+<context>
+    <name>ServerDataDialog</name>
+    <message>
+        <location filename="serverdatadialog.ui" line="14"/>
+        <source>Dialog</source>
+        <translation>服务器上的单词本</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.ui" line="24"/>
+        <source>Download book</source>
+        <translation>下载单词本</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.ui" line="31"/>
+        <source>Download
+pronounce files</source>
+        <translation>下载发音音频</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.ui" line="39"/>
+        <source>Download
+all media files</source>
+        <translation>下载例句音频</translation>
+    </message>
+    <message>
+        <location filename="serverdatadialog.ui" line="47"/>
+        <source>Close</source>
+        <translation>关闭</translation>
     </message>
 </context>
 <context>
@@ -487,7 +582,7 @@ Click OK to exit the app.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="studywindow.cpp" line="301"/>
+        <location filename="studywindow.cpp" line="300"/>
         <source>study words</source>
         <translation>学习单词</translation>
     </message>

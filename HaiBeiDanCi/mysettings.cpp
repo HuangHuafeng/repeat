@@ -413,7 +413,7 @@ QString MySettings::infoFileHttpUrl()
     QString infoHttp = MySettings::getSettingString("infoFileHttpUrl");
     if (infoHttp.isEmpty() == true)
     {
-        infoHttp = "https://raw.githubusercontent.com/HuangHuafeng/repeat/master/HaiBeiDanCi/info.json";
+        infoHttp = "http://www.huafeng.ga/info.json";
     }
 
     return infoHttp;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>426</height>
+    <width>800</width>
+    <height>598</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -64,20 +64,17 @@
        <string>Selected Book</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
-       <property name="spacing">
-        <number>0</number>
-       </property>
        <property name="leftMargin">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="topMargin">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="rightMargin">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="bottomMargin">
-        <number>0</number>
+        <number>2</number>
        </property>
        <item>
         <widget class="QGroupBox" name="groupBox_3">
@@ -91,26 +88,8 @@
           <string>Expired Words</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout">
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="0">
              <widget class="QPushButton" name="pushStudyExpiredWords">
               <property name="text">
@@ -158,26 +137,8 @@
           <string>Old Words</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_2">
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="0">
              <widget class="QPushButton" name="pushStudyOldWords">
               <property name="text">
@@ -225,26 +186,8 @@
           <string>New Words</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_3">
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="0">
              <widget class="QPushButton" name="pushStudyNewWords">
               <property name="text">
@@ -292,26 +235,8 @@
           <string>All Words</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_4">
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="0">
              <widget class="QPushButton" name="pushStudyAllWords">
               <property name="text">
@@ -362,20 +287,17 @@
        <string>All Books</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
-       <property name="spacing">
-        <number>0</number>
-       </property>
        <property name="leftMargin">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="topMargin">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="rightMargin">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="bottomMargin">
-        <number>0</number>
+        <number>2</number>
        </property>
        <item>
         <widget class="QGroupBox" name="groupBox_7">
@@ -389,26 +311,8 @@
           <string>Expired Words</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_5">
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="0">
              <widget class="QPushButton" name="pushGlobalStudyExpiredWords">
               <property name="text">
@@ -456,26 +360,8 @@
           <string>Old Words</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_6">
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="0">
              <widget class="QPushButton" name="pushGlobalStudyOldWords">
               <property name="text">
@@ -523,26 +409,8 @@
           <string>New Words</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_9">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_8">
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="0">
              <widget class="QPushButton" name="pushGlobalStudyNewWords">
               <property name="text">
@@ -590,26 +458,8 @@
           <string>All Words</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_7">
-            <property name="verticalSpacing">
-             <number>0</number>
-            </property>
             <item row="1" column="1">
              <widget class="QPushButton" name="pushGlobalBrowseAllWords">
               <property name="text">
@@ -655,7 +505,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>640</width>
+     <width>800</width>
      <height>22</height>
     </rect>
    </property>

@@ -483,17 +483,25 @@ void ClientWaiter::sendBookWordList(const MessageHeader &msgHeader, const QStrin
 
 bool ClientWaiter::okToSendFile(const QString fileName)
 {
+    // only allow files in folder media
     if (fileName.startsWith("media", Qt::CaseInsensitive) == false)
     {
         return false;
     }
 
+    // only allow mp3/png/jpg/css/js
     QString ext = fileName.section('.', -1);
     if (ext.compare("mp3", Qt::CaseInsensitive) != 0
             && ext.compare("png", Qt::CaseInsensitive) != 0
             && ext.compare("jpg", Qt::CaseInsensitive) != 0
             && ext.compare("css", Qt::CaseInsensitive) != 0
             && ext.compare("js", Qt::CaseInsensitive) != 0)
+    {
+        return false;
+    }
+
+    // don't allow to move upper level folder
+    if (fileName.contains("..") == true)
     {
         return false;
     }

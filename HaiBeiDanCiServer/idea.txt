@@ -1,4 +1,3 @@
-* downloading info.json meet ssl issue!
 * add server setting in info.json
 
 
@@ -6,11 +5,12 @@ PARTLY DONE * add security to the server, currently it exposes anything to the c
 
 
 LOW PRIORITY
-* building the list of media files could take time, so we should show progress dialog
 * saving files to disk is slow, maybe good to use a separate thread.(This should have low priority!)
 
 
 // DONE
+DONE * building the list of media files could take time, so we should show progress dialog
+DONE * downloading info.json meet ssl issue! (store the info.json in http://www.huafeng.ga/)
 DONE * separate pronounce and example audio when downloading
 DONE * add sequence number for message, ACTUALLY, we should have a  message header
 DONE * change the progress dialog to an object, instead of using a pointer

@@ -7,6 +7,7 @@
 #include "wordbook.h"
 #include "preferencesdialog.h"
 #include "serverdatadialog.h"
+#include "aboutdialog.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -437,7 +438,8 @@ void MainWindow::setMyTitle()
 
 void MainWindow::on_action_About_triggered()
 {
-    QMessageBox::information(this, MySettings::appName(), "About");
+    AboutDialog ad(this);
+    ad.exec();
 }
 
 void MainWindow::on_actionPreferences_triggered()

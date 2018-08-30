@@ -2,6 +2,24 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>AboutDialog</name>
+    <message>
+        <location filename="aboutdialog.ui" line="20"/>
+        <source>Dialog</source>
+        <translation>服务器上的单词本</translation>
+    </message>
+    <message>
+        <location filename="aboutdialog.ui" line="34"/>
+        <source>OK</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="aboutdialog.ui" line="69"/>
+        <source>TextLabel</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>BrowserWindow</name>
     <message>
         <location filename="browserwindow.ui" line="14"/>
@@ -112,119 +130,119 @@
         <translation>当前单词本</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="91"/>
-        <location filename="mainwindow.ui" line="389"/>
+        <location filename="mainwindow.ui" line="88"/>
+        <location filename="mainwindow.ui" line="311"/>
         <source>Expired Words</source>
         <translation>待学习</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="117"/>
-        <location filename="mainwindow.ui" line="184"/>
-        <location filename="mainwindow.ui" line="251"/>
-        <location filename="mainwindow.ui" line="318"/>
-        <location filename="mainwindow.ui" line="415"/>
-        <location filename="mainwindow.ui" line="482"/>
-        <location filename="mainwindow.ui" line="549"/>
-        <location filename="mainwindow.ui" line="639"/>
+        <location filename="mainwindow.ui" line="96"/>
+        <location filename="mainwindow.ui" line="145"/>
+        <location filename="mainwindow.ui" line="194"/>
+        <location filename="mainwindow.ui" line="243"/>
+        <location filename="mainwindow.ui" line="319"/>
+        <location filename="mainwindow.ui" line="368"/>
+        <location filename="mainwindow.ui" line="417"/>
+        <location filename="mainwindow.ui" line="489"/>
         <source>Study</source>
         <translation>学习</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="124"/>
-        <location filename="mainwindow.ui" line="191"/>
-        <location filename="mainwindow.ui" line="258"/>
-        <location filename="mainwindow.ui" line="325"/>
-        <location filename="mainwindow.ui" line="422"/>
-        <location filename="mainwindow.ui" line="489"/>
-        <location filename="mainwindow.ui" line="556"/>
-        <location filename="mainwindow.ui" line="616"/>
+        <location filename="mainwindow.ui" line="103"/>
+        <location filename="mainwindow.ui" line="152"/>
+        <location filename="mainwindow.ui" line="201"/>
+        <location filename="mainwindow.ui" line="250"/>
+        <location filename="mainwindow.ui" line="326"/>
+        <location filename="mainwindow.ui" line="375"/>
+        <location filename="mainwindow.ui" line="424"/>
+        <location filename="mainwindow.ui" line="466"/>
         <source>Browse</source>
         <translation>浏览</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="137"/>
-        <location filename="mainwindow.ui" line="204"/>
-        <location filename="mainwindow.ui" line="271"/>
-        <location filename="mainwindow.ui" line="338"/>
-        <location filename="mainwindow.ui" line="435"/>
-        <location filename="mainwindow.ui" line="502"/>
-        <location filename="mainwindow.ui" line="569"/>
-        <location filename="mainwindow.ui" line="629"/>
+        <location filename="mainwindow.ui" line="116"/>
+        <location filename="mainwindow.ui" line="165"/>
+        <location filename="mainwindow.ui" line="214"/>
+        <location filename="mainwindow.ui" line="263"/>
+        <location filename="mainwindow.ui" line="339"/>
+        <location filename="mainwindow.ui" line="388"/>
+        <location filename="mainwindow.ui" line="437"/>
+        <location filename="mainwindow.ui" line="479"/>
         <source>TextLabel</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="158"/>
-        <location filename="mainwindow.ui" line="456"/>
+        <location filename="mainwindow.ui" line="137"/>
+        <location filename="mainwindow.ui" line="360"/>
         <source>Old Words</source>
         <translation>学过的</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="225"/>
-        <location filename="mainwindow.ui" line="523"/>
+        <location filename="mainwindow.ui" line="186"/>
+        <location filename="mainwindow.ui" line="409"/>
         <source>New Words</source>
         <translation>未学过的</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="292"/>
-        <location filename="mainwindow.ui" line="590"/>
+        <location filename="mainwindow.ui" line="235"/>
+        <location filename="mainwindow.ui" line="458"/>
         <source>All Words</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="362"/>
+        <location filename="mainwindow.ui" line="287"/>
         <source>All Books</source>
         <translation>所有单词本</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="664"/>
+        <location filename="mainwindow.ui" line="514"/>
         <source>&amp;Help</source>
         <translation>帮助(&amp;H)</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="670"/>
+        <location filename="mainwindow.ui" line="520"/>
         <source>Server</source>
         <translation>服务器</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="676"/>
+        <location filename="mainwindow.ui" line="526"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="696"/>
+        <location filename="mainwindow.ui" line="546"/>
         <source>&amp;About</source>
         <translation>关于(&amp;A)</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="704"/>
+        <location filename="mainwindow.ui" line="554"/>
         <source>Preferences...</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="712"/>
+        <location filename="mainwindow.ui" line="562"/>
         <source>Books</source>
         <translation>单词本</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="717"/>
+        <location filename="mainwindow.ui" line="567"/>
         <source>Exit</source>
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="36"/>
+        <location filename="mainwindow.cpp" line="37"/>
         <source>database error</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="146"/>
-        <location filename="mainwindow.cpp" line="157"/>
-        <location filename="mainwindow.cpp" line="168"/>
-        <location filename="mainwindow.cpp" line="179"/>
-        <location filename="mainwindow.cpp" line="193"/>
-        <location filename="mainwindow.cpp" line="204"/>
-        <location filename="mainwindow.cpp" line="215"/>
-        <location filename="mainwindow.cpp" line="226"/>
+        <location filename="mainwindow.cpp" line="147"/>
+        <location filename="mainwindow.cpp" line="158"/>
+        <location filename="mainwindow.cpp" line="169"/>
+        <location filename="mainwindow.cpp" line="180"/>
+        <location filename="mainwindow.cpp" line="194"/>
+        <location filename="mainwindow.cpp" line="205"/>
+        <location filename="mainwindow.cpp" line="216"/>
+        <location filename="mainwindow.cpp" line="227"/>
         <source> words</source>
         <translation>个单词</translation>
     </message>
@@ -232,22 +250,22 @@
 <context>
     <name>MainWindow::MainWindow</name>
     <message>
-        <location filename="mainwindow.cpp" line="237"/>
+        <location filename="mainwindow.cpp" line="238"/>
         <source>No word to study!</source>
         <translation>没有单词！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="251"/>
+        <location filename="mainwindow.cpp" line="252"/>
         <source>failed to set the word list to study!</source>
         <translation>设置单词列表失败！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="261"/>
+        <location filename="mainwindow.cpp" line="262"/>
         <source>No word to Browse!</source>
         <translation>没有单词！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="275"/>
+        <location filename="mainwindow.cpp" line="276"/>
         <source>failed to set the word list to browse!</source>
         <translation>设置单词列表失败！</translation>
     </message>
@@ -429,7 +447,7 @@ Click OK to exit the app.</source>
 确定要这么做吗？</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="26"/>
+        <location filename="mainwindow.cpp" line="27"/>
         <location filename="serverdatadialog.cpp" line="21"/>
         <source>Book Name</source>
         <translation>单词本</translation>
@@ -488,6 +506,21 @@ Click OK to exit the app.</source>
         <location filename="serverdatadialog.cpp" line="302"/>
         <source>All media files are already available locally!</source>
         <translation>所有单词例句的音频文件已存在！</translation>
+    </message>
+    <message>
+        <location filename="aboutdialog.cpp" line="34"/>
+        <source>Based on </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="aboutdialog.cpp" line="37"/>
+        <source>Built on </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="aboutdialog.cpp" line="50"/>
+        <source>About </source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

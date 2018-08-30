@@ -11,6 +11,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = HaiBeiDanCi
 TEMPLATE = app
 
+# version, APP_VERSION is string "0.9.1"
+VERSION = 0.9.1
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -45,7 +49,8 @@ SOURCES += \
     downloadmanager.cpp \
     serverdatadialog.cpp \
     serveragent.cpp \
-    serverclientprotocol.cpp
+    serverclientprotocol.cpp \
+    aboutdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -69,14 +74,16 @@ HEADERS += \
     downloadmanager.h \
     serverdatadialog.h \
     serverclientprotocol.h \
-    serveragent.h
+    serveragent.h \
+    aboutdialog.h
 
 FORMS += \
         mainwindow.ui \
     studywindow.ui \
     browserwindow.ui \
     preferencesdialog.ui \
-    serverdatadialog.ui
+    serverdatadialog.ui \
+    aboutdialog.ui
 
 SUBDIRS += \
     HaiBeiDanCi.pro
@@ -88,3 +95,5 @@ TRANSLATIONS = myapp_zh_CN.ts
 
 DISTFILES += \
     info.json
+
+RC_ICONS = HaiBeiDanCi.ico

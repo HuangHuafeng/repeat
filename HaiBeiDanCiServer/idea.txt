@@ -1,4 +1,6 @@
 * add server setting in info.json
+* improve about
+* application icon
 
 
 PARTLY DONE * add security to the server, currently it exposes anything to the client!!!

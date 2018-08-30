@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>wordview.html</file>
+        <file>HaiBeiDanCi.ico</file>
     </qresource>
 </RCC>

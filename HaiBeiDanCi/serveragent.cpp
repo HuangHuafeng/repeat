@@ -465,28 +465,6 @@ bool ServerAgent::handleResponseGetWordsOfBookFinished(const MessageHeader &msgH
     return true;
 }
 
-bool ServerAgent::handleResponseAllDataSentForRequestGetWordsOfBook(const MessageHeader &msgHeader)
-{
-    // avoid unused parameter warning
-    msgHeader.toString();
-
-    QDataStream in(m_tcpSocket);
-    QString bookName;
-    in.startTransaction();
-    in >> bookName;
-    if (in.commitTransaction() == false)
-    {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read books in handleResponseAllDataSentForRequestGetWordsOfBook()";
-        return false;
-    }
-
-    // we've received the words of the book, get the definition of these words
-    downloadWordsOfBook(bookName);
-
-    return true;
-}
-
 void ServerAgent::completeBookDownload(QString bookName)
 {
     auto book = m_mapBooks.value(bookName);
@@ -520,64 +498,6 @@ bool ServerAgent::saveFileFromServer(QString fileName)
     qDebug() << "saving" << fileName << "size" << content.size();
     toSave.write(content.constData(), content.size());
     m_mapFileContent.remove(fileName);  // remove the content since it's now saved to the disk
-
-    return true;
-}
-
-bool ServerAgent::handleResponseAllDataSentForRequestGetWords(const MessageHeader &msgHeader)
-{
-    // avoid unused parameter warning
-    msgHeader.toString();
-
-    QDataStream in(m_tcpSocket);
-    QString bookName;
-    in.startTransaction();
-    in >> bookName;
-    if (in.commitTransaction() == false)
-    {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read books in handleResponseAllDataSentForRequestGetWordsOfBook()";
-        return false;
-    }
-
-    if (bookName.startsWith(ServerClientProtocol::partPrefix()) == false)
-    {
-        emit(internalBookDataDownloaded(bookName));
-    }
-    else
-    {
-        qDebug() << "received part" << bookName;
-    }
-
-    return true;
-}
-
-bool ServerAgent::handleResponseAllDataSentForRequestGetFile(const MessageHeader &msgHeader)
-{
-    // avoid unused parameter warning
-    msgHeader.toString();
-
-    //funcTracker ft("handleResponseAllDataSentForRequestGetFile()");
-    QDataStream in(m_tcpSocket);
-    QString fileName;
-    bool succeeded;
-    in.startTransaction();
-    in >> fileName >> succeeded;
-    if (in.commitTransaction() == false)
-    {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read file name and result in handleResponseAllDataSentForRequestGetFile()";
-        return false;
-    }
-
-    if (fileName.startsWith(ServerClientProtocol::partPrefix()) == false)
-    {
-        emit(internalFileDataDownloaded(fileName, succeeded));
-    }
-    else
-    {
-        qDebug() << "received part" << fileName;
-    }
 
     return true;
 }

@@ -109,11 +109,6 @@ private:
     bool handleResponseGetFileFinished(const MessageHeader &msgHeader);
     bool handleResponseGetWordsOfBookFinished(const MessageHeader &msgHeader);
 
-    bool handleResponseAllDataSent(const MessageHeader &msgHeader);
-    bool handleResponseAllDataSentForRequestGetWordsOfBook(const MessageHeader &msgHeader);
-    bool handleResponseAllDataSentForRequestGetWords(const MessageHeader &msgHeader);
-    bool handleResponseAllDataSentForRequestGetFile(const MessageHeader &msgHeader);
-
     void connectToServer();
     void sendRequestNoOperation();
     void sendRequestGetAllBooks();

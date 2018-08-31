@@ -1,5 +1,4 @@
 * add server setting in info.json
-* improve about
 * QWebEgingeView seems heavy, remove it from Intro, create dynamicly for study/browse
 * application icon (DONE on Windows)
 
@@ -13,6 +12,7 @@ LOW PRIORITY
 
 
 // DONE
+DONE * improve about
 DONE * building the list of media files could take time, so we should show progress dialog
 DONE * downloading info.json meet ssl issue! (store the info.json in http://www.huafeng.ga/)
 DONE * separate pronounce and example audio when downloading

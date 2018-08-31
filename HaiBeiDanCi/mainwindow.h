@@ -7,8 +7,6 @@
 #include "browserwindow.h"
 
 #include <QMainWindow>
-#include <QFuture>
-#include <QFutureWatcher>
 
 namespace Ui
 {
@@ -74,7 +72,6 @@ private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;
     BrowserWindow m_browserWindow;
-    QFutureWatcher<bool> m_loadAllCardsWatcher;
 
     void reloadBooks();
     void addBookToTheView(WordBook &book);

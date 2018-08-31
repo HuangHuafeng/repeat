@@ -1,6 +1,8 @@
 * add server setting in info.json
 * improve about
-* application icon
+* QWebEgingeView seems heavy, remove it from Intro, create dynamicly for study/browse
+* application icon (DONE on Windows)
+
 
 
 PARTLY DONE * add security to the server, currently it exposes anything to the client!!!

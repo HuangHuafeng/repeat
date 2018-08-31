@@ -43,8 +43,6 @@ SOURCES += \
     temporaryfilemanager.cpp \
     browserwindow.cpp \
     mysettings.cpp \
-    introductionpage.cpp \
-    introductionview.cpp \
     preferencesdialog.cpp \
     downloadmanager.cpp \
     serverdatadialog.cpp \
@@ -68,8 +66,6 @@ HEADERS += \
     temporaryfilemanager.h \
     browserwindow.h \
     mysettings.h \
-    introductionpage.h \
-    introductionview.h \
     preferencesdialog.h \
     downloadmanager.h \
     serverdatadialog.h \
@@ -78,7 +74,7 @@ HEADERS += \
     aboutdialog.h
 
 FORMS += \
-        mainwindow.ui \
+    mainwindow.ui \
     studywindow.ui \
     browserwindow.ui \
     preferencesdialog.ui \

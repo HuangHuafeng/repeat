@@ -18,8 +18,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
                                           ui(new Ui::MainWindow),
                                           m_studyWindow(nullptr),
-                                          m_browserWindow(nullptr),
-                                          m_bookIntro(nullptr)
+                                          m_browserWindow(nullptr)
 {
     ui->setupUi(this);
 
@@ -29,8 +28,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     setMyTitle();
 
-    m_bookIntro.setHtml("<html></html>");
-    ui->verticalLayout->addWidget(&m_bookIntro);
+    ui->tbIntro->setOpenExternalLinks(true);
 
     if (WordDB::initialize() == false)
     {
@@ -356,7 +354,7 @@ void MainWindow::showCurrentBookIntroduction()
     auto book = WordBook::getBook(bookName);
     if (book.get())
     {
-        m_bookIntro.setHtml(book->getIntroduction());
+        ui->tbIntro->setHtml(book->getIntroduction());
     }
 }
 

@@ -5,7 +5,6 @@
 #include "wordbook.h"
 #include "studylist.h"
 #include "browserwindow.h"
-#include "introductionview.h"
 
 #include <QMainWindow>
 #include <QFuture>
@@ -75,7 +74,6 @@ private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;
     BrowserWindow m_browserWindow;
-    IntroductionView m_bookIntro;
     QFutureWatcher<bool> m_loadAllCardsWatcher;
 
     void reloadBooks();

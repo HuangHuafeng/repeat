@@ -510,17 +510,17 @@ Click OK to exit the app.</source>
     <message>
         <location filename="aboutdialog.cpp" line="34"/>
         <source>Based on </source>
-        <translation type="unfinished"></translation>
+        <translation>基于 </translation>
     </message>
     <message>
         <location filename="aboutdialog.cpp" line="37"/>
         <source>Built on </source>
-        <translation type="unfinished"></translation>
+        <translation>编译于 </translation>
     </message>
     <message>
         <location filename="aboutdialog.cpp" line="50"/>
         <source>About </source>
-        <translation type="unfinished"></translation>
+        <translation>关于</translation>
     </message>
 </context>
 <context>

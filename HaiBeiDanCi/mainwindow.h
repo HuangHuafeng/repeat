@@ -84,6 +84,7 @@ private:
 
     void saveSettings();
     void loadSetting();
+    void loadFont();
 
     sptr<StudyList> expiredWordsFromCurrentBook();
     sptr<StudyList> oldWordsFromCurrentBook();

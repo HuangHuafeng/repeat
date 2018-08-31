@@ -4,6 +4,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QFontDialog>
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) : QDialog(parent),
                                                         ui(new Ui::PreferencesDialog)
@@ -324,4 +325,27 @@ void PreferencesDialog::loadDataSettings()
 {
     ui->leDataPath->setText(MySettings::dataDirectory());
     ui->spinInfoUpdate->setValue(MySettings::updateInterval());
+
+    updateCurrentFontInfo();
+}
+
+void PreferencesDialog::updateCurrentFontInfo()
+{
+    QFont currentFont = QApplication::font();
+    QString fontInfo = currentFont.family();
+    ui->leCurrentFont->setText(fontInfo);
+}
+
+void PreferencesDialog::on_pushChangeFont_clicked()
+{
+    bool ok;
+    QFont currentFont = QApplication::font();
+    ui->leCurrentFont->setText(currentFont.family());
+    QFont font = QFontDialog::getFont(
+                    &ok, currentFont, this);
+    if (ok) {
+        QApplication::setFont(font);
+        updateCurrentFontInfo();
+        MySettings::saveApplicationFont(font);
+    }
 }

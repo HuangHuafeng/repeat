@@ -83,6 +83,9 @@ class MySettings : public QObject
     static int downloadIntervalInMilliseconds();
     static int numberOfRequestInEveryDownloadRound();
 
+    static QString applicationFont();
+    static void saveApplicationFont(QFont font);
+
     static MySettings *instance();
 
     static QString mediaHttpUrl();

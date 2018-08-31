@@ -26,6 +26,8 @@ class PreferencesDialog : public QDialog
 
     void on_buttonBox_clicked(QAbstractButton *button);
 
+    void on_pushChangeFont_clicked();
+
 private:
     Ui::PreferencesDialog *ui;
 
@@ -48,6 +50,7 @@ private:
     int restoreDataSettings();
     void loadCardSettings();
     void loadDataSettings();
+    void updateCurrentFontInfo();
 };
 
 #endif // PREFERENCESDIALOG_H

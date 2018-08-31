@@ -180,6 +180,30 @@
        </property>
        <item>
         <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Directory</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QPushButton" name="pushBrowse">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QPushButton" name="pushUpdateInfo">
+           <property name="text">
+            <string>Update now</string>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="2">
           <widget class="QLabel" name="label_11">
            <property name="text">
@@ -201,32 +225,33 @@ file every</string>
          <item row="1" column="1">
           <widget class="QSpinBox" name="spinInfoUpdate"/>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label">
+         <item row="0" column="1" colspan="3">
+          <widget class="QLineEdit" name="leDataPath">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_18">
            <property name="text">
-            <string>Directory</string>
+            <string>Application
+font</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="1" column="4">
-          <widget class="QPushButton" name="pushUpdateInfo">
+         <item row="2" column="4">
+          <widget class="QPushButton" name="pushChangeFont">
            <property name="text">
-            <string>Update now</string>
+            <string>Change</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="4">
-          <widget class="QPushButton" name="pushBrowse">
-           <property name="text">
-            <string>Browse</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1" colspan="3">
-          <widget class="QLineEdit" name="leDataPath">
+         <item row="2" column="1" colspan="3">
+          <widget class="QLineEdit" name="leCurrentFont">
            <property name="readOnly">
             <bool>true</bool>
            </property>

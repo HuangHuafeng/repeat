@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     connect(&m_studyWindow, SIGNAL(wordStudied(QString)), this, SLOT(onWordStudied(QString)));
 
+    loadFont();
     loadSetting();
     reloadBooks();
     updateAllBooksData();
@@ -75,6 +76,19 @@ void MainWindow::loadSetting()
     resize(settings.value("size", QSize(640, 480)).toSize());
     move(settings.value("pos", QPoint(200, 200)).toPoint());
     settings.endGroup();
+}
+
+void MainWindow::loadFont()
+{
+    const QString fontString = MySettings::applicationFont();
+    if (fontString.isEmpty() == false)
+    {
+        QFont font;
+        if (font.fromString(fontString) == true)
+        {
+            QApplication::setFont(font);
+        }
+    }
 }
 
 void MainWindow::reloadBooks()

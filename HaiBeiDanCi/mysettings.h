@@ -83,8 +83,12 @@ class MySettings : public QObject
     static int downloadIntervalInMilliseconds();
     static int numberOfRequestInEveryDownloadRound();
 
+#ifndef HAIBEIDANCI_SERVER
+
     static QString applicationFont();
     static void saveApplicationFont(QFont font);
+
+#endif  // HAIBEIDANCI_SERVER
 
     static MySettings *instance();
 

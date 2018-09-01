@@ -4,7 +4,35 @@
 #include <QCoreApplication>
 #include <QUrl>
 #include <QFile>
+
+#ifndef HAIBEIDANCI_SERVER
 #include <QFont>
+
+QString MySettings::applicationFont()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    QString valueInSetting = settings.value("applicationFont", "").toString();
+    settings.endGroup();
+
+    if (valueInSetting.isEmpty() == true)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString stringValue = MySettings::getSettingString("applicationFont");
+    }
+
+    return valueInSetting;
+}
+
+void MySettings::saveApplicationFont(QFont font)
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("applicationFont", font);
+    settings.endGroup();
+}
+
+#endif  // HAIBEIDANCI_SERVER
 
 MySettings *MySettings::m_settings = nullptr;
 QString MySettings::m_appName;
@@ -601,28 +629,4 @@ QString MySettings::getSettingString(QString key)
     }
 
     return value;
-}
-
-QString MySettings::applicationFont()
-{
-    QSettings settings;
-    settings.beginGroup(MySettings::group());
-    QString valueInSetting = settings.value("applicationFont", "").toString();
-    settings.endGroup();
-
-    if (valueInSetting.isEmpty() == true)
-    {
-        // there's no local setting, try to get the setting from info.txt
-        QString stringValue = MySettings::getSettingString("applicationFont");
-    }
-
-    return valueInSetting;
-}
-
-void MySettings::saveApplicationFont(QFont font)
-{
-    QSettings settings;
-    settings.beginGroup(MySettings::group());
-    settings.setValue("applicationFont", font);
-    settings.endGroup();
 }

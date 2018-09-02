@@ -1,4 +1,6 @@
 * add server management
+    # data sync to server
+    # anything wrong, sync from server
 * add "leave a message to the author"
 * deploy HaiBeiDanCi server
 * add server setting in info.json

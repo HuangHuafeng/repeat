@@ -1,6 +1,7 @@
 #include "gdhelper.h"
 #include "golddict/gddebug.hh"
 #include "HaiBeiDanCi/word.h"
+#include "HaiBeiDanCi/mysettings.h"
 
 GDHelper::GDHelper(QObject *parent):
     QObject(parent),
@@ -14,7 +15,7 @@ void GDHelper::lookupWord(QString word, QWebEngineView &viewToUpdate)
 {
     if (m_dict.getDictionaries().size()) {
         QString wordDefinition = getWordDefinitionPage(word);
-        QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+        QUrl baseUrl("file:///" + MySettings::dataDirectory() + "/");
         viewToUpdate.setHtml(wordDefinition, baseUrl);
     }
 }
@@ -69,6 +70,7 @@ bool GDHelper::saveWord(const QString &spelling)
     auto word = Word::getWord(spelling, true);
     if (word.get()) {
         word->setDefinition(html);
+        word->dbsave();
     } else {
         return false;
     }

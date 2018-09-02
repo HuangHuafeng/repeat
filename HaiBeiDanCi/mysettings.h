@@ -41,6 +41,12 @@ class MySettings : public QObject
         return m_appName;
     }
 
+    static void saveServerHostName(QString hostName);
+    static QString serverHostName();
+
+    static void saveServerPort(quint16 port);
+    static quint16 serverPort();
+
     static void saveDataDirectory(QString newDir);
     static QString dataDirectory();
 

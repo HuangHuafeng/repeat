@@ -1,5 +1,6 @@
 #include "dictschemehandler.h"
 #include "golddict/gddebug.hh"
+#include "HaiBeiDanCi/mysettings.h"
 
 #include <QWebEngineUrlRequestJob>
 #include <QBuffer>
@@ -45,7 +46,7 @@ void DictSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 
 void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
 {
-    QString audioFile = QCoreApplication::applicationDirPath() + request->requestUrl().path();
+    QString audioFile = MySettings::dataDirectory() + request->requestUrl().path();
     m_mediaPlayer.play(audioFile);
 }
 
@@ -141,7 +142,7 @@ void DictSchemeHandler::saveMediaFile(QUrl url)
 
 void DictSchemeHandler::saveOtherSchemes(QUrl url)
 {
-    QString fileName = QCoreApplication::applicationDirPath() + "/" + getMediaDir() + url.path();
+    QString fileName = MySettings::dataDirectory() + "/" + getMediaDir() + url.path();
     if (QFile::exists(fileName)) {
         return;
     }
@@ -160,7 +161,7 @@ void DictSchemeHandler::saveOtherSchemes(QUrl url)
 
 void DictSchemeHandler::saveQcrx(QUrl url)
 {
-    QString fileName = QCoreApplication::applicationDirPath() + "/media" + url.path();
+    QString fileName = MySettings::dataDirectory() + "/media" + url.path();
     if (QFile::exists(fileName)) {
         return;
     }

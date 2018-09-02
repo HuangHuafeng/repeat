@@ -34,7 +34,7 @@ signals:
 
 public:
 
-  virtual void indexingDictionary( std::string const & dictionaryName ) throw();
+  virtual void indexingDictionary( std::string const & dictionaryName ) noexcept;
 
 };
 

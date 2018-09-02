@@ -3,6 +3,9 @@
 #include "golddict/gddebug.hh"
 #include "HaiBeiDanCi/word.h"
 #include "HaiBeiDanCi/wordbook.h"
+#include "HaiBeiDanCi/serveragent.h"
+#include "HaiBeiDanCi/mysettings.h"
+#include "newbook.h"
 
 #include <QString>
 #include <QFileDialog>
@@ -14,11 +17,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_gdhelper(nullptr),
-    m_definitionView(this),
-    m_studyWindow(nullptr),
-    m_newbookWindow(m_gdhelper, this)
+    m_definitionView(this)
 {
     ui->setupUi(this);
+
+    QStringList header;
+    header.append(QObject::tr("Name"));
+    header.append(QObject::tr("Words"));
+    ui->twLocalData->setHeaderLabels(header);
+    ui->twServerData->setHeaderLabels(header);
 
     if (WordDB::initialize() == false) {
         QMessageBox::critical(this, "MySettings::appName()", MainWindow::tr("database error"));
@@ -36,6 +43,13 @@ MainWindow::MainWindow(QWidget *parent) :
     Word::readAllWordsFromDatabase();
     WordCard::readAllCardsFromDatabase();
     WordBook::readAllBooksFromDatabase();
+
+    ServerAgent *serveragent = ServerAgent::instance();
+    connect(serveragent, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
+
+
+    reloadLocalData();
+    reloadServerData();
 }
 
 MainWindow::~MainWindow()
@@ -48,7 +62,10 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "Open Dictionary");
 
-    m_gdhelper.loadDict(fileName);
+    if (fileName.isEmpty() == false)
+    {
+        m_gdhelper.loadDict(fileName);
+    }
 }
 
 
@@ -80,48 +97,104 @@ void MainWindow::QueryWord()
     if (word.get()) {
         //QString html = word->getDefinition();
         QString html = word->getDefinitionDIV();
-        QUrl baseUrl("file://" + QCoreApplication::applicationDirPath() + "/");
+        QUrl baseUrl("file:///" + MySettings::dataDirectory() + "/");
         m_definitionView.setHtml(html, baseUrl);
     }
 }
 
-void MainWindow::on_pushButton_2_clicked()
-{
-    QDateTime start = QDateTime::currentDateTime();
-
-    m_studyWindow.setStudyList(StudyList::allWords());
-
-    QDateTime end = QDateTime::currentDateTime();
-    gdDebug("used %lld seconds", start.secsTo(end));
-
-    m_studyWindow.show();
-}
-
 void MainWindow::on_pushNewBook_clicked()
 {
-    m_newbookWindow.show();
+    ui->actionNewBook->trigger();
 }
 
 void MainWindow::on_pushTest_clicked()
 {
-    auto sl = StudyList::allWords();
-    if (sl.get() != nullptr) {
-        auto wordList = sl->getWordList();
-        gdDebug("%d", wordList.size());
-        QProgressDialog progress("touch all the words ...", "Abort", 0, wordList.size(), this);
-        progress.setWindowModality(Qt::WindowModal);
-        for (int i = 0; i < wordList.size();i ++) {
-            auto spelling = wordList.at(i);
-            auto card = WordCard::getCard(spelling, true);
-            if (card.get()) {
-                card->update(static_cast<MemoryItem::ResponseQuality>(i % 5));
-            }
+}
 
-            //gdDebug("add fake study record for %s", spelling.toStdString().c_str());
-            progress.setValue(i);
-            if (progress.wasCanceled()) {
-                break;
-            }
+void MainWindow::on_actionNewBook_triggered()
+{
+    NewBook newBookWindow(m_gdhelper, this);
+    newBookWindow.exec();
+}
+
+void MainWindow::reloadLocalData()
+{
+    auto wordList = Word::getAllWords();
+    ui->labelLocalWords->setText(QString::number(wordList.size()));
+
+    auto bookList = WordBook::getAllBooks();
+    ui->labelLocalBooks->setText(QString::number(bookList.size()));
+
+    reloadLocalBooks();
+}
+
+void MainWindow::reloadLocalBooks()
+{
+    ui->twLocalData->clear();
+
+    auto bookList = WordBook::getAllBooks();
+
+    for (int i = 0; i < bookList.size(); i++)
+    {
+        auto book = WordBook::getBook(bookList.at(i));
+        if (book.get())
+        {
+            addBookToTheView(ui->twLocalData, *book);
         }
     }
+
+    selectFirstItem(ui->twLocalData);
+}
+
+void MainWindow::selectFirstItem(QTreeWidget *tw)
+{
+    if (tw == nullptr)
+    {
+        return;
+    }
+
+    tw->sortItems(0, Qt::SortOrder::AscendingOrder);
+    tw->resizeColumnToContents(0);
+
+    // select the first book
+    QTreeWidgetItemIterator it(tw);
+    if (*it)
+    {
+        tw->setCurrentItem(*it);
+    }
+}
+
+void MainWindow::addBookToTheView(QTreeWidget * tw, WordBook &book)
+{
+    QStringList infoList;
+    infoList.append(book.getName());
+    QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
+    tw->addTopLevelItem(item);
+}
+
+void MainWindow::reloadServerData()
+{
+    ServerAgent *serveragent = ServerAgent::instance();
+    serveragent->getBookList();
+}
+
+void MainWindow::onBookListReady(const QList<QString> books)
+{
+    // number of books
+    ui->labelServerBooks->setText(QString::number(books.size()));
+
+    ui->twServerData->clear();
+
+    for (int i = 0;i < books.size();i ++)
+    {
+        QString bookName = books.at(i);
+
+        QStringList infoList;
+        infoList.append(bookName);
+        infoList.append("");
+        QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
+        ui->twServerData->addTopLevelItem(item);
+    }
+
+    selectFirstItem(ui->twServerData);
 }

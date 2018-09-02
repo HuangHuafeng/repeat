@@ -1,5 +1,6 @@
 #include "mdxdict.h"
 #include "golddict/gddebug.hh"
+#include "HaiBeiDanCi/mysettings.h"
 
 #include <QMessageBox>
 
@@ -18,7 +19,7 @@ void MdxLoader::loadMdxDictionary()
     vector< string > allFiles;
     allFiles.push_back(mdxFileName.toStdString());
 
-    QString indexDir = QCoreApplication::applicationDirPath() + "/";
+    QString indexDir = MySettings::dataDirectory() + "/";
     gdDebug("index direcory: %s\n", indexDir.toStdString().c_str());
 
     try
@@ -40,7 +41,7 @@ void MdxLoader::run()
     loadMdxDictionary();
 }
 
-void MdxLoader::indexingDictionary( string const & dictionaryName ) throw()
+void MdxLoader::indexingDictionary( string const & dictionaryName ) noexcept
 {
   emit indexingDictionarySignal( QString::fromUtf8( dictionaryName.c_str() ) );
 }

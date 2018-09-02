@@ -32,7 +32,9 @@ ServerAgent * ServerAgent::instance()
 {
     if (m_serveragent == nullptr)
     {
-        m_serveragent = new ServerAgent("huafengsmac");
+        QString serverHostName = MySettings::serverHostName();
+        quint16 serverPort = MySettings::serverPort();
+        m_serveragent = new ServerAgent(serverHostName, serverPort);
     }
 
     return m_serveragent;

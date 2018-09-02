@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml network webenginewidgets multimedia sql concurrent
+QT       += core gui xml network webenginewidgets multimedia sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -73,17 +73,17 @@ SOURCES += \
     HaiBeiDanCi/temporaryfilemanager.cpp \
     gdhelper.cpp \
     HaiBeiDanCi/mediaplayer.cpp \
-    HaiBeiDanCi/studywindow.cpp \
     HaiBeiDanCi/wordview.cpp \
     HaiBeiDanCi/worddb.cpp \
     HaiBeiDanCi/word.cpp \
     HaiBeiDanCi/memoryitem.cpp \
     HaiBeiDanCi/wordcard.cpp \
-    HaiBeiDanCi/studylist.cpp \
     HaiBeiDanCi/wordbook.cpp \
     newbook.cpp \
     HaiBeiDanCi/mysettings.cpp \
-    HaiBeiDanCi/downloadmanager.cpp
+    HaiBeiDanCi/downloadmanager.cpp \
+    HaiBeiDanCi/serveragent.cpp \
+    HaiBeiDanCi/serverclientprotocol.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -127,21 +127,20 @@ HEADERS += \
     HaiBeiDanCi/temporaryfilemanager.h \
     gdhelper.h \
     HaiBeiDanCi/mediaplayer.h \
-    HaiBeiDanCi/studywindow.h \
     HaiBeiDanCi/wordview.h \
     HaiBeiDanCi/worddb.h \
     HaiBeiDanCi/word.h \
     HaiBeiDanCi/memoryitem.h \
     HaiBeiDanCi/wordcard.h \
-    HaiBeiDanCi/studylist.h \
     HaiBeiDanCi/wordbook.h \
     newbook.h \
     HaiBeiDanCi/mysettings.h \
-    HaiBeiDanCi/downloadmanager.h
+    HaiBeiDanCi/downloadmanager.h \
+    HaiBeiDanCi/serveragent.h \
+    HaiBeiDanCi/serverclientprotocol.h
 
 FORMS += \
         mainwindow.ui \
-    HaiBeiDanCi/studywindow.ui \
     newbook.ui
 
 RESOURCES += \

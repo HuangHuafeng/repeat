@@ -61,6 +61,70 @@ MySettings *MySettings::instance()
     return m_settings;
 }
 
+void MySettings::saveServerHostName(QString hostName)
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("serverHostName", hostName);
+    settings.endGroup();
+}
+
+QString MySettings::serverHostName()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    QString hostName = settings.value("serverHostName", "").toString();
+    settings.endGroup();
+
+    if (hostName.isEmpty())
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString stringValue = MySettings::getSettingString("serverPort");
+        if (stringValue.isEmpty() == false)
+        {
+            hostName = stringValue;
+        }
+        else
+        {
+            hostName = "localhost";
+        }
+    }
+
+    return hostName;
+}
+
+void MySettings::saveServerPort(quint16 port)
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    settings.setValue("serverPort", port);
+    settings.endGroup();
+}
+
+quint16 MySettings::serverPort()
+{
+    QSettings settings;
+    settings.beginGroup(MySettings::group());
+    int valueInSetting = settings.value("serverPort", -100).toInt();
+    settings.endGroup();
+
+    if (valueInSetting == -100)
+    {
+        // there's no local setting, try to get the setting from info.txt
+        QString stringValue = MySettings::getSettingString("serverPort");
+        if (stringValue.isEmpty() == false)
+        {
+            valueInSetting = stringValue.toInt();
+        }
+        else
+        {
+            valueInSetting = 61027;
+        }
+    }
+
+    return static_cast<quint16>(valueInSetting);
+}
+
 void MySettings::saveDataDirectory(QString newDir)
 {
     QSettings settings;

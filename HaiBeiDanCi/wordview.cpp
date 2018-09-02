@@ -42,7 +42,7 @@ void WordView::loadHtml(QString fileName)
         m_channel.registerObject(QString("wordview"), this);
         page()->setWebChannel(&m_channel);
 
-        QUrl baseUrl("file:///" + MySettings::dataDirectory() + "/");
+        QUrl baseUrl("file:////" + MySettings::dataDirectory() + "/");
         setHtml(htmlFile.readAll().data(), baseUrl);
     }
     else
@@ -139,8 +139,9 @@ QString WordView::getDefinition()
 void WordView::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu *menu = page()->createStandardContextMenu();
-    const QList<QAction *> actions = menu->actions();
 
+#ifdef QT_NO_DEBUG
+    const QList<QAction *> actions = menu->actions();
     auto it = actions.begin();
     while (it != actions.end())
     {
@@ -151,6 +152,7 @@ void WordView::contextMenuEvent(QContextMenuEvent *event)
 
         it++;
     }
+#endif
 
     menu->popup(event->globalPos());
 }
@@ -177,7 +179,7 @@ void WordView::toHtmlCallback(QString html)
     {
         tmp.setAutoRemove(false);
         m_tfm.addTemporaryFile(tmp);
-        const QUrl tempUrl("view-source:file://" + tmp.fileName());
+        const QUrl tempUrl("view-source:file:///" + tmp.fileName());
         setUrl(tempUrl);
     }
 }

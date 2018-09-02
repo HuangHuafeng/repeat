@@ -2,12 +2,12 @@
 #define MAINWINDOW_H
 
 #include "gdhelper.h"
-#include "HaiBeiDanCi/studywindow.h"
 #include "HaiBeiDanCi/worddb.h"
-#include "newbook.h"
+#include "HaiBeiDanCi/wordbook.h"
 
 #include <QMainWindow>
 #include <QWebEngineView>
+#include <QTreeWidget>
 
 namespace Ui {
 class MainWindow;
@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
@@ -28,24 +28,27 @@ private slots:
 
     void on_lineEdit_returnPressed();
 
-    void on_pushButton_2_clicked();
-
     void on_pushNewBook_clicked();
 
     void on_pushTest_clicked();
+
+    void on_actionNewBook_triggered();
+
+    void onBookListReady(const QList<QString> books);
 
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;
     QWebEngineView m_definitionView;
-    StudyWindow m_studyWindow;
-    NewBook m_newbookWindow;
-    //WordView m_wordView;
 
     void QueryWord();
 
-    void searchLink(QTextFrame * parent);
-    void searchLink(QTextBlock & parent);
+    void reloadLocalData();
+    void reloadServerData();
+    void reloadLocalBooks();
+    void reloadServerBooks();
+    void addBookToTheView(QTreeWidget *tw, WordBook &book);
+    void selectFirstItem(QTreeWidget *tw);
 };
 
 #endif // MAINWINDOW_H

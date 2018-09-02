@@ -98,6 +98,7 @@ class MessageHeader
 
 public:
     MessageHeader(qint32 code = 0, qint32 respondsTo = 0, qint32 sequenceNumber = 0);
+    MessageHeader(const QByteArray &msg);
 
     qint32 code() const;
     qint32 sequenceNumber() const;

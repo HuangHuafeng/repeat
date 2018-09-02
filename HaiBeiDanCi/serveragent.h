@@ -125,6 +125,7 @@ private:
     void requestFiles();
     void requestWords();
 
+    void sendMessage(QByteArray msg, bool now = false);
     void sendTheFirstMessage();
     float getProgressPercentage(const QMap<QString, DownloadStatus> mapToDownload);
     void cancelDownloadingWords();

@@ -14,6 +14,20 @@ MessageHeader::MessageHeader(qint32 code, qint32 respondsTo, qint32 sequenceNumb
     }
 }
 
+MessageHeader::MessageHeader(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    in.startTransaction();
+    in >> *this;
+    if (in.commitTransaction() == false)
+    {
+        qCritical("failed to construct a MessageHeader from %s", msg.constData());
+        m_code = -1;
+        m_respondsTo = -1;
+        m_sequenceNumber = -1;
+    }
+}
+
 qint32 MessageHeader::code() const
 {
     return m_code;

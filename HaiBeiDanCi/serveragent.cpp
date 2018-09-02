@@ -642,8 +642,7 @@ void ServerAgent::sendRequestNoOperation()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader;
-    m_tcpSocket->write(block);
-    //m_messages.append(block);
+    sendMessage(block, true);
 }
 
 void ServerAgent::sendRequestBye()
@@ -659,8 +658,7 @@ void ServerAgent::sendRequestBye()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader;
-    m_tcpSocket->write(block);
-    //m_messages.append(block);
+    sendMessage(block, true);
 }
 
 void ServerAgent::sendRequestGetAllBooks()
@@ -671,8 +669,7 @@ void ServerAgent::sendRequestGetAllBooks()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader;
-     //m_tcpSocket->write(block);
-    m_messages.append(block);
+    sendMessage(block);
 }
 
 void ServerAgent::sendRequestGetBookWordList(QString bookName)
@@ -683,8 +680,7 @@ void ServerAgent::sendRequestGetBookWordList(QString bookName)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader << bookName;
-     //m_tcpSocket->write(block);
-    m_messages.append(block);
+    sendMessage(block);
 }
 
 void ServerAgent::sendRequestGetWordsOfBookFinished(QString bookName)
@@ -695,8 +691,7 @@ void ServerAgent::sendRequestGetWordsOfBookFinished(QString bookName)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader << bookName;
-     //m_tcpSocket->write(block);
-    m_messages.append(block);
+    sendMessage(block);
 }
 
 void ServerAgent::sendRequestGetAWord(QString spelling)
@@ -707,8 +702,7 @@ void ServerAgent::sendRequestGetAWord(QString spelling)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader << spelling;
-    //m_tcpSocket->write(block);
-    m_messages.append(block);
+    sendMessage(block);
 }
 
 void ServerAgent::sendRequestGetABook(QString bookName)
@@ -719,8 +713,7 @@ void ServerAgent::sendRequestGetABook(QString bookName)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader << bookName;
-     //m_tcpSocket->write(block);
-    m_messages.append(block);
+    sendMessage(block);
 }
 
 void ServerAgent::sendRequestGetFile(QString fileName)
@@ -731,8 +724,7 @@ void ServerAgent::sendRequestGetFile(QString fileName)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader << fileName;
-     //m_tcpSocket->write(block);
-    m_messages.append(block);
+    sendMessage(block);
 }
 
 void ServerAgent::downloadBook(QString bookName)
@@ -858,6 +850,22 @@ void ServerAgent::onSendMessage()
         requestsForARound --;
     }
     //qDebug() << "MySettings::downloadIntervalInMilliseconds() is" << MySettings::downloadIntervalInMilliseconds();
+}
+
+void ServerAgent::sendMessage(QByteArray msg, bool now)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msg;
+
+    if (now == false)
+    {
+        m_messages.append(block);
+    }
+    else
+    {
+        m_tcpSocket->write(block);
+    }
 }
 
 void ServerAgent::sendTheFirstMessage()

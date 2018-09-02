@@ -177,28 +177,6 @@ QByteArray ClientWaiter::readMessage()
     }
 }
 
-sptr<MessageHeader> ClientWaiter::readMessageHeader()
-{
-    if (m_tcpSocket == nullptr)
-    {
-        return sptr<MessageHeader>();
-    }
-
-    sptr<MessageHeader> mh = new MessageHeader(-1, -1, -1);
-    QDataStream in(m_tcpSocket);
-    in.startTransaction();
-    in >> *mh;
-    if (in.commitTransaction() == true)
-    {
-        return mh;
-    }
-    else
-    {
-        // in this case, the transaction is restored by commitTransaction()
-        return sptr<MessageHeader>();
-    }
-}
-
 void ClientWaiter::handleUnknownMessage(const QByteArray &msg)
 {
     sendResponseUnknownRequest(msg);
@@ -320,8 +298,7 @@ bool ClientWaiter::handleRequestGetAWord(const QByteArray &msg)
     in >> receivedMsgHeader >> spelling;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to get book name in handleRequestGetABook()";
+        qCritical() << "failed to get book name in handleRequestGetAWord()";
         return false;
     }
 
@@ -392,8 +369,7 @@ bool ClientWaiter::handleRequestGetABook(const QByteArray &msg)
     in >> receivedMsgHeader >> bookName;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to get book name in handleRequestGetABook()";
+        qCritical() << "failed to get book name in handleRequestGetABook()";
         return false;
     }
 
@@ -420,8 +396,7 @@ bool ClientWaiter::handleRequestGetFile(const QByteArray &msg)
     in >> receivedMsgHeader >> fileName;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to get file name in handleRequestGetFile()";
+        qCritical() << "failed to get file name in handleRequestGetFile()";
         return false;
     }
 
@@ -455,8 +430,7 @@ bool ClientWaiter::handleRequestGetBookWordList(const QByteArray &msg)
     in >> receivedMsgHeader >> bookName;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to get book name in handleRequestGetWordsOfBook()";
+        qCritical() << "failed to get book name in handleRequestGetBookWordList()";
         return false;
     }
 
@@ -477,8 +451,7 @@ bool ClientWaiter::handleRequestGetWordsOfBookFinished(const QByteArray &msg)
     in >> receivedMsgHeader >> bookName;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to get book name in handleRequestGetWordsOfBook()";
+        qCritical() << "failed to get book name in handleRequestGetWordsOfBookFinished()";
         return false;
     }
 

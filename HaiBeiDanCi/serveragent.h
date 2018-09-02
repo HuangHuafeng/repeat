@@ -95,19 +95,19 @@ private:
     // these handle*() functions should be fast as the socket is busy (receving data)
     // if they take long time, it can cause slow the socket to buffer data
     // thus result unnecessary failure in read transition
-    sptr<MessageHeader> readMessageHeader();
-    int handleMessage(const MessageHeader &msgHeader);
-    bool handleResponseNoOperation(const MessageHeader &msgHeader);
-    bool handleUnknownMessage(const MessageHeader &msgHeader);
-    bool handleResponseGetAllBooks(const MessageHeader &msgHeader);
-    bool handleResponseGetBookWordList(const MessageHeader &msgHeader);
-    bool handleResponseBookWordListAllSent(const MessageHeader &msgHeader);
-    bool handleResponseUnknownRequest(const MessageHeader &msgHeader);
-    bool handleResponseGetABook(const MessageHeader &msgHeader);
-    bool handleResponseGetAWord(const MessageHeader &msgHeader);
-    bool handleResponseGetFile(const MessageHeader &msgHeader);
-    bool handleResponseGetFileFinished(const MessageHeader &msgHeader);
-    bool handleResponseGetWordsOfBookFinished(const MessageHeader &msgHeader);
+    QByteArray readMessage();
+    int handleMessage(const QByteArray &msg);
+    bool handleResponseNoOperation(const QByteArray &msg);
+    bool handleUnknownMessage(const QByteArray &msg);
+    bool handleResponseGetAllBooks(const QByteArray &msg);
+    bool handleResponseGetBookWordList(const QByteArray &msg);
+    bool handleResponseBookWordListAllSent(const QByteArray &msg);
+    bool handleResponseUnknownRequest(const QByteArray &msg);
+    bool handleResponseGetABook(const QByteArray &msg);
+    bool handleResponseGetAWord(const QByteArray &msg);
+    bool handleResponseGetFile(const QByteArray &msg);
+    bool handleResponseGetFileFinished(const QByteArray &msg);
+    bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
 
     void connectToServer();
     void sendRequestNoOperation();
@@ -125,7 +125,7 @@ private:
     void requestFiles();
     void requestWords();
 
-    void sendMessage(QByteArray msg, bool now = false);
+    void sendMessage(const QByteArray &msg, bool now = false);
     void sendTheFirstMessage();
     float getProgressPercentage(const QMap<QString, DownloadStatus> mapToDownload);
     void cancelDownloadingWords();

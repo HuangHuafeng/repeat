@@ -31,7 +31,6 @@ private:
 
     void sendMessage(QByteArray msg, bool = false);
 
-    sptr<MessageHeader> readMessageHeader();
     QByteArray readMessage();
     int handleMessage(const QByteArray &msg);
     void handleUnknownMessage(const QByteArray &msg);

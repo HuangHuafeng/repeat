@@ -226,7 +226,7 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
     // build the list of media files
     QSet<QString> interestedFiles;
     QVector<QString> wordList = book->getAllWords();
-    QProgressDialog pd(QObject::tr("Preparing the list of files to be downloaded ..."), QObject::tr("Cancel"), 0, wordList.size(), this);
+    QProgressDialog pd("    " + QObject::tr("Preparing the list of files to be downloaded ...") + "    ", QObject::tr("Cancel"), 0, wordList.size(), this);
     pd.setModal(true);
     for (int i = 0;i < wordList.size();i ++)
     {
@@ -270,7 +270,7 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
     // build the list of media files
     QSet<QString> interestedFiles;
     QVector<QString> wordList = book->getAllWords();
-    QProgressDialog pd(QObject::tr("Preparing the list of files to be downloaded ..."), QObject::tr("Cancel"), 0, wordList.size(), this);
+    QProgressDialog pd("    " + QObject::tr("Preparing the list of files to be downloaded ...") + "    ", QObject::tr("Cancel"), 0, wordList.size(), this);
     pd.setModal(true);
     for (int i = 0;i < wordList.size();i ++)
     {

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>480</width>
     <height>240</height>
    </rect>
   </property>
@@ -23,6 +23,9 @@
          <property name="text">
           <string>Download book</string>
          </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -30,6 +33,9 @@
          <property name="text">
           <string>Download
 pronounce files</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -39,12 +45,18 @@ pronounce files</string>
           <string>Download
 all media files</string>
          </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pbClose">
          <property name="text">
           <string>Close</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
          </property>
         </widget>
        </item>

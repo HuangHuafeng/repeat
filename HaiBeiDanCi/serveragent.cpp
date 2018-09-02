@@ -40,74 +40,47 @@ ServerAgent * ServerAgent::instance()
     return m_serveragent;
 }
 
-/**
- * @brief ServerAgent::onReadyRead
- * CORRECTION:
- * it seems size of message is NOT an issue. Although it should be taken care of.
- * We should be careful/aware that message is NOT always available as a whole, so we
- * need to wait for more data in case we failed to read the message contents.
- */
+
 void ServerAgent::onReadyRead()
 {
-    static sptr<MessageHeader> currentMessage;
-    static uint readMessageHeaderConsecutiveFailure = 0;
-
+    // we should have a loop here because multiple messages may arrive at the same time
     do {
-        if (currentMessage.get() == nullptr)
+        QByteArray msg = readMessage();
+        if (msg.isEmpty() == true)
         {
-            // last message processed completed, it's time for a new message
-            currentMessage = readMessageHeader();
+            // can't get a message, we need more data
+            break;
         }
 
-        if (currentMessage.get() != nullptr)
+        // we have a message, try to process it
+        MessageHeader receivedMsgHeader(msg);
+        int handleResult = handleMessage(msg);
+        if (handleResult == 0)
         {
-            // we have a message, try to process it
-            readMessageHeaderConsecutiveFailure = 0;
-            int handleResult = handleMessage(*currentMessage);
-            if (handleResult == 0)
-            {
-                qDebug("successfully handled message: %s", currentMessage->toString().toUtf8().constData());
+            qDebug("successfully handled message with header: %s", receivedMsgHeader.toString().toUtf8().constData());
 
-                // if it's not a heartbeat message, update the counters
-                if (currentMessage->code() != ServerClientProtocol::ResponseNoOperation)
+            // if it's not a heartbeat message, update the counters
+            if (receivedMsgHeader.code() != ServerClientProtocol::ResponseNoOperation)
+            {
+                m_lastResponded = receivedMsgHeader.respondsTo();
+                if (m_messagesSent < m_lastResponded)
                 {
-                    m_lastResponded = currentMessage->respondsTo();
-                    if (m_messagesSent < m_lastResponded)
-                    {
-                        // this can happen if the user cancels the downloading
-                        m_messagesSent = m_lastResponded;
-                    }
+                    // this can happen if the user cancels the downloading
+                    m_messagesSent = m_lastResponded;
                 }
-
-                // successfully processed the message
-                currentMessage = sptr<MessageHeader>();
             }
-            else if (handleResult == 1)
-            {
-                qDebug("failed to handle message: %s", currentMessage->toString().toUtf8().constData());
+        }
+        else if (handleResult == 1)
+        {
+            qDebug("failed to handle message with header: %s", receivedMsgHeader.toString().toUtf8().constData());
 
-                // failed to process the message, probably means the content of the message is NOT fully available
-                // so quit the loop and contine in next call of onReadyRead()
-                break;
-            }
-            else
-            {
-                qDebug("unknown message: %s", currentMessage->toString().toUtf8().constData());
-
-                // discard the message and continue trying to get the next message
-                currentMessage = sptr<MessageHeader>();
-            }
+            // failed to process the message, this should not happen at current implementation, just discard the message
         }
         else
         {
-            // no messages available, quit the loop
-            readMessageHeaderConsecutiveFailure ++;
-            if (readMessageHeaderConsecutiveFailure > (sizeof(MessageHeader) / sizeof(qint32)))
-            {
-                qDebug() << "unable to get a message, waiting for data from the server.";
-                readMessageHeaderConsecutiveFailure = 0;
-                break;
-            }
+            qDebug("unknown message with header: %s", receivedMsgHeader.toString().toUtf8().constData());
+
+            // discard the message and continue trying to get the next message
         }
     } while (1);
 }
@@ -145,21 +118,25 @@ void ServerAgent::onStateChanged(QAbstractSocket::SocketState socketState)
     qDebug() << "onStateChanged()" << socketState;
 }
 
-sptr<MessageHeader> ServerAgent::readMessageHeader()
+QByteArray ServerAgent::readMessage()
 {
-    sptr<MessageHeader> mh = new MessageHeader(-1, -1, -1);
+    if (m_tcpSocket == nullptr)
+    {
+        return QByteArray();
+    }
+
+    QByteArray msg;
     QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> *mh;
+    in >> msg;
     if (in.commitTransaction() == true)
     {
-        return mh;
+        return msg;
     }
     else
     {
         // in this case, the transaction is restored by commitTransaction()
-        //qInfo("failed to read message code in readMessageCode(), probably no data from peer");
-        return sptr<MessageHeader>();
+        return QByteArray();
     }
 }
 
@@ -180,58 +157,54 @@ void ServerAgent::onInternalBookDataDownloaded(QString bookName)
     qDebug() << "Used" << t.elapsed() << "ms in onInternalBookDataDownloaded()";
 }
 
-int ServerAgent::handleMessage(const MessageHeader &msgHeader)
+int ServerAgent::handleMessage(const QByteArray &msg)
 {
-    if (m_tcpSocket == nullptr)
-    {
-        return -1;
-    }
-
+    MessageHeader receivedMsgHeader(msg);
     bool handleResult = false;
     bool unknowMessage = false;
-    switch (msgHeader.code()) {
+    switch (receivedMsgHeader.code()) {
     case ServerClientProtocol::ResponseNoOperation:
-        handleResult = handleResponseNoOperation(msgHeader);
+        handleResult = handleResponseNoOperation(msg);
         break;
 
     case ServerClientProtocol::ResponseGetAllBooks:
-        handleResult = handleResponseGetAllBooks(msgHeader);
+        handleResult = handleResponseGetAllBooks(msg);
         break;
 
     case ServerClientProtocol::ResponseGetAWord:
-        handleResult = handleResponseGetAWord(msgHeader);
+        handleResult = handleResponseGetAWord(msg);
         break;
 
     case ServerClientProtocol::ResponseGetABook:
-        handleResult = handleResponseGetABook(msgHeader);
+        handleResult = handleResponseGetABook(msg);
         break;
 
     case ServerClientProtocol::ResponseGetBookWordList:
-        handleResult = handleResponseGetBookWordList(msgHeader);
+        handleResult = handleResponseGetBookWordList(msg);
         break;
 
     case ServerClientProtocol::ResponseBookWordListAllSent:
-        handleResult = handleResponseBookWordListAllSent(msgHeader);
+        handleResult = handleResponseBookWordListAllSent(msg);
         break;
 
     case ServerClientProtocol::ResponseGetFile:
-        handleResult = handleResponseGetFile(msgHeader);
+        handleResult = handleResponseGetFile(msg);
         break;
 
     case ServerClientProtocol::ResponseGetFileFinished:
-        handleResult = handleResponseGetFileFinished(msgHeader);
+        handleResult = handleResponseGetFileFinished(msg);
         break;
 
     case ServerClientProtocol::ResponseGetWordsOfBookFinished:
-        handleResult = handleResponseGetWordsOfBookFinished(msgHeader);
+        handleResult = handleResponseGetWordsOfBookFinished(msg);
         break;
 
     case ServerClientProtocol::ResponseUnknownRequest:
-        handleResult = handleResponseUnknownRequest(msgHeader);
+        handleResult = handleResponseUnknownRequest(msg);
         break;
 
     default:
-        handleUnknownMessage(msgHeader);
+        handleUnknownMessage(msg);
         unknowMessage = true;
         break;
 
@@ -257,35 +230,31 @@ int ServerAgent::handleMessage(const MessageHeader &msgHeader)
     return retVal;
 }
 
-bool ServerAgent::handleResponseNoOperation(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseNoOperation(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
+    qDebug("handleResponseNoOperation(): %s", msg.constData());
 
     return true;
 }
 
-bool ServerAgent::handleUnknownMessage(const MessageHeader &msgHeader)
+bool ServerAgent::handleUnknownMessage(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
+    qDebug("handleUnknownMessage(): %s", msg.constData());
 
     return true;
 }
 
-bool ServerAgent::handleResponseGetAllBooks(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseGetAllBooks(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
-    QDataStream in(m_tcpSocket);
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     QList<QString> books;
     in.startTransaction();
-    in >> books;
+    in >> receivedMsgHeader >> books;
     if (in.commitTransaction() == false)
     {
         // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read books in handleResponseGetAllBooks()";
+        qCritical() << "failed to read books in handleResponseGetAllBooks()";
         return false;
     }
 
@@ -295,19 +264,16 @@ bool ServerAgent::handleResponseGetAllBooks(const MessageHeader &msgHeader)
     return true;
 }
 
-bool ServerAgent::handleResponseBookWordListAllSent(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseBookWordListAllSent(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
-    QDataStream in(m_tcpSocket);
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
     in.startTransaction();
-    in >> bookName;
+    in >> receivedMsgHeader >> bookName;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read book name in handleResponseBookWordListAllSent()";
+        qCritical() << "failed to read book name in handleResponseBookWordListAllSent()";
         return false;
     }
 
@@ -317,20 +283,17 @@ bool ServerAgent::handleResponseBookWordListAllSent(const MessageHeader &msgHead
     return true;
 }
 
-bool ServerAgent::handleResponseGetBookWordList(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseGetBookWordList(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
     QVector<QString> wordList;
-    QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> bookName >> wordList;
+    in >> receivedMsgHeader >> bookName >> wordList;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read words of the book in handleResponseGetWordsOfBook()";
+        qCritical() << "failed to read words of the book in handleResponseGetBookWordList()";
         return false;
     }
 
@@ -380,19 +343,16 @@ void ServerAgent::onInternalFileDataDownloaded(QString fileName, bool succeeded)
     }
 }
 
-bool ServerAgent::handleResponseGetAWord(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseGetAWord(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     Word word;
-    QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> word;
+    in >> receivedMsgHeader >> word;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read words of the book in handleResponseGetAWord()";
+        qCritical() << "failed to read words of the book in handleResponseGetAWord()";
         return false;
     }
 
@@ -429,19 +389,16 @@ float ServerAgent::getProgressPercentage(const QMap<QString, DownloadStatus> map
     return finished * 1.0f / total;
 }
 
-bool ServerAgent::handleResponseGetWordsOfBookFinished(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseGetWordsOfBookFinished(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
-    QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> bookName;
+    in >> receivedMsgHeader >> bookName;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read the book name in handleResponseGetWordsOfBookFinished()";
+        qCritical() << "failed to read the book name in handleResponseGetWordsOfBookFinished()";
         return false;
     }
 
@@ -504,19 +461,16 @@ bool ServerAgent::saveFileFromServer(QString fileName)
     return true;
 }
 
-bool ServerAgent::handleResponseGetABook(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseGetABook(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     WordBook book;
-    QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> book;
+    in >> receivedMsgHeader >> book;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read words of the book in handleResponseGetABook()";
+        qCritical() << "failed to read words of the book in handleResponseGetABook()";
         return false;
     }
 
@@ -528,22 +482,19 @@ bool ServerAgent::handleResponseGetABook(const MessageHeader &msgHeader)
     return true;
 }
 
-bool ServerAgent::handleResponseGetFile(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseGetFile(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     QString fileName;
     char *data;
     uint len;
-    QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> fileName;
+    in >> receivedMsgHeader >> fileName;
     in.readBytes(data, len);
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read words of the book in handleResponseGetFile()";
+        qCritical() << "failed to read words of the book in handleResponseGetFile()";
         return false;
     }
 
@@ -556,21 +507,17 @@ bool ServerAgent::handleResponseGetFile(const MessageHeader &msgHeader)
     return true;
 }
 
-bool ServerAgent::handleResponseGetFileFinished(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseGetFileFinished(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
-    //funcTracker ft("handleResponseAllDataSentForRequestGetFile()");
-    QDataStream in(m_tcpSocket);
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     QString fileName;
     bool succeeded;
     in.startTransaction();
-    in >> fileName >> succeeded;
+    in >> receivedMsgHeader >> fileName >> succeeded;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read books in handleResponseAllDataSentForRequestGetFile()";
+        qCritical() << "failed to read books in handleResponseAllDataSentForRequestGetFile()";
         return false;
     }
 
@@ -579,19 +526,16 @@ bool ServerAgent::handleResponseGetFileFinished(const MessageHeader &msgHeader)
     return true;
 }
 
-bool ServerAgent::handleResponseUnknownRequest(const MessageHeader &msgHeader)
+bool ServerAgent::handleResponseUnknownRequest(const QByteArray &msg)
 {
-    // avoid unused parameter warning
-    msgHeader.toString();
-
-    QDataStream in(m_tcpSocket);
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
     int requestCode;
     in.startTransaction();
-    in >> requestCode;
+    in >> receivedMsgHeader >> requestCode;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
-        qDebug() << "failed to read books in handleResponseGetAllBooks()";
+        qCritical() << "failed to read books in handleResponseGetAllBooks()";
         return false;
     }
 
@@ -852,7 +796,7 @@ void ServerAgent::onSendMessage()
     //qDebug() << "MySettings::downloadIntervalInMilliseconds() is" << MySettings::downloadIntervalInMilliseconds();
 }
 
-void ServerAgent::sendMessage(QByteArray msg, bool now)
+void ServerAgent::sendMessage(const QByteArray &msg, bool now)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);

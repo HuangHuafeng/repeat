@@ -31,7 +31,8 @@ SOURCES += \
     ../HaiBeiDanCi/memoryitem.cpp \
     ../HaiBeiDanCi/serverclientprotocol.cpp \
     clienthandler.cpp \
-    hbdcapphandler.cpp
+    hbdcapphandler.cpp \
+    hbdcmanagerhandler.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -50,7 +51,8 @@ HEADERS += \
     ../HaiBeiDanCi/memoryitem.h \
     ../golddict/sptr.hh \
     clienthandler.h \
-    hbdcapphandler.h
+    hbdcapphandler.h \
+    hbdcmanagerhandler.h
 
 DISTFILES += \
     idea.txt

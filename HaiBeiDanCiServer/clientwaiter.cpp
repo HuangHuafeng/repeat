@@ -1,6 +1,7 @@
 #include "clientwaiter.h"
 #include "../HaiBeiDanCi/mysettings.h"
 #include "hbdcapphandler.h"
+#include "hbdcmanagerhandler.h"
 
 #include <QtNetwork>
 
@@ -74,10 +75,18 @@ void ClientWaiter::run()
         }
         else if (handleResult == -1)
         {
-            qDebug() << QDateTime::currentDateTime().toString() << "unknown message with header: ";
-            qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
+            // check if it's the message to change the client handler
+            if (receivedMsgHeader.code() == ServerClientProtocol::RequestPromoteToManager)
+            {
+                ptrClientHandler = new HBDCManagerHandler(*this);
+            }
+            else
+            {
+                qDebug() << QDateTime::currentDateTime().toString() << "unknown message with header: ";
+                qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
 
-            // the message is discarded automatically, continue trying to get the next message
+                // the message is discarded automatically, continue trying to get the next message
+            }
         }
         else if (handleResult == -2)
         {

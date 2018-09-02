@@ -68,6 +68,16 @@ public:
         ResponseFailedToRequest = ResponseNoOperation + 9000,   // Yes
         ResponseUnknownRequest = ResponseNoOperation + 9001,    // Yes
     } ServerToClientMessageCode;
+
+    typedef enum {
+        ManagerToServerMessageCodeBase = 30000,
+        RequestPromoteToManager = ManagerToServerMessageCodeBase + 1,
+    } ManagerToServerMessageCode;
+
+    typedef enum {
+        ServerToManagerMessageCodeBase = 40000,
+        ResponsePromoteToManager = ServerToManagerMessageCodeBase + 1,
+    } ServerToManagerMessageCode;
 };
 
 class funcTracker

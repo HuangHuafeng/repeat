@@ -60,13 +60,14 @@ private slots:
     void onStateChanged(QAbstractSocket::SocketState socketState);
 
     void onServerHeartBeat();
-    void onSendMessage();
     void onSendMessageSmart();
     void onInternalBookDataDownloaded(QString bookName);
     void onInternalFileDataDownloaded(QString fileName, bool succeeded);
 
-private:
+protected:
     explicit ServerAgent(const QString &hostName, quint16 port = 61027, QObject *parent = nullptr);
+
+private:
     static ServerAgent *m_serveragent;
 
     QString m_serverHostName;
@@ -116,8 +117,6 @@ private:
     void sendRequestGetWordsOfBookFinished(QString bookName);
     void sendRequestGetAWord(QString spelling);
     void sendRequestGetABook(QString bookName);
-    void sendRequestGetWords(QString bookName, QVector<QString> wordList);
-    void sendRequestGetWordsWithSmallMessages(QString bookName, QVector<QString> wordList);
     void sendRequestGetFile(QString fileName);
     void sendRequestBye();
 

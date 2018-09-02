@@ -83,7 +83,8 @@ SOURCES += \
     HaiBeiDanCi/mysettings.cpp \
     HaiBeiDanCi/downloadmanager.cpp \
     HaiBeiDanCi/serveragent.cpp \
-    HaiBeiDanCi/serverclientprotocol.cpp
+    HaiBeiDanCi/serverclientprotocol.cpp \
+    servermanager.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -137,7 +138,8 @@ HEADERS += \
     HaiBeiDanCi/mysettings.h \
     HaiBeiDanCi/downloadmanager.h \
     HaiBeiDanCi/serveragent.h \
-    HaiBeiDanCi/serverclientprotocol.h
+    HaiBeiDanCi/serverclientprotocol.h \
+    servermanager.h
 
 FORMS += \
         mainwindow.ui \

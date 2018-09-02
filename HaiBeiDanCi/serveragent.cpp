@@ -14,7 +14,6 @@ ServerAgent::ServerAgent(const QString &hostName, quint16 port, QObject *parent)
     connect(&m_timerServerHeartBeat, SIGNAL(timeout()), this, SLOT(onServerHeartBeat()));
     //connect(&m_downloadTimer, SIGNAL(timeout()), this, SLOT(sendDownloadRequestsToServer()));
 
-    //connect(&m_messageTimer, SIGNAL(timeout()), this, SLOT(onSendMessage()));
     connect(&m_messageTimer, SIGNAL(timeout()), this, SLOT(onSendMessageSmart()));
 
     connect(this, SIGNAL(internalBookDataDownloaded(QString)), this, SLOT(onInternalBookDataDownloaded(QString)));
@@ -253,7 +252,6 @@ bool ServerAgent::handleResponseGetAllBooks(const QByteArray &msg)
     in >> receivedMsgHeader >> books;
     if (in.commitTransaction() == false)
     {
-        // in this case, the transaction is restored by commitTransaction()
         qCritical() << "failed to read books in handleResponseGetAllBooks()";
         return false;
     }
@@ -535,7 +533,7 @@ bool ServerAgent::handleResponseUnknownRequest(const QByteArray &msg)
     in >> receivedMsgHeader >> requestCode;
     if (in.commitTransaction() == false)
     {
-        qCritical() << "failed to read books in handleResponseGetAllBooks()";
+        qCritical() << "failed to read request code in handleResponseUnknownRequest()";
         return false;
     }
 
@@ -783,17 +781,6 @@ void ServerAgent::onSendMessageSmart()
         sendTheFirstMessage();
         requestsForARound --;
     }
-}
-
-void ServerAgent::onSendMessage()
-{
-    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
-    while (requestsForARound > 0)
-    {
-        sendTheFirstMessage();
-        requestsForARound --;
-    }
-    //qDebug() << "MySettings::downloadIntervalInMilliseconds() is" << MySettings::downloadIntervalInMilliseconds();
 }
 
 void ServerAgent::sendMessage(const QByteArray &msg, bool now)

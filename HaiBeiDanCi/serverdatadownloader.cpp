@@ -3,24 +3,34 @@
 
 ServerDataDownloader * ServerDataDownloader::m_sdd = nullptr;
 
-ServerDataDownloader::ServerDataDownloader(QObject *parent) : QObject(parent),
-    m_svrAgt(MySettings::serverHostName(), MySettings::serverPort(), this),
+ServerDataDownloader::ServerDataDownloader(SvrAgt *svrAgt, QObject *parent) : QObject(parent),
+    m_svrAgt(svrAgt),
     m_bookListDownloaded(false)
 {
-    connect(&m_svrAgt, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(OnBookListReady(const QList<QString>)));
-    connect(&m_svrAgt, SIGNAL(bookDownloaded(sptr<WordBook>)), this, SLOT(OnBookDownloaded(sptr<WordBook>)));
-    connect(&m_svrAgt, SIGNAL(wordDownloaded(sptr<Word>)), this, SLOT(OnWordDownloaded(sptr<Word>)));
-    connect(&m_svrAgt, SIGNAL(downloadProgress(float)), this, SLOT(OnDownloadProgress(float)));
-    connect(&m_svrAgt, SIGNAL(fileDownloaded(QString, SvrAgt::DownloadStatus, const QByteArray &)), this, SLOT(OnFileDownloaded(QString, SvrAgt::DownloadStatus, QByteArray)));
-    connect(&m_svrAgt, SIGNAL(getWordsOfBookFinished(QString)), this, SLOT(OnGetWordsOfBookFinished(QString)));
-    connect(&m_svrAgt, SIGNAL(bookWordListReceived(QString, const QVector<QString> &)), this, SLOT(OnBookWordListReceived(QString, const QVector<QString> &)));
+    Q_ASSERT(m_svrAgt != nullptr);
+
+    connect(m_svrAgt, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(OnBookListReady(const QList<QString>)));
+    connect(m_svrAgt, SIGNAL(bookDownloaded(sptr<WordBook>)), this, SLOT(OnBookDownloaded(sptr<WordBook>)));
+    connect(m_svrAgt, SIGNAL(wordDownloaded(sptr<Word>)), this, SLOT(OnWordDownloaded(sptr<Word>)));
+    connect(m_svrAgt, SIGNAL(downloadProgress(float)), this, SLOT(OnDownloadProgress(float)));
+    connect(m_svrAgt, SIGNAL(fileDownloaded(QString, SvrAgt::DownloadStatus, const QByteArray &)), this, SLOT(OnFileDownloaded(QString, SvrAgt::DownloadStatus, QByteArray)));
+    connect(m_svrAgt, SIGNAL(getWordsOfBookFinished(QString)), this, SLOT(OnGetWordsOfBookFinished(QString)));
+    connect(m_svrAgt, SIGNAL(bookWordListReceived(QString, const QVector<QString> &)), this, SLOT(OnBookWordListReceived(QString, const QVector<QString> &)));
+}
+
+ServerDataDownloader::~ServerDataDownloader()
+{
+    Q_ASSERT(m_svrAgt != nullptr);
+    m_svrAgt->deleteLater();
+    m_svrAgt = nullptr;
 }
 
 ServerDataDownloader * ServerDataDownloader::instance()
 {
     if (m_sdd == nullptr)
     {
-        m_sdd = new ServerDataDownloader();
+        auto svrAgt = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), nullptr);
+        m_sdd = new ServerDataDownloader(svrAgt);
     }
 
     return m_sdd;
@@ -115,7 +125,7 @@ QList<QString> ServerDataDownloader::getBookList()
 {
     if (m_bookListDownloaded == false)
     {
-        m_svrAgt.sendRequestGetAllBooks();
+        m_svrAgt->sendRequestGetAllBooks();
     }
 
     return m_mapBooks.keys();
@@ -126,29 +136,29 @@ void ServerDataDownloader::downloadBook(QString bookName)
     if (WordBook::getBook(bookName).get() == nullptr)
     {
         // only download a book when it does NOT exist locally
-        m_svrAgt.sendRequestGetBookWordList(bookName);
+        m_svrAgt->sendRequestGetBookWordList(bookName);
     }
 }
 
 void ServerDataDownloader::downloadFile(QString fileName)
 {
-    m_svrAgt.downloadFile(fileName);
+    m_svrAgt->downloadFile(fileName);
 }
 
 const QMap<QString, SvrAgt::DownloadStatus> & ServerDataDownloader::downloadMultipleFiles(QSet<QString> files)
 {
-    return m_svrAgt.downloadMultipleFiles(files);
+    return m_svrAgt->downloadMultipleFiles(files);
 }
 
 void ServerDataDownloader::cancelDownloading()
 {
-    m_svrAgt.cancelDownloading();
+    m_svrAgt->cancelDownloading();
     m_mapWords.clear();
 }
 
 void ServerDataDownloader::disconnectServer()
 {
-    m_svrAgt.disconnectServer();
+    m_svrAgt->disconnectServer();
 }
 
 /**
@@ -162,7 +172,7 @@ void ServerDataDownloader::downloadAllBooks()
     auto books = m_mapBooks.keys();
     for (int i = 0;i < books.size();i ++)
     {
-        m_svrAgt.sendRequestGetABook(books.at(i));
+        m_svrAgt->sendRequestGetABook(books.at(i));
     }
 }
 
@@ -182,8 +192,8 @@ void ServerDataDownloader::downloadWordsOfBook(QString bookName)
         }
     }
 
-    m_svrAgt.downloadWords(wordsToDownload);
-    m_svrAgt.sendRequestGetWordsOfBookFinished(bookName);
+    m_svrAgt->downloadWords(wordsToDownload);
+    m_svrAgt->sendRequestGetWordsOfBookFinished(bookName);
 }
 
 void ServerDataDownloader::saveFileFromServer(QString fileName, const QByteArray &fileContent)

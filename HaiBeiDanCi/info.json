@@ -12,5 +12,6 @@
     "heartbeatIntervalInSeconds": "",
     "maximumConsecutiveHeartbeat": "",
     "downloadIntervalInMilliseconds": "",
-    "numberOfRequestInEveryDownloadRound": ""
+    "numberOfRequestInEveryDownloadRound": "",
+    "serverHostName": "huafengsmac"
 }

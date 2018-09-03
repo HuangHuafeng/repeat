@@ -13,7 +13,20 @@
         "qlabel": "cpp",
         "qfiledialog": "cpp",
         "algorithm": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp",
+        "atomic": "cpp",
+        "ios": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "system_error": "cpp",
+        "vector": "cpp",
+        "__hash_table": "cpp",
+        "hash_map": "cpp",
+        "unordered_map": "cpp",
+        "hashtable": "cpp"
     },
     "C_Cpp.autocomplete": "Disabled",
     "clang.cxxflags": ["-std=c++11"]

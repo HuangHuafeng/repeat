@@ -40,6 +40,15 @@ public:
     void downloadFile(QString fileName);
     void disconnectServer();
 
+    void sendRequestNoOperation();
+    void sendRequestGetAllBooks();
+    void sendRequestGetBookWordList(QString bookName);
+    void sendRequestGetWordsOfBookFinished(QString bookName);
+    void sendRequestGetAWord(QString spelling);
+    void sendRequestGetABook(QString bookName);
+    void sendRequestGetFile(QString fileName);
+    void sendRequestBye();
+
 signals:
     void bookListReady(const QList<QString> &books);
     void bookDownloaded(sptr<WordBook> book);
@@ -73,6 +82,8 @@ private:
 
     QMap<QString, DownloadStatus> m_wordsToDownload;
     QMap<QString, DownloadStatus> m_filesToDownload;
+    int m_toDownload;
+    int m_downloaded;
 
     QMap<QString, QVector<QString>> m_mapBooksWordList;
     QMap<QString, QByteArray>  m_mapFileContent;
@@ -100,22 +111,12 @@ protected:
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
 
     void connectToServer();
-
-public:
-    void sendRequestNoOperation();
-    void sendRequestGetAllBooks();
-    void sendRequestGetBookWordList(QString bookName);
-    void sendRequestGetWordsOfBookFinished(QString bookName);
-    void sendRequestGetAWord(QString spelling);
-    void sendRequestGetABook(QString bookName);
-    void sendRequestGetFile(QString fileName);
-    void sendRequestBye();
-
     void sendMessage(const QByteArray &msg, bool now = false);
     void sendTheFirstMessage();
-    float getProgressPercentage(const QMap<QString, DownloadStatus> mapToDownload);
+    void updateAndEmitProgress();
     void cancelDownloadingWords();
     void cancelDownloadingFiles();
+
 };
 
 #endif // SVRAGT_H

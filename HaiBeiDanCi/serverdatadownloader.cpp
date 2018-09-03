@@ -143,6 +143,7 @@ const QMap<QString, SvrAgt::DownloadStatus> & ServerDataDownloader::downloadMult
 void ServerDataDownloader::cancelDownloading()
 {
     m_svrAgt.cancelDownloading();
+    m_mapWords.clear();
 }
 
 void ServerDataDownloader::disconnectServer()
@@ -167,6 +168,7 @@ void ServerDataDownloader::downloadAllBooks()
 
 void ServerDataDownloader::downloadWordsOfBook(QString bookName)
 {
+    m_mapWords.clear();
     auto wordList = m_mapBooksWordList.value(bookName);
     QVector<QString> wordsToDownload;
     // get the list of words which are not available locally

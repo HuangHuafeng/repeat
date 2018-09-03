@@ -290,14 +290,7 @@ bool SvrAgt::handleResponseGetAWord(const QByteArray &msg)
         emit(wordDownloaded(newWord));
     }
 
-    float percentage = getProgressPercentage(m_wordsToDownload);
-    emit(downloadProgress(percentage));
-
-    if (percentage >= 1.0f)
-    {
-        // we should NOT clear it here, as we need it in handleResponseGetWordsOfBookFinished()
-        //m_wordsToDownload.clear();
-    }
+    updateAndEmitProgress();
 
     return true;
 }
@@ -363,9 +356,16 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
     }
 
     fileName = fileName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
-    auto currentContent = m_mapFileContent.value(fileName);
-    auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
-    m_mapFileContent.insert(fileName, newContent);
+    if (m_mapFileContent.contains(fileName) == true)
+    {
+        auto currentContent = m_mapFileContent.value(fileName);
+        auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
+        m_mapFileContent.insert(fileName, newContent);
+    }
+    else
+    {
+        m_mapFileContent.insert(fileName, QByteArray(data, static_cast<int>(len)));
+    }
 
     return true;
 }
@@ -384,7 +384,8 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
         return false;
     }
 
-    if (m_filesToDownload.value(fileName) == WaitingDataFromServer)
+    if (m_filesToDownload.contains(fileName) == true
+            && m_filesToDownload.value(fileName) == WaitingDataFromServer)
     {
         if (succeeded == true)
         {
@@ -394,13 +395,20 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
         {
             m_filesToDownload.insert(fileName, DownloadFailed);
         }
+        emit(fileDownloaded(fileName, m_filesToDownload.value(fileName), m_mapFileContent.value(fileName)));
+    }
+    else
+    {
+        // file download is cancelled when (m_filesToDownload.contains(fileName) == false)
     }
 
-    emit(fileDownloaded(fileName, m_filesToDownload.value(fileName), m_mapFileContent.value(fileName)));
+    // remove the file content to release the memory, helpful?
     m_mapFileContent.remove(fileName);
 
-    float percentage = getProgressPercentage(m_filesToDownload);
-    emit(downloadProgress(percentage));
+    // don't remove the file from m_filesToDownload to keep the progress calculation accurate
+    //m_filesToDownload.remove(fileName);
+
+    updateAndEmitProgress();
 
     return true;
 }
@@ -564,6 +572,7 @@ const QMap<QString, SvrAgt::DownloadStatus> &SvrAgt::downloadMultipleFiles(QSet<
 {
     m_filesToDownload.clear();
     m_mapFileContent.clear();
+
     QSet<QString>::const_iterator it = files.constBegin();
     while (it != files.constEnd())
     {
@@ -571,6 +580,9 @@ const QMap<QString, SvrAgt::DownloadStatus> &SvrAgt::downloadMultipleFiles(QSet<
         downloadFile(fileName);
         it ++;
     }
+
+    m_toDownload = m_filesToDownload.size();
+    m_downloaded = 0;
 
     return m_filesToDownload;
 }
@@ -605,34 +617,21 @@ void SvrAgt::sendMessage(const QByteArray &msg, bool now)
     }
 }
 
-float SvrAgt::getProgressPercentage(const QMap<QString, DownloadStatus> mapToDownload)
+void SvrAgt::updateAndEmitProgress()
 {
-    int finished = mapToDownload.keys(DownloadSucceeded).size()
-            + mapToDownload.keys(DownloadFailed).size()
-            + mapToDownload.keys(DownloadCancelled).size();
-    int total = mapToDownload.size();
-
-    return finished * 1.0f / total;
+    m_downloaded ++;
+    emit(downloadProgress(m_downloaded * 1.0f / m_toDownload));
 }
 
 void SvrAgt::cancelDownloadingWords()
 {
-    auto wordsLeft = m_wordsToDownload.keys(WaitingDataFromServer);
-    for (int i = 0;i < wordsLeft.size();i ++)
-    {
-        //m_filesToDownload.remove(filesLeft.at(i));
-        m_wordsToDownload.insert(wordsLeft.at(i), DownloadCancelled);
-    }
+    m_wordsToDownload.clear();
 }
 
 void SvrAgt::cancelDownloadingFiles()
 {
-    auto filesLeft = m_filesToDownload.keys(WaitingDataFromServer);
-    for (int i = 0;i < filesLeft.size();i ++)
-    {
-        //m_filesToDownload.remove(filesLeft.at(i));
-        m_filesToDownload.insert(filesLeft.at(i), DownloadCancelled);
-    }
+    m_filesToDownload.clear();
+    m_mapFileContent.clear();
 }
 
 void SvrAgt::onSendMessageSmart()
@@ -669,6 +668,10 @@ void SvrAgt::getBookList()
 
 void SvrAgt::downloadWords(const QVector<QString> &wordList)
 {
+    // clear m_wordsToDownload as previous download must finished
+    m_wordsToDownload.clear();
+
+    // send message to download the words
     for (int i = 0;i < wordList.size();i ++)
     {
         auto spelling = wordList.at(i);
@@ -678,4 +681,7 @@ void SvrAgt::downloadWords(const QVector<QString> &wordList)
             sendRequestGetAWord(spelling);
         }
     }
+
+    m_toDownload = m_wordsToDownload.size();
+    m_downloaded = 0;
 }

@@ -79,7 +79,7 @@ QString MySettings::serverHostName()
     if (hostName.isEmpty())
     {
         // there's no local setting, try to get the setting from info.txt
-        QString stringValue = MySettings::getSettingString("serverPort");
+        QString stringValue = MySettings::getSettingString("serverHostName");
         if (stringValue.isEmpty() == false)
         {
             hostName = stringValue;

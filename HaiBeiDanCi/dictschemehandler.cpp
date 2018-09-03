@@ -1,6 +1,6 @@
 #include "dictschemehandler.h"
 #include "mysettings.h"
-#include "serveragent.h"
+#include "serverdatadownloader.h"
 
 #include <QWebEngineUrlRequestJob>
 #include <QCoreApplication>
@@ -14,8 +14,8 @@ DictSchemeHandler::DictSchemeHandler(QObject *parent) : QWebEngineUrlSchemeHandl
 {
     installSchemeHandler();
 
-    ServerAgent *serveragent = ServerAgent::instance();
-    connect(serveragent, SIGNAL(fileDownloaded(QString, bool)), this, SLOT(onFileDownloaded(QString, bool)));
+    ServerDataDownloader *sdd = ServerDataDownloader::instance();
+    connect(sdd, SIGNAL(fileDownloaded(QString, bool)), this, SLOT(onFileDownloaded(QString, bool)));
 }
 
 DictSchemeHandler::~DictSchemeHandler()
@@ -82,7 +82,7 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
     {
         const QString fileName = path.mid(1);
         m_filesInDownloading.append(fileName);
-        ServerAgent *serveragent = ServerAgent::instance();
-        serveragent->downloadFile(fileName);
+        ServerDataDownloader *sdd = ServerDataDownloader::instance();
+        sdd->downloadFile(fileName);
     }
 }

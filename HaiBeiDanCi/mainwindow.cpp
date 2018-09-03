@@ -8,6 +8,7 @@
 #include "preferencesdialog.h"
 #include "serverdatadialog.h"
 #include "aboutdialog.h"
+#include "serverdatadownloader.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -44,8 +45,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     reloadBooks();
     updateAllBooksData();
 
-    ServerAgent *serveragent = ServerAgent::instance();
-    connect(serveragent, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
+    ServerDataDownloader *sdd = ServerDataDownloader::instance();
+    connect(sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
 }
 
 MainWindow::~MainWindow()
@@ -56,6 +57,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    ServerDataDownloader::destroy();
     saveSettings();
     event->accept();
 }

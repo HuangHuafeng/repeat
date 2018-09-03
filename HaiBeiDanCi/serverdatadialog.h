@@ -1,10 +1,9 @@
 #ifndef SERVERDATADIALOG_H
 #define SERVERDATADIALOG_H
 
-#include "serveragent.h"
-
 #include <QDialog>
 #include <QProgressDialog>
+#include <QDateTime>
 
 namespace Ui {
 class ServerDataDialog;
@@ -49,6 +48,7 @@ private:
     QSet<QString> & removeExistingFiles(QSet<QString> &files);
     void downloadBookPronounceFiles(QString bookName);
     void downloadBookExampleAudioFiles(QString bookName);
+    bool fileExistsLocally(QString fileName);
 
 };
 

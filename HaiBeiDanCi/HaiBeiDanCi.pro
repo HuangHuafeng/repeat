@@ -46,9 +46,10 @@ SOURCES += \
     preferencesdialog.cpp \
     downloadmanager.cpp \
     serverdatadialog.cpp \
-    serveragent.cpp \
     serverclientprotocol.cpp \
-    aboutdialog.cpp
+    aboutdialog.cpp \
+    svragt.cpp \
+    serverdatadownloader.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -70,8 +71,9 @@ HEADERS += \
     downloadmanager.h \
     serverdatadialog.h \
     serverclientprotocol.h \
-    serveragent.h \
-    aboutdialog.h
+    aboutdialog.h \
+    svragt.h \
+    serverdatadownloader.h
 
 FORMS += \
     mainwindow.ui \

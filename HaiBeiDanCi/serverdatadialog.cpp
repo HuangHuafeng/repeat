@@ -2,6 +2,7 @@
 #include "ui_serverdatadialog.h"
 #include "wordbook.h"
 #include "mysettings.h"
+#include "serverdatadownloader.h"
 
 #include <QMessageBox>
 
@@ -22,15 +23,19 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
     header.append(QObject::tr("Status"));
     ui->twBooks->setHeaderLabels(header);
 
-    ServerAgent *serveragent = ServerAgent::instance();
-    connect(serveragent, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
-    connect(serveragent, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
-    connect(serveragent, SIGNAL(downloadProgress(float)), this, SLOT(onDownloadProgress(float)));
-    //connect(serveragent, SIGNAL(fileDownloaded(QString, bool)), this, SLOT(onFileDownloaded(QString, bool)));
-    //connect(serveragent, SIGNAL(wordDownloaded(QString)), this, SLOT(onWordDownloaded(QString)));
+    ServerDataDownloader *sdd = ServerDataDownloader::instance();
+    connect(sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
+    connect(sdd, SIGNAL(downloadProgress(float)), this, SLOT(onDownloadProgress(float)));
 
-    serveragent->getBookList();
-
+    if (sdd->isBookListReady() == true)
+    {
+        onBookListReady(sdd->getBookList());
+    }
+    else
+    {
+        connect(sdd, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
+        sdd->getBookList();
+    }
 }
 
 ServerDataDialog::~ServerDataDialog()
@@ -100,8 +105,8 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
 
     createProgressDialog(QObject::tr("Downloading ") + "\"" + bookName + "\"", QObject::tr("Cancel"));
 
-    ServerAgent *serveragent = ServerAgent::instance();
-    serveragent->downloadBook(bookName);
+    ServerDataDownloader *sdd = ServerDataDownloader::instance();
+    sdd->downloadBook(bookName);
 }
 
 void ServerDataDialog::onDownloadProgress(float percentage)
@@ -109,8 +114,8 @@ void ServerDataDialog::onDownloadProgress(float percentage)
     if (m_progressDialog.wasCanceled() == true)
     {
         destroyProgressDialog();
-        ServerAgent *serveragent = ServerAgent::instance();
-        serveragent->cancelDownloading();
+        ServerDataDownloader *sdd = ServerDataDownloader::instance();
+        sdd->cancelDownloading();
     }
     else
     {
@@ -146,9 +151,6 @@ void ServerDataDialog::updateBookStatus(QString bookName)
 
 void ServerDataDialog::on_pbClose_clicked()
 {
-    ServerAgent *serveragent = ServerAgent::instance();
-    serveragent->disconnectServer();
-
     close();
 }
 
@@ -197,12 +199,11 @@ void ServerDataDialog::destroyProgressDialog()
 
 QSet<QString> & ServerDataDialog::removeExistingFiles(QSet<QString> &files)
 {
-    ServerAgent *serveragent = ServerAgent::instance();
     QSet<QString>::iterator it = files.begin();
     while (it != files.end())
     {
         QString fileName = *it;
-        if (serveragent->fileExistsLocally(fileName) == true)
+        if (fileExistsLocally(fileName) == true)
         {
             it = files.erase(it);
         }
@@ -246,8 +247,8 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
         interestedFiles += removeExistingFiles(interestedWordFiles);
     }
 
-    ServerAgent *serveragent = ServerAgent::instance();
-    auto filesToDownload = serveragent->downloadMultipleFiles(interestedFiles);
+    ServerDataDownloader *sdd = ServerDataDownloader::instance();
+    auto filesToDownload = sdd->downloadMultipleFiles(interestedFiles);
     if (filesToDownload.isEmpty() == false)
     {
         // show the progress dialog
@@ -290,8 +291,8 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
         interestedFiles += removeExistingFiles(interestedWordFiles);
     }
 
-    ServerAgent *serveragent = ServerAgent::instance();
-    auto filesToDownload = serveragent->downloadMultipleFiles(interestedFiles);
+    ServerDataDownloader *sdd = ServerDataDownloader::instance();
+    auto filesToDownload = sdd->downloadMultipleFiles(interestedFiles);
     if (filesToDownload.isEmpty() == false)
     {
         // show the progress dialog
@@ -301,4 +302,10 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
     {
         QMessageBox::information(this, MySettings::appName(), QObject::tr("All media files are already available locally!"));
     }
+}
+
+bool ServerDataDialog::fileExistsLocally(QString fileName)
+{
+    const QString dd = MySettings::dataDirectory() + "/";
+    return QFile::exists(dd + fileName);
 }

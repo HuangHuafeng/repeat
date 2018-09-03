@@ -45,6 +45,10 @@ void ClientWaiter::run()
             if (waitForMoreData() == false)
             {
                 consecutiveHeartbeat ++;
+                if (m_tcpSocket->state() != QAbstractSocket::ConnectedState)
+                {
+                    break;
+                }
             }
             continue;
         }

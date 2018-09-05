@@ -98,6 +98,9 @@ void ServerDataDownloader::OnGetWordsOfBookFinished(QString bookName)
     qDebug() << "Used" << t.elapsed() << "ms in OnGetWordsOfBookFinished()";
 #endif
 
+    // DOWNLOAD BOOK
+    // STEP 3: words of the book saved, book saved, signal the completion
+
     emit(bookStored(bookName));
     emit(downloadProgress(1.0f));
 }
@@ -106,7 +109,8 @@ void ServerDataDownloader::OnBookWordListReceived(QString bookName, const QVecto
 {
     m_mapBooksWordList.insert(bookName, wordList);
 
-    // we've received the words of the book, get the definition of these words
+    // DOWNLOAD BOOK
+    // STEP 2: received the words of the book, get the definition of these words
     downloadWordsOfBook(bookName);
 }
 
@@ -123,9 +127,11 @@ QList<QString> ServerDataDownloader::getBookList()
 
 void ServerDataDownloader::downloadBook(QString bookName)
 {
+    // only download a book when it does NOT exist locally
     if (WordBook::getBook(bookName).get() == nullptr)
     {
-        // only download a book when it does NOT exist locally
+        // DOWNLOAD BOOK
+        // STEP 1: get the list of words in the book
         m_svrAgt.sendRequestGetBookWordList(bookName);
     }
 }

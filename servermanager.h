@@ -14,23 +14,26 @@ public:
     static ServerManager * instance();
 
     QList<QString> getBookList();
+    const QMap<QString, sptr<Word>> & getAllWords()
+    {
+        return m_mapWords;
+    }
+
+    bool serverDataLoaded()
+    {
+        return m_serverDataLoaded;
+    }
+
     void reloadServerData();
+    bool okToSync(QString *errorString = nullptr);
+    void syncToLocal();
 
 signals:
-    void bookListReady(const QList<QString> &books);
-    void downloadProgress(float percentage);
-    void bookStored(QString bookName);
-    void fileDownloaded(QString fileName, bool succeeded);
-
     void serverDataReloaded();
 
 public slots:
     void OnBookListReady(const QList<QString> &books);
     void OnBookDownloaded(sptr<WordBook> book);
-    void OnWordDownloaded(sptr<Word> word);
-    void OnDownloadProgress(float percentage);
-    void OnFileDownloaded(QString fileName, SvrAgt::DownloadStatus result, const QByteArray &fileContent);
-    void OnGetWordsOfBookFinished(QString bookName);
     void OnBookWordListReceived(QString bookName, const QVector<QString> &wordList);
 
     void onServerConnected();
@@ -43,7 +46,7 @@ private:
     static ServerManager *m_sm;
 
     ManagerAgent m_mgrAgt;
-    bool m_bookListDownloaded;
+    bool m_serverDataLoaded;
 
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
@@ -55,6 +58,9 @@ private:
 
     void clearData();
     void printData();
+
+    bool okToSyncBooks(QString *errorString = nullptr);
+    bool okToSyncWords(QString *errorString = nullptr);
 };
 
 #endif // SERVERMANAGER_H

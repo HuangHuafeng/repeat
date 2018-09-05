@@ -86,7 +86,8 @@ SOURCES += \
     servermanager.cpp \
     HaiBeiDanCi/svragt.cpp \
     manageragent.cpp \
-    preferencesdialog.cpp
+    preferencesdialog.cpp \
+    HaiBeiDanCi/serverdatadownloader.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -143,7 +144,8 @@ HEADERS += \
     servermanager.h \
     HaiBeiDanCi/svragt.h \
     manageragent.h \
-    preferencesdialog.h
+    preferencesdialog.h \
+    HaiBeiDanCi/serverdatadownloader.h
 
 FORMS += \
         mainwindow.ui \

@@ -30,14 +30,16 @@ private slots:
 
     void on_pushNewBook_clicked();
 
-    void on_pushTest_clicked();
-
     void on_actionNewBook_triggered();
 
-    void onBookListReady(const QList<QString> books);
     void onServerDataReloaded();
+    void onBookDownloaded(QString bookName);
 
     void on_actionPreferences_triggered();
+
+    void on_pbSyncToLocal_clicked();
+
+    void on_pbReloadServerData_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -47,11 +49,11 @@ private:
     void QueryWord();
 
     void reloadLocalData();
-    void reloadServerData();
     void reloadLocalBooks();
     void reloadServerBooks();
     void addBookToTheView(QTreeWidget *tw, WordBook &book);
     void selectFirstItem(QTreeWidget *tw);
+    void listServerBooks(const QList<QString> books);
 };
 
 #endif // MAINWINDOW_H

@@ -1,17 +1,19 @@
 #include "servermanager.h"
 #include "HaiBeiDanCi/mysettings.h"
+#include "HaiBeiDanCi/serverdatadownloader.h"
 
 ServerManager * ServerManager::m_sm = nullptr;
 
 ServerManager::ServerManager(QObject *parent) : QObject(parent),
-    m_mgrAgt(MySettings::serverHostName(), MySettings::serverPort(), this)
+    m_mgrAgt(MySettings::serverHostName(), MySettings::serverPort(), this),
+    m_serverDataLoaded(false)
 {
     connect(&m_mgrAgt, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(OnBookListReady(const QList<QString>)));
     connect(&m_mgrAgt, SIGNAL(bookDownloaded(sptr<WordBook>)), this, SLOT(OnBookDownloaded(sptr<WordBook>)));
-    connect(&m_mgrAgt, SIGNAL(wordDownloaded(sptr<Word>)), this, SLOT(OnWordDownloaded(sptr<Word>)));
-    connect(&m_mgrAgt, SIGNAL(downloadProgress(float)), this, SLOT(OnDownloadProgress(float)));
-    connect(&m_mgrAgt, SIGNAL(fileDownloaded(QString, SvrAgt::DownloadStatus, const QByteArray &)), this, SLOT(OnFileDownloaded(QString, SvrAgt::DownloadStatus, QByteArray)));
-    connect(&m_mgrAgt, SIGNAL(getWordsOfBookFinished(QString)), this, SLOT(OnGetWordsOfBookFinished(QString)));
+    //connect(&m_mgrAgt, SIGNAL(wordDownloaded(sptr<Word>)), this, SLOT(OnWordDownloaded(sptr<Word>)));
+    //connect(&m_mgrAgt, SIGNAL(downloadProgress(float)), this, SLOT(OnDownloadProgress(float)));
+    //connect(&m_mgrAgt, SIGNAL(fileDownloaded(QString, SvrAgt::DownloadStatus, const QByteArray &)), this, SLOT(OnFileDownloaded(QString, SvrAgt::DownloadStatus, QByteArray)));
+    //connect(&m_mgrAgt, SIGNAL(getWordsOfBookFinished(QString)), this, SLOT(OnGetWordsOfBookFinished(QString)));
     connect(&m_mgrAgt, SIGNAL(bookWordListReceived(QString, const QVector<QString> &)), this, SLOT(OnBookWordListReceived(QString, const QVector<QString> &)));
     connect(&m_mgrAgt, SIGNAL(serverConnected()), this, SLOT(onServerConnected()));
 
@@ -62,53 +64,6 @@ void ServerManager::OnBookDownloaded(sptr<WordBook> book)
     Q_ASSERT(book.get() != nullptr);
 
     m_mapBooks.insert(book->getName(), book);
-}
-
-void ServerManager::OnWordDownloaded(sptr<Word> word)
-{
-    Q_ASSERT(word.get() != nullptr);
-
-    // words will be store later in one transaction!!!
-    m_mapWords.insert(word->getSpelling(), word);
-}
-
-void ServerManager::OnDownloadProgress(float percentage)
-{
-    emit(downloadProgress(percentage));
-}
-
-void ServerManager::OnFileDownloaded(QString fileName, SvrAgt::DownloadStatus result, const QByteArray &fileContent)
-{
-    if (result == SvrAgt::DownloadSucceeded)
-    {
-        saveFileFromServer(fileName, fileContent);
-    }
-    emit(fileDownloaded(fileName, result == SvrAgt::DownloadSucceeded));
-}
-
-void ServerManager::OnGetWordsOfBookFinished(QString bookName)
-{
-    // the book is downloaded, save it to database
-#ifndef QT_NO_DEBUG
-    QElapsedTimer t;
-    t.start();
-#endif
-    // store the words
-    Word::v2StoreMultipleWordFromServer(m_mapWords);
-    m_mapWords.clear();
-
-    // store the book
-    auto book = m_mapBooks.value(bookName);
-    Q_ASSERT(book.get() != nullptr);
-    auto wordList = m_mapBooksWordList.value(bookName);
-    WordBook::storeBookFromServer(book, wordList);
-
-#ifndef QT_NO_DEBUG
-    qDebug() << "Used" << t.elapsed() << "ms in OnGetWordsOfBookFinished()";
-#endif
-
-    emit(bookStored(bookName));
-    emit(downloadProgress(1.0f));
 }
 
 void ServerManager::OnBookWordListReceived(QString bookName, const QVector<QString> &wordList)
@@ -185,6 +140,7 @@ void ServerManager::onGetServerDataFinished()
 {
     // RELOAD SERVER DATA
     // we got all the data when we get this message
+    m_serverDataLoaded = true;
     emit(serverDataReloaded());
     printData();
 }
@@ -200,7 +156,7 @@ void ServerManager::onGetAllWordsWithoutDefinitionFinished(const QVector<QString
         auto spelling = spellings.at(i);
         auto id = ids.at(i);
         auto defLen = definitionLengths.at(i);
-        auto definition = QString::number(defLen) + "bytes";
+        auto definition = QString::number(defLen);
         sptr<Word> newWord = new Word(spelling, definition, id);
         m_mapWords.insert(spelling, newWord);
     }
@@ -242,4 +198,229 @@ void ServerManager::printData()
     }
 
     qDebug() << "total words:" << m_mapWords.size();
+}
+
+bool ServerManager::okToSync(QString *errorString)
+{
+    if (okToSyncBooks(errorString) == false)
+    {
+        return false;
+    }
+
+    if (okToSyncWords(errorString) == false)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool ServerManager::okToSyncBooks(QString *errorString)
+{
+    bool ok = true;
+    auto allServerBooks = m_mapBooks.keys();
+    auto allLocalBooks = WordBook::getAllBooks();
+
+    // get the IDs used locally
+    QSet<int> idsUsedLoally;
+    for (int i = 0;i < allLocalBooks.size();i ++)
+    {
+        auto bookName = allLocalBooks.at(i);
+        auto localBook = WordBook::getBook(bookName);
+        Q_ASSERT(localBook.get() != nullptr);
+        Q_ASSERT(idsUsedLoally.contains(localBook->getId()) == false);
+        idsUsedLoally.insert(localBook->getId());
+    }
+
+    // get the IDs used in server
+    QSet<int> idsUsedInServer;
+    for (int i = 0;i < allServerBooks.size();i ++)
+    {
+        auto bookName = allServerBooks.at(i);
+        auto serverBook = m_mapBooks.value(bookName);
+        Q_ASSERT(serverBook.get() != nullptr);
+        Q_ASSERT(idsUsedInServer.contains(serverBook->getId()) == false);
+        idsUsedInServer.insert(serverBook->getId());
+    }
+
+    for (int i = 0;i < allLocalBooks.size();i ++)
+    {
+        auto bookName = allLocalBooks.at(i);
+
+        auto localBook = WordBook::getBook(bookName);
+        Q_ASSERT(localBook.get() != nullptr);
+        if (m_mapBooks.contains(bookName) == true)
+        {
+            auto serverBook = m_mapBooks.value(bookName);
+            Q_ASSERT(serverBook.get() != nullptr);
+            if (localBook->getId() != serverBook->getId())
+            {
+                ok = false;
+                if (errorString != nullptr)
+                {
+                    *errorString = QString("book \"%1\" has id %2 locally and id %3 in server.")
+                            .arg(bookName)
+                            .arg(localBook->getId())
+                            .arg(serverBook->getId());
+                }
+                break;
+            }
+            else
+            {
+                allServerBooks.removeOne(bookName);
+            }
+        }
+        else
+        {
+            if (idsUsedInServer.contains(localBook->getId()) == true)
+            {
+                ok = false;
+                if (errorString != nullptr)
+                {
+                    *errorString = QString("local book \"%1\" has id %2, the book does not exist in server but the id is used by another server book.")
+                            .arg(bookName)
+                            .arg(localBook->getId());
+                }
+                break;
+            }
+        }
+    }
+
+    // check if there're words from server that are not checked yet
+    if (ok == true && allServerBooks.size() > 0)
+    {
+        for (int i = 0;i < allServerBooks.size();i ++)
+        {
+            auto bookName = allServerBooks.at(i);
+            auto serverBook = m_mapBooks.value(bookName);
+            Q_ASSERT(serverBook.get() != nullptr);
+            if (idsUsedLoally.contains(serverBook->getId()) == true)
+            {
+                ok = false;
+                if (errorString != nullptr)
+                {
+                    *errorString = QString("server book \"%1\" has id %2, the book does not exist locally but the id is used by another local book.")
+                            .arg(bookName)
+                            .arg(serverBook->getId());
+                }
+                break;
+            }
+        }
+    }
+
+    return ok;
+}
+
+bool ServerManager::okToSyncWords(QString *errorString)
+{
+    bool ok = true;
+    auto allServerWords = m_mapWords.keys();
+    auto allLocalWords = Word::getAllWords();
+
+    // get the IDs used locally
+    QSet<int> idsUsedLoally;
+    for (int i = 0;i < allLocalWords.size();i ++)
+    {
+        auto spelling = allLocalWords.at(i);
+        auto localWord = Word::getWord(spelling);
+        Q_ASSERT(localWord.get() != nullptr);
+        Q_ASSERT(idsUsedLoally.contains(localWord->getId()) == false);
+        idsUsedLoally.insert(localWord->getId());
+    }
+
+    // get the IDs used in server
+    QSet<int> idsUsedInServer;
+    for (int i = 0;i < allServerWords.size();i ++)
+    {
+        auto spelling = allServerWords.at(i);
+        auto serverWord = m_mapWords.value(spelling);
+        Q_ASSERT(serverWord.get() != nullptr);
+        Q_ASSERT(idsUsedInServer.contains(serverWord->getId()) == false);
+        idsUsedInServer.insert(serverWord->getId());
+    }
+
+    for (int i = 0;i < allLocalWords.size();i ++)
+    {
+        auto spelling = allLocalWords.at(i);
+        auto localWord = Word::getWord(spelling);
+        Q_ASSERT(localWord.get() != nullptr);
+        if (m_mapWords.contains(spelling) == true)
+        {
+            auto serverWord = m_mapWords.value(spelling);
+            Q_ASSERT(serverWord.get() != nullptr);
+            if (localWord->getId() != serverWord->getId()
+                    || localWord->getDefinition().size() != serverWord->getDefinition().toInt())
+            {
+                ok = false;
+                if (errorString != nullptr)
+                {
+                    *errorString = QString("word \"%1\" has id %2 locally and id %3 in server.")
+                            .arg(spelling)
+                            .arg(localWord->getId())
+                            .arg(serverWord->getId());
+                }
+                break;
+            }
+            else
+            {
+                allServerWords.removeOne(spelling);
+            }
+        }
+        else
+        {
+            if (idsUsedInServer.contains(localWord->getId()) == true)
+            {
+                ok = false;
+                if (errorString != nullptr)
+                {
+                    *errorString = QString("local word \"%1\" has id %2, the word does not exist in server but the id is used by another server word.")
+                            .arg(spelling)
+                            .arg(localWord->getId());
+                }
+                break;
+            }
+        }
+    }
+
+    // check if there're words from server that are not checked yet
+    if (ok == true && allServerWords.size() > 0)
+    {
+        for (int i = 0;i < allServerWords.size();i ++)
+        {
+            auto spelling = allServerWords.at(i);
+            auto serverWord = m_mapWords.value(spelling);
+            Q_ASSERT(serverWord.get() != nullptr);
+            if (idsUsedLoally.contains(serverWord->getId()) == true)
+            {
+                ok = false;
+                if (errorString != nullptr)
+                {
+                    *errorString = QString("server word \"%1\" has id %2, the word does not exist locally but the id is used by another local word.")
+                            .arg(spelling)
+                            .arg(serverWord->getId());
+                }
+                break;
+            }
+        }
+    }
+
+    return ok;
+}
+
+void ServerManager::syncToLocal()
+{
+    if (okToSync() == false)
+    {
+        return;
+    }
+
+    auto sdd = ServerDataDownloader::instance();
+    // we need to call sdd->getBookList(); here!
+    sdd->getBookList();
+    // download all the books
+    auto books = m_mapBooks.keys();
+    for (int i = 0;i < books.size();i ++)
+    {
+        sdd->downloadBook(books.at(i));
+    }
 }

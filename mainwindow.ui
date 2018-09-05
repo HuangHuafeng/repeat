@@ -90,13 +90,6 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QPushButton" name="pushTest">
-            <property name="text">
-             <string>Test</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
        </layout>
@@ -168,16 +161,16 @@
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QPushButton" name="pbDownloadBook">
+           <widget class="QPushButton" name="pbSyncToLocal">
             <property name="text">
              <string>Sync to local</string>
             </property>
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QPushButton" name="pbCheckAllWords">
+           <widget class="QPushButton" name="pbReloadServerData">
             <property name="text">
-             <string>Check all words</string>
+             <string>Reload server data</string>
             </property>
            </widget>
           </item>

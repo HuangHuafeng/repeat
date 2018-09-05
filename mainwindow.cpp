@@ -47,12 +47,14 @@ MainWindow::MainWindow(QWidget *parent) :
     WordCard::readAllCardsFromDatabase();
     WordBook::readAllBooksFromDatabase();
 
+
+    auto sdd = ServerDataDownloader::instance();
+    connect(sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
+
     ServerManager *serverManager = ServerManager::instance();
-    //connect(serverManager, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
     connect(serverManager, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
 
     reloadLocalData();
-    reloadServerData();
 }
 
 MainWindow::~MainWindow()
@@ -108,12 +110,6 @@ void MainWindow::QueryWord()
 void MainWindow::on_pushNewBook_clicked()
 {
     ui->actionNewBook->trigger();
-}
-
-void MainWindow::on_pushTest_clicked()
-{
-    ServerManager *serverManager = ServerManager::instance();
-    serverManager->reloadServerData();
 }
 
 void MainWindow::on_actionNewBook_triggered()
@@ -177,21 +173,30 @@ void MainWindow::addBookToTheView(QTreeWidget * tw, WordBook &book)
     tw->addTopLevelItem(item);
 }
 
-void MainWindow::reloadServerData()
+void MainWindow::onBookDownloaded(QString bookName)
 {
+    qDebug() << bookName;
+
+    reloadLocalData();
 }
 
 void MainWindow::onServerDataReloaded()
 {
     ServerManager *serverManager = ServerManager::instance();
-    onBookListReady(serverManager->getBookList());
-}
+    auto books = serverManager->getBookList();
+    listServerBooks(books);
 
-void MainWindow::onBookListReady(const QList<QString> books)
-{
     // number of books
     ui->labelServerBooks->setText(QString::number(books.size()));
 
+    // number of words
+    auto allWords = serverManager->getAllWords();
+    QString serverWords = QString::number(allWords.size());
+    ui->labelServerWords->setText(serverWords);
+}
+
+void MainWindow::listServerBooks(const QList<QString> books)
+{
     ui->twServerData->clear();
 
     for (int i = 0;i < books.size();i ++)
@@ -212,4 +217,24 @@ void MainWindow::on_actionPreferences_triggered()
 {
     PreferencesDialog pd(this);
     pd.exec();
+}
+
+void MainWindow::on_pbSyncToLocal_clicked()
+{
+    ServerManager *serverManager = ServerManager::instance();
+    QString errorString;
+    if (serverManager->okToSync(&errorString) == false)
+    {
+        QMessageBox::critical(this, MySettings::appName(), errorString);
+    }
+    else
+    {
+        serverManager->syncToLocal();
+    }
+}
+
+void MainWindow::on_pbReloadServerData_clicked()
+{
+    ServerManager *serverManager = ServerManager::instance();
+    serverManager->reloadServerData();
 }

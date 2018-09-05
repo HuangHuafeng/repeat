@@ -666,8 +666,10 @@ void SvrAgt::getBookList()
 
 void SvrAgt::downloadWords(const QVector<QString> &wordList)
 {
-    // clear m_wordsToDownload as previous download must finished
-    m_wordsToDownload.clear();
+    // clear m_wordsToDownload as previous download must finished, NO!!!!
+    //m_wordsToDownload.clear();
+    // don't clear this as it breaks multiple downloading. In other words,
+    // it's possible that there are books in downloading at this moment!
 
     // send message to download the words
     for (int i = 0;i < wordList.size();i ++)

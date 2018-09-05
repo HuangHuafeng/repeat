@@ -33,6 +33,7 @@ private:
     bool waitForMoreData();
 
     QByteArray readMessage();
+    void sendResponsePromoteToManager(const QByteArray &msg);
 };
 
 #endif // CLIENTWAITER_H

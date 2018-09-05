@@ -65,6 +65,8 @@ signals:
     // from handleResponseBookWordListAllSent()
     void bookWordListReceived(QString bookName, const QVector<QString> &wordList);
 
+    void serverConnected();
+
 private slots:
     void onConnected();
     void onDisconnected();
@@ -95,9 +97,11 @@ private:
     int m_lastResponded;
     int m_messagesSent;
 
-protected:
     QByteArray readMessage();
-    int handleMessage(const QByteArray &msg);
+    void sendTheFirstMessage();
+
+protected:
+    virtual int handleMessage(const QByteArray &msg);
     bool handleResponseNoOperation(const QByteArray &msg);
     bool handleUnknownMessage(const QByteArray &msg);
     bool handleResponseGetAllBooks(const QByteArray &msg);
@@ -112,11 +116,11 @@ protected:
 
     void connectToServer();
     void sendMessage(const QByteArray &msg, bool now = false);
-    void sendTheFirstMessage();
     void updateAndEmitProgress();
     void cancelDownloadingWords();
     void cancelDownloadingFiles();
 
+    void sendSimpleMessage(qint32 msgCode, bool now = false);
 };
 
 #endif // SVRAGT_H

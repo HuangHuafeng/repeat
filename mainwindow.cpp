@@ -3,9 +3,12 @@
 #include "golddict/gddebug.hh"
 #include "HaiBeiDanCi/word.h"
 #include "HaiBeiDanCi/wordbook.h"
-#include "HaiBeiDanCi/serveragent.h"
 #include "HaiBeiDanCi/mysettings.h"
+#include "HaiBeiDanCi/svragt.h"
 #include "newbook.h"
+#include "servermanager.h"
+#include "HaiBeiDanCi/serverdatadownloader.h"
+#include "preferencesdialog.h"
 
 #include <QString>
 #include <QFileDialog>
@@ -44,9 +47,9 @@ MainWindow::MainWindow(QWidget *parent) :
     WordCard::readAllCardsFromDatabase();
     WordBook::readAllBooksFromDatabase();
 
-    ServerAgent *serveragent = ServerAgent::instance();
-    connect(serveragent, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
-
+    ServerManager *serverManager = ServerManager::instance();
+    //connect(serverManager, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
+    connect(serverManager, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
 
     reloadLocalData();
     reloadServerData();
@@ -109,6 +112,8 @@ void MainWindow::on_pushNewBook_clicked()
 
 void MainWindow::on_pushTest_clicked()
 {
+    ServerManager *serverManager = ServerManager::instance();
+    serverManager->reloadServerData();
 }
 
 void MainWindow::on_actionNewBook_triggered()
@@ -174,8 +179,12 @@ void MainWindow::addBookToTheView(QTreeWidget * tw, WordBook &book)
 
 void MainWindow::reloadServerData()
 {
-    ServerAgent *serveragent = ServerAgent::instance();
-    serveragent->getBookList();
+}
+
+void MainWindow::onServerDataReloaded()
+{
+    ServerManager *serverManager = ServerManager::instance();
+    onBookListReady(serverManager->getBookList());
 }
 
 void MainWindow::onBookListReady(const QList<QString> books)
@@ -197,4 +206,10 @@ void MainWindow::onBookListReady(const QList<QString> books)
     }
 
     selectFirstItem(ui->twServerData);
+}
+
+void MainWindow::on_actionPreferences_triggered()
+{
+    PreferencesDialog pd(this);
+    pd.exec();
 }

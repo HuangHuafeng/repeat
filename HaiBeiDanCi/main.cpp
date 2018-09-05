@@ -26,7 +26,8 @@ int main(int argc, char *argv[])
     MySettings::setAppName(QObject::tr("HaiBeiDanCi"));
     QCoreApplication::setOrganizationName(MySettings::orgName());
     QCoreApplication::setOrganizationDomain(MySettings::orgDomain());
-    QCoreApplication::setApplicationName(MySettings::appName());
+    // don't call setApplicationName() so it continues to be the executable name
+    //QCoreApplication::setApplicationName(MySettings::appName());
 
     DictSchemeHandler dsh;
 

@@ -74,6 +74,8 @@ void SvrAgt::onConnected()
     m_timerServerHeartBeat.start(1000 * MySettings::heartbeatIntervalInSeconds());
     // start sending message
     m_messageTimer.start(MySettings::downloadIntervalInMilliseconds());
+
+    emit(serverConnected());
 }
 
 void SvrAgt::onDisconnected()
@@ -405,7 +407,8 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
     // remove the file content to release the memory, helpful?
     m_mapFileContent.remove(fileName);
 
-    // don't remove the file from m_filesToDownload to keep the progress calculation accurate
+    // don't remove the file from m_filesToDownload
+    // we may need some statistics later
     //m_filesToDownload.remove(fileName);
 
     updateAndEmitProgress();
@@ -425,6 +428,8 @@ bool SvrAgt::handleResponseUnknownRequest(const QByteArray &msg)
         qCritical() << "failed to read request code in handleResponseUnknownRequest()";
         return false;
     }
+
+    qCritical("server replied that it doesn't know the message with header: %s", receivedMsgHeader.toString().toUtf8().constData());
 
     return true;
 }
@@ -452,6 +457,16 @@ void SvrAgt::connectToServer()
     }
 }
 
+void SvrAgt::sendSimpleMessage(qint32 msgCode, bool now)
+{
+    connectToServer();
+    MessageHeader msgHeader(msgCode);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader;
+    sendMessage(block, now);
+}
 
 /**
  * @brief SvrAgt::sendRequestNoOperation
@@ -459,13 +474,7 @@ void SvrAgt::connectToServer()
  */
 void SvrAgt::sendRequestNoOperation()
 {
-    connectToServer();
-    MessageHeader msgHeader(ServerClientProtocol::RequestNoOperation);
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader;
-    sendMessage(block, true);
+    sendSimpleMessage(ServerClientProtocol::RequestNoOperation, true);
 }
 
 void SvrAgt::sendRequestBye()
@@ -476,23 +485,12 @@ void SvrAgt::sendRequestBye()
         return;
     }
 
-    MessageHeader msgHeader(ServerClientProtocol::RequestBye);
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader;
-    sendMessage(block, true);
+    sendSimpleMessage(ServerClientProtocol::RequestBye, true);
 }
 
 void SvrAgt::sendRequestGetAllBooks()
 {
-    connectToServer();
-    MessageHeader msgHeader(ServerClientProtocol::RequestGetAllBooks);
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader;
-    sendMessage(block);
+    sendSimpleMessage(ServerClientProtocol::RequestGetAllBooks);
 }
 
 void SvrAgt::sendRequestGetBookWordList(QString bookName)

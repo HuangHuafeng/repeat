@@ -82,9 +82,11 @@ SOURCES += \
     newbook.cpp \
     HaiBeiDanCi/mysettings.cpp \
     HaiBeiDanCi/downloadmanager.cpp \
-    HaiBeiDanCi/serveragent.cpp \
     HaiBeiDanCi/serverclientprotocol.cpp \
-    servermanager.cpp
+    servermanager.cpp \
+    HaiBeiDanCi/svragt.cpp \
+    manageragent.cpp \
+    preferencesdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -137,13 +139,16 @@ HEADERS += \
     newbook.h \
     HaiBeiDanCi/mysettings.h \
     HaiBeiDanCi/downloadmanager.h \
-    HaiBeiDanCi/serveragent.h \
     HaiBeiDanCi/serverclientprotocol.h \
-    servermanager.h
+    servermanager.h \
+    HaiBeiDanCi/svragt.h \
+    manageragent.h \
+    preferencesdialog.h
 
 FORMS += \
         mainwindow.ui \
-    newbook.ui
+    newbook.ui \
+    preferencesdialog.ui
 
 RESOURCES += \
     res.qrc

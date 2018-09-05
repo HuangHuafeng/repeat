@@ -83,11 +83,16 @@ void ClientWaiter::run()
             if (receivedMsgHeader.code() == ServerClientProtocol::RequestPromoteToManager)
             {
                 ptrClientHandler = new HBDCManagerHandler(*this);
+                sendResponsePromoteToManager(msg);
+                qDebug() << QDateTime::currentDateTime().toString() << "successfully handled message with header: ";
+                qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
+                qDebug() << "promoted the handler to manager";
             }
             else
             {
                 qDebug() << QDateTime::currentDateTime().toString() << "unknown message with header: ";
                 qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
+                ptrClientHandler->handleUnknownMessage(msg);
 
                 // the message is discarded automatically, continue trying to get the next message
             }
@@ -177,4 +182,14 @@ QByteArray ClientWaiter::readMessage()
     {
         return QByteArray();
     }
+}
+
+void ClientWaiter::sendResponsePromoteToManager(const QByteArray &msg)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponsePromoteToManager, receivedMsgHeader.sequenceNumber());
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader;
+    sendMessage(block);
 }

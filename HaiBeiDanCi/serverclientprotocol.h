@@ -36,7 +36,7 @@ public:
     }
 
     typedef enum {
-        MaximumWordsInAMessage = 500,
+        MaximumWordsInAMessage = 2000,
         MaximumBytesForFileTransfer = 1024 * 32,    // 32k, most of the files are less than 20k in this app
     } MessageParameters;
 
@@ -72,11 +72,18 @@ public:
     typedef enum {
         ManagerToServerMessageCodeBase = 30000,
         RequestPromoteToManager = ManagerToServerMessageCodeBase + 1,
+        RequestGetAllWordsWithoutDefinition = ManagerToServerMessageCodeBase + 2,
+        RequestGetServerDataFinished = ManagerToServerMessageCodeBase + 3,
     } ManagerToServerMessageCode;
 
     typedef enum {
         ServerToManagerMessageCodeBase = 40000,
         ResponsePromoteToManager = ServerToManagerMessageCodeBase + 1,
+
+        ResponseGetAllWordsWithoutDefinition = ServerToManagerMessageCodeBase + 2,
+        ResponseGetAllWordsWithoutDefinitionFinished = ResponseGetAllWordsWithoutDefinition + 1000,
+
+        ResponseGetServerDataFinished = ServerToManagerMessageCodeBase + 3,
     } ServerToManagerMessageCode;
 };
 

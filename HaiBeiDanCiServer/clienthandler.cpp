@@ -29,7 +29,9 @@ int ClientHandler::handleMessage(const QByteArray &msg)
         break;
 
     default:
-        handleUnknownMessage(msg);
+        // don't call handleUnknownMessage() here
+        // as it's possible that ClientWaiter knows the message: RequestPromoteToManager
+        //handleUnknownMessage(msg);
         unknowMessage = true;
         break;
     }
@@ -73,14 +75,19 @@ void ClientHandler::sendResponseUnknownRequest(const QByteArray &msg)
     MessageHeader responseHeader(ServerClientProtocol::ResponseUnknownRequest, receivedMsgHeader.sequenceNumber());
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader;
+    out << responseHeader << receivedMsgHeader.code();
     sendMessage(block);
 }
 
 void ClientHandler::sendResponseNoOperation(const QByteArray &msg)
 {
-    MessageHeader receivedMsgHeader(msg);
-    MessageHeader responseHeader(ServerClientProtocol::ResponseNoOperation, receivedMsgHeader.sequenceNumber());
+    sendSimpleMessage(msg, ServerClientProtocol::ResponseNoOperation);
+}
+
+void ClientHandler::sendSimpleMessage(const QByteArray &msgToReply, qint32 msgCode)
+{
+    MessageHeader receivedMsgHeader(msgToReply);
+    MessageHeader responseHeader(msgCode, receivedMsgHeader.sequenceNumber());
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader;

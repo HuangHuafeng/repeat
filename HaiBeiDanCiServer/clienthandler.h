@@ -10,11 +10,13 @@ class ClientHandler
 private:
     ClientWaiter &m_clientWaiter;
 
-    void handleUnknownMessage(const QByteArray &msg);
     bool handleRequestNoOperation(const QByteArray &msg);
 
     void sendResponseUnknownRequest(const QByteArray &msg);
     void sendResponseNoOperation(const QByteArray &msg);
+
+protected:
+    void sendSimpleMessage(const QByteArray &msgToReply, qint32 msgCode);
 
 public:
     ClientHandler(ClientWaiter &clientWaiter);
@@ -22,6 +24,7 @@ public:
 
     void sendMessage(QByteArray msg);
     virtual int handleMessage(const QByteArray &msg);
+    void handleUnknownMessage(const QByteArray &msg);
 };
 
 #endif // CLIENTHANDLER_H

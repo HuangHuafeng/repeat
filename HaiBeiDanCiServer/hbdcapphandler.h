@@ -28,7 +28,6 @@ private:
     void sendResponseGetBookWordList(const QByteArray &msg, const QString bookName, const QVector<QString> &wordList);
     void sendResponseBookWordListAllSent(const QByteArray &msg, const QString bookName);
     void sendResponseGetFileFinished(const QByteArray &msg, const QString fileName, bool succeeded);
-    void sendResponseUnknownRequest(const QByteArray &msg);
     void sendResponseGetFile(const QByteArray &msg, const QString fileName, const char *s, uint len);
     void sendResponseGetWordsOfBookFinished(const QByteArray &msg, const QString bookName);
 };

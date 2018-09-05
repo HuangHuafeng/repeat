@@ -35,6 +35,9 @@ private slots:
     void on_actionNewBook_triggered();
 
     void onBookListReady(const QList<QString> books);
+    void onServerDataReloaded();
+
+    void on_actionPreferences_triggered();
 
 private:
     Ui::MainWindow *ui;

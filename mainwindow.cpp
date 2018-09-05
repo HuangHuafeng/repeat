@@ -221,6 +221,16 @@ void MainWindow::on_actionPreferences_triggered()
 
 void MainWindow::on_pbSyncToLocal_clicked()
 {
+    ui->actionSync_To_Local->trigger();
+}
+
+void MainWindow::on_pbReloadServerData_clicked()
+{
+    ui->actionReload_data->trigger();
+}
+
+void MainWindow::on_actionSync_To_Local_triggered()
+{
     ServerManager *serverManager = ServerManager::instance();
     QString errorString;
     if (serverManager->okToSync(&errorString) == false)
@@ -233,8 +243,26 @@ void MainWindow::on_pbSyncToLocal_clicked()
     }
 }
 
-void MainWindow::on_pbReloadServerData_clicked()
+void MainWindow::on_actionReload_data_triggered()
 {
     ServerManager *serverManager = ServerManager::instance();
     serverManager->reloadServerData();
+}
+
+void MainWindow::on_actionDeleteLocalBook_triggered()
+{
+    auto ci = ui->twLocalData->currentItem();
+    if (ci == nullptr)
+    {
+        return;
+    }
+
+    auto bookName = ci->text(0);
+    WordBook::deleteBook(bookName);
+    reloadLocalData();
+}
+
+void MainWindow::on_pbDeleteBook_clicked()
+{
+    ui->actionDeleteLocalBook->trigger();
 }

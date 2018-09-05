@@ -45,6 +45,8 @@ class WordBook
 
     static void storeBookFromServer(sptr<WordBook> book, const QVector<QString> &wordList = QVector<QString>());
 
+    static void deleteBook(QString bookName);
+
   private:
     QString m_name;
     QString m_introduction;

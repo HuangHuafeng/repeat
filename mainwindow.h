@@ -41,6 +41,14 @@ private slots:
 
     void on_pbReloadServerData_clicked();
 
+    void on_actionSync_To_Local_triggered();
+
+    void on_actionReload_data_triggered();
+
+    void on_actionDeleteLocalBook_triggered();
+
+    void on_pbDeleteBook_clicked();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;

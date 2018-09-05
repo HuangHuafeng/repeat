@@ -21,17 +21,7 @@
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Words:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
+          <item row="0" column="0" colspan="4">
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Local</string>
@@ -41,31 +31,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Books:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="labelLocalBooks">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="labelLocalWords">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="2">
+          <item row="3" column="0" colspan="4">
            <widget class="QTreeWidget" name="twLocalData">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -86,7 +52,55 @@
           <item row="4" column="0">
            <widget class="QPushButton" name="pushNewBook">
             <property name="text">
-             <string>New Book</string>
+             <string>New book</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Words:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Books:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="labelLocalWords">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLabel" name="labelLocalBooks">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QPushButton" name="pbDeleteBook">
+            <property name="text">
+             <string>Delete book</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3">
+           <widget class="QPushButton" name="pbUploadBook">
+            <property name="text">
+             <string>Upload</string>
             </property>
            </widget>
           </item>
@@ -160,17 +174,17 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QPushButton" name="pbSyncToLocal">
-            <property name="text">
-             <string>Sync to local</string>
-            </property>
-           </widget>
-          </item>
           <item row="4" column="1">
            <widget class="QPushButton" name="pbReloadServerData">
             <property name="text">
              <string>Reload server data</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QPushButton" name="pbSyncToLocal">
+            <property name="text">
+             <string>Sync to local</string>
             </property>
            </widget>
           </item>
@@ -213,10 +227,27 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
-    <addaction name="actionNewBook"/>
     <addaction name="actionPreferences"/>
    </widget>
+   <widget class="QMenu" name="menuLocal">
+    <property name="title">
+     <string>Local</string>
+    </property>
+    <addaction name="actionNewBook"/>
+    <addaction name="actionDeleteLocalBook"/>
+    <addaction name="actionUpload_Book"/>
+   </widget>
+   <widget class="QMenu" name="menuServer">
+    <property name="title">
+     <string>Server</string>
+    </property>
+    <addaction name="actionDeleteServerBook"/>
+    <addaction name="actionReload_data"/>
+    <addaction name="actionSync_To_Local"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuLocal"/>
+   <addaction name="menuServer"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -243,6 +274,31 @@
    </property>
    <property name="menuRole">
     <enum>QAction::PreferencesRole</enum>
+   </property>
+  </action>
+  <action name="actionDeleteLocalBook">
+   <property name="text">
+    <string>Delete Book</string>
+   </property>
+  </action>
+  <action name="actionDeleteServerBook">
+   <property name="text">
+    <string>Delete Book</string>
+   </property>
+  </action>
+  <action name="actionReload_data">
+   <property name="text">
+    <string>Reload Data</string>
+   </property>
+  </action>
+  <action name="actionSync_To_Local">
+   <property name="text">
+    <string>Sync to Local</string>
+   </property>
+  </action>
+  <action name="actionUpload_Book">
+   <property name="text">
+    <string>Upload Book</string>
    </property>
   </action>
  </widget>

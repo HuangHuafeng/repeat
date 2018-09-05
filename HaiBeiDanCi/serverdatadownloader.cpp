@@ -7,6 +7,7 @@ ServerDataDownloader::ServerDataDownloader(QObject *parent) : QObject(parent),
     m_svrAgt(MySettings::serverHostName(), MySettings::serverPort(), this),
     m_bookListDownloaded(false)
 {
+    connect(&m_svrAgt, SIGNAL(serverConnected()), this, SLOT(onServerConnected()));
     connect(&m_svrAgt, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(OnBookListReady(const QList<QString>)));
     connect(&m_svrAgt, SIGNAL(bookDownloaded(sptr<WordBook>)), this, SLOT(OnBookDownloaded(sptr<WordBook>)));
     connect(&m_svrAgt, SIGNAL(wordDownloaded(sptr<Word>)), this, SLOT(OnWordDownloaded(sptr<Word>)));
@@ -34,6 +35,12 @@ void ServerDataDownloader::destroy()
         m_sdd->deleteLater();
         m_sdd = nullptr;
     }
+}
+
+void ServerDataDownloader::onServerConnected()
+{
+    qDebug() << "server connected";
+    m_svrAgt.sendRequestGetAllBooks();
 }
 
 void ServerDataDownloader::OnBookListReady(const QList<QString> &books)
@@ -117,11 +124,6 @@ void ServerDataDownloader::OnBookWordListReceived(QString bookName, const QVecto
 
 QList<QString> ServerDataDownloader::getBookList()
 {
-    if (m_bookListDownloaded == false)
-    {
-        m_svrAgt.sendRequestGetAllBooks();
-    }
-
     return m_mapBooks.keys();
 }
 

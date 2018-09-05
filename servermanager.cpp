@@ -415,8 +415,6 @@ void ServerManager::syncToLocal()
     }
 
     auto sdd = ServerDataDownloader::instance();
-    // we need to call sdd->getBookList(); here!
-    sdd->getBookList();
     // download all the books
     auto books = m_mapBooks.keys();
     for (int i = 0;i < books.size();i ++)

@@ -1,6 +1,7 @@
 #include "newbook.h"
 #include "ui_newbook.h"
 #include "golddict/gddebug.hh"
+#include "HaiBeiDanCi/mysettings.h"
 
 #include <QMessageBox>
 #include <QFileDialog>
@@ -40,7 +41,7 @@ void NewBook::on_buttonBox_accepted()
 
 void NewBook::on_pushSelectFile_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, "Open Word File");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open Word File", MySettings::dataDirectory());
     ui->lineSelectedFile->setText(fileName);
 }
 

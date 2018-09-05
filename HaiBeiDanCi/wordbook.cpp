@@ -490,6 +490,48 @@ void WordBook::storeBookFromServer(sptr<WordBook> book, const QVector<QString> &
 }
 
 // static
+void WordBook::deleteBook(QString bookName)
+{
+    auto book = WordBook::getBook(bookName);
+    if (book.get() == nullptr)
+    {
+        // cannot find the book
+        return;
+    }
+
+    auto database = WordDB::connectedDatabase();
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr || database.get() == nullptr)
+    {
+        return;
+    }
+    database->transaction();
+    auto query = *ptrQuery;
+    query.prepare("DELETE FROM wordbooks WHERE name=:name");
+    query.bindValue(":name", bookName);
+    if (query.exec() == false)
+    {
+        WordDB::databaseError(query, "deleting book " + bookName);
+        database->rollback();
+        return;
+    }
+    query.prepare("DELETE FROM words_in_books WHERE book_id=:book_id");
+    query.bindValue(":book_id", book->getId());
+    if (query.exec() == false)
+    {
+        WordDB::databaseError(query, "deleting words of book " + bookName);
+        database->rollback();
+        return;
+    }
+    database->commit();
+
+    // database operation succeeded, delete the book
+    m_allBooksMutex.lock();
+    m_allBooks.remove(bookName);
+    m_allBooksMutex.unlock();
+}
+
+// static
 void WordBook::readAllBooksFromDatabase()
 {
     m_allBooksMutex.lock();

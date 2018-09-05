@@ -32,6 +32,7 @@ signals:
     void fileDownloaded(QString fileName, bool succeeded);
 
 public slots:
+    void onServerConnected();
     void OnBookListReady(const QList<QString> &books);
     void OnBookDownloaded(sptr<WordBook> book);
     void OnWordDownloaded(sptr<Word> word);

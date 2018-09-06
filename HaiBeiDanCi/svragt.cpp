@@ -416,7 +416,8 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
 
     // don't remove the file from m_filesToDownload
     // we may need some statistics later
-    //m_filesToDownload.remove(fileName);
+    // we should remove it!!! Otherwise a failed file cannot be downloaded again!
+    m_filesToDownload.remove(fileName);
 
     updateAndEmitProgress();
 
@@ -569,8 +570,10 @@ void SvrAgt::downloadFile(QString fileName)
 
 const QMap<QString, SvrAgt::DownloadStatus> &SvrAgt::downloadMultipleFiles(QSet<QString> files)
 {
-    m_filesToDownload.clear();
-    m_mapFileContent.clear();
+    //m_filesToDownload.clear();
+    //m_mapFileContent.clear();
+    Q_ASSERT(m_filesToDownload.isEmpty() == true);
+    Q_ASSERT(m_mapFileContent.isEmpty() == true);
 
     QSet<QString>::const_iterator it = files.constBegin();
     while (it != files.constEnd())

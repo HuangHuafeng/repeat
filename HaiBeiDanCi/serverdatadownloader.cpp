@@ -83,6 +83,10 @@ void ServerDataDownloader::OnFileDownloaded(QString fileName, SvrAgt::DownloadSt
     {
         saveFileFromServer(fileName, fileContent);
     }
+    else
+    {
+        qDebug() << "downloading of file" << fileName << "failed!";
+    }
     emit(fileDownloaded(fileName, result == SvrAgt::DownloadSucceeded));
 }
 

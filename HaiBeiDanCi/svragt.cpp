@@ -261,7 +261,7 @@ bool SvrAgt::handleResponseGetBookWordList(const QByteArray &msg)
         return false;
     }
 
-    bookName = bookName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
+    //bookName = bookName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
     auto currentList = m_mapBooksWordList.value(bookName);
     auto newList = currentList + wordList;
     m_mapBooksWordList.insert(bookName, newList);
@@ -357,7 +357,7 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
         return false;
     }
 
-    fileName = fileName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
+    //fileName = fileName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
     if (m_mapFileContent.contains(fileName) == true)
     {
         auto currentContent = m_mapFileContent.value(fileName);

@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName(MySettings::orgName());
     QCoreApplication::setOrganizationDomain(MySettings::orgDomain());
     // don't call setApplicationName() so it continues to be the executable name
-    //QCoreApplication::setApplicationName(MySettings::appName());
+    QCoreApplication::setApplicationName(MySettings::appName());
 
     // this should be after the above 3 lines!!!
     //MySettings::saveDataDirectory("/Users/huafeng/Documents/GitHub/HaiBeiDanCiData");

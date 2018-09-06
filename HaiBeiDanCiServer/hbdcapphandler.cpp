@@ -260,9 +260,9 @@ void HBDCAppHandler::sendBookWordList(const QByteArray &msg, const QString bookN
     while (pos < total)
     {
         counter ++;
-        const QString partName = ServerClientProtocol::partPrefix(counter) + bookName;
+        //const QString partName = ServerClientProtocol::partPrefix(counter) + bookName;
         QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-        sendResponseGetBookWordList(msg, partName, subList);
+        sendResponseGetBookWordList(msg, bookName, subList);
         pos += subList.size();
     }
 
@@ -321,7 +321,8 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, const QString fileName)
     int counter = 0;
     bool succeeded = true;
     QDataStream fileDS(&toSend);
-    char *buf = new char[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
+    //char *buf = new char[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
+    char buf[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
     while (sentBytes < fileSize)
     {
         auto readBytes = fileDS.readRawData(buf, ServerClientProtocol::MaximumBytesForFileTransfer);
@@ -332,13 +333,13 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, const QString fileName)
         }
 
         counter ++;
-        const QString partName = ServerClientProtocol::partPrefix(counter) + fileName;
-        sendResponseGetFile(msg, partName, buf, static_cast<uint>(readBytes));
+        //const QString partName = ServerClientProtocol::partPrefix(counter) + fileName;
+        sendResponseGetFile(msg, fileName, buf, static_cast<uint>(readBytes));
         sentBytes += readBytes;
         qDebug() << "send" << readBytes << "bytes of total" << fileSize;
     }
 
-    delete[] buf;
+    //delete[] buf;
 
     return succeeded;
 }

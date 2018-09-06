@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QString>
 #include <QJsonDocument>
+#include <QCoreApplication>
 
 class MySettings : public QObject
 {
@@ -38,7 +39,14 @@ class MySettings : public QObject
 
     static QString appName()
     {
-        return m_appName;
+        if (m_appName.isEmpty())
+        {
+            return QCoreApplication::applicationName();
+        }
+        else
+        {
+            return m_appName;
+        }
     }
 
     static void saveServerHostName(QString hostName);

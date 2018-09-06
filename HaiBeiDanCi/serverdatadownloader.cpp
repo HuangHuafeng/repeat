@@ -15,6 +15,8 @@ ServerDataDownloader::ServerDataDownloader(QObject *parent) : QObject(parent),
     connect(&m_svrAgt, SIGNAL(fileDownloaded(QString, SvrAgt::DownloadStatus, const QByteArray &)), this, SLOT(OnFileDownloaded(QString, SvrAgt::DownloadStatus, QByteArray)));
     connect(&m_svrAgt, SIGNAL(getWordsOfBookFinished(QString)), this, SLOT(OnGetWordsOfBookFinished(QString)));
     connect(&m_svrAgt, SIGNAL(bookWordListReceived(QString, const QVector<QString> &)), this, SLOT(OnBookWordListReceived(QString, const QVector<QString> &)));
+
+    m_svrAgt.connectToServer();
 }
 
 ServerDataDownloader * ServerDataDownloader::instance()

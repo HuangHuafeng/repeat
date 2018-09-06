@@ -1,5 +1,7 @@
 #include "hbdcserver.h"
 #include "../HaiBeiDanCi/worddb.h"
+#include "../HaiBeiDanCi/word.h"
+#include "../HaiBeiDanCi/wordbook.h"
 #include "../HaiBeiDanCi/mysettings.h"
 
 #include <QCoreApplication>
@@ -17,7 +19,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(MySettings::appName());
 
     // this should be after the above 3 lines!!!
-    MySettings::saveDataDirectory("/Users/huafeng/Documents/GitHub/HaiBeiDanCiData");
+    MySettings::saveDataDirectory("/Users/huafeng/Documents/GitHub/HaiBeiDanCiServerData");
 
     if (WordDB::initialize() == false)
     {
@@ -51,6 +53,10 @@ int main(int argc, char *argv[])
     qDebug() << "The server is running on" << "\n";
     qDebug() << "IP: " << ipAddress;
     qDebug() << "port: " << server.serverPort();
+
+    qCritical() << endl << "Data directory:" << MySettings::dataDirectory();
+    qCritical() << "Words:" << Word::getAllWords().size();
+    qCritical() << "Books:" << WordBook::getAllBooks().size();
 
     return a.exec();
 }

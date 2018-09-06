@@ -32,13 +32,15 @@ public:
     explicit SvrAgt(const QString &hostName, quint16 port = 61027, QObject *parent = nullptr);
     virtual ~SvrAgt();
 
+    void connectToServer();
+    void disconnectServer();
+
     void downloadWords(const QVector<QString> &wordList);
     const QMap<QString, SvrAgt::DownloadStatus> & downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
 
     void getBookList();
     void downloadFile(QString fileName);
-    void disconnectServer();
 
     void sendRequestNoOperation();
     void sendRequestGetAllBooks();
@@ -114,7 +116,6 @@ protected:
     bool handleResponseGetFileFinished(const QByteArray &msg);
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
 
-    void connectToServer();
     void sendMessage(const QByteArray &msg, bool now = false);
     void updateAndEmitProgress();
     void cancelDownloadingWords();

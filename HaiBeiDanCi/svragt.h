@@ -104,6 +104,7 @@ private:
 
 protected:
     virtual int handleMessage(const QByteArray &msg);
+    bool handleResponseOK(const QByteArray &msg);
     bool handleResponseNoOperation(const QByteArray &msg);
     bool handleUnknownMessage(const QByteArray &msg);
     bool handleResponseGetAllBooks(const QByteArray &msg);

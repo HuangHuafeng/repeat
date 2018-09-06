@@ -26,7 +26,9 @@
         "__hash_table": "cpp",
         "hash_map": "cpp",
         "unordered_map": "cpp",
-        "hashtable": "cpp"
+        "hashtable": "cpp",
+        "__config": "cpp",
+        "__nullptr": "cpp"
     },
     "C_Cpp.autocomplete": "Disabled",
     "clang.cxxflags": ["-std=c++11"]

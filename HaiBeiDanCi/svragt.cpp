@@ -82,6 +82,7 @@ void SvrAgt::onDisconnected()
 {
     m_messageTimer.stop();
     m_timerServerHeartBeat.stop();
+    m_messages.clear();
     m_tcpSocket->deleteLater();
     m_tcpSocket = nullptr;
 }
@@ -129,6 +130,10 @@ int SvrAgt::handleMessage(const QByteArray &msg)
     bool handleResult = false;
     bool unknowMessage = false;
     switch (receivedMsgHeader.code()) {
+    case ServerClientProtocol::ResponseOK:
+        handleResult = handleResponseOK(msg);
+        break;
+
     case ServerClientProtocol::ResponseNoOperation:
         handleResult = handleResponseNoOperation(msg);
         break;
@@ -194,6 +199,13 @@ int SvrAgt::handleMessage(const QByteArray &msg)
     }
 
     return retVal;
+}
+
+bool SvrAgt::handleResponseOK(const QByteArray &msg)
+{
+    qDebug() << msg;
+
+    return true;
 }
 
 bool SvrAgt::handleResponseNoOperation(const QByteArray &msg)
@@ -358,16 +370,9 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
     }
 
     //fileName = fileName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
-    if (m_mapFileContent.contains(fileName) == true)
-    {
-        auto currentContent = m_mapFileContent.value(fileName);
-        auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
-        m_mapFileContent.insert(fileName, newContent);
-    }
-    else
-    {
-        m_mapFileContent.insert(fileName, QByteArray(data, static_cast<int>(len)));
-    }
+    auto currentContent = m_mapFileContent.value(fileName);
+    auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
+    m_mapFileContent.insert(fileName, newContent);
 
     return true;
 }
@@ -459,7 +464,6 @@ void SvrAgt::connectToServer()
 
 void SvrAgt::sendSimpleMessage(qint32 msgCode, bool now)
 {
-    connectToServer();
     MessageHeader msgHeader(msgCode);
 
     QByteArray block;
@@ -495,7 +499,6 @@ void SvrAgt::sendRequestGetAllBooks()
 
 void SvrAgt::sendRequestGetBookWordList(QString bookName)
 {
-    connectToServer();
     MessageHeader msgHeader(ServerClientProtocol::RequestGetBookWordList);
 
     QByteArray block;
@@ -506,7 +509,6 @@ void SvrAgt::sendRequestGetBookWordList(QString bookName)
 
 void SvrAgt::sendRequestGetWordsOfBookFinished(QString bookName)
 {
-    connectToServer();
     MessageHeader msgHeader(ServerClientProtocol::RequestGetWordsOfBookFinished);
 
     QByteArray block;
@@ -517,7 +519,6 @@ void SvrAgt::sendRequestGetWordsOfBookFinished(QString bookName)
 
 void SvrAgt::sendRequestGetAWord(QString spelling)
 {
-    connectToServer();
     MessageHeader msgHeader(ServerClientProtocol::RequestGetAWord);
 
     QByteArray block;
@@ -528,7 +529,6 @@ void SvrAgt::sendRequestGetAWord(QString spelling)
 
 void SvrAgt::sendRequestGetABook(QString bookName)
 {
-    connectToServer();
     MessageHeader msgHeader(ServerClientProtocol::RequestGetABook);
 
     QByteArray block;
@@ -539,7 +539,6 @@ void SvrAgt::sendRequestGetABook(QString bookName)
 
 void SvrAgt::sendRequestGetFile(QString fileName)
 {
-    connectToServer();
     MessageHeader msgHeader(ServerClientProtocol::RequestGetFile);
 
     QByteArray block;
@@ -601,6 +600,7 @@ void SvrAgt::disconnectServer()
 
 void SvrAgt::sendMessage(const QByteArray &msg, bool now)
 {
+    connectToServer();
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msg;
@@ -635,6 +635,7 @@ void SvrAgt::cancelDownloadingFiles()
 void SvrAgt::onSendMessageSmart()
 {
     int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
+    Q_ASSERT(m_messagesSent - m_lastResponded < requestsForARound * 2);
     if ((m_messagesSent - m_lastResponded) > (requestsForARound / 5))
     {
         qDebug() << "waiting: m_messagesSent" << m_messagesSent << "m_lastResponded" << m_lastResponded << "requestsForARound" << requestsForARound;

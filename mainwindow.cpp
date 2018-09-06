@@ -115,7 +115,10 @@ void MainWindow::on_pushNewBook_clicked()
 void MainWindow::on_actionNewBook_triggered()
 {
     NewBook newBookWindow(m_gdhelper, this);
-    newBookWindow.exec();
+    if (newBookWindow.exec() == QDialog::Accepted)
+    {
+        reloadLocalBooks();
+    }
 }
 
 void MainWindow::reloadLocalData()
@@ -229,20 +232,6 @@ void MainWindow::on_pbReloadServerData_clicked()
     ui->actionReload_data->trigger();
 }
 
-void MainWindow::on_actionSync_To_Local_triggered()
-{
-    ServerManager *serverManager = ServerManager::instance();
-    QString errorString;
-    if (serverManager->okToSync(&errorString) == false)
-    {
-        QMessageBox::critical(this, MySettings::appName(), errorString);
-    }
-    else
-    {
-        serverManager->syncToLocal();
-    }
-}
-
 void MainWindow::on_actionReload_data_triggered()
 {
     ServerManager *serverManager = ServerManager::instance();
@@ -265,4 +254,81 @@ void MainWindow::on_actionDeleteLocalBook_triggered()
 void MainWindow::on_pbDeleteBook_clicked()
 {
     ui->actionDeleteLocalBook->trigger();
+}
+
+void MainWindow::on_actionUpload_Book_triggered()
+{
+    auto ci = ui->twLocalData->currentItem();
+    if (ci == nullptr)
+    {
+        return;
+    }
+
+    auto bookName = ci->text(0);
+
+    ServerManager *serverManager = ServerManager::instance();
+    serverManager->uploadBook(bookName);
+}
+
+void MainWindow::on_pbUploadBook_clicked()
+{
+    ui->actionUpload_Book->trigger();
+}
+
+void MainWindow::on_actionSync_To_Local_triggered()
+{
+    ServerManager *serverManager = ServerManager::instance();
+    QString errorString;
+    if (serverManager->okToSync(&errorString) == false)
+    {
+        QMessageBox::critical(this, MySettings::appName(), errorString);
+    }
+    else
+    {
+        serverManager->syncToLocal();
+    }
+}
+
+void MainWindow::on_actionDownload_Book_triggered()
+{
+    ServerManager *serverManager = ServerManager::instance();
+    QString errorString;
+    if (serverManager->okToSync(&errorString) == false)
+    {
+        QMessageBox::critical(this, MySettings::appName(), errorString);
+    }
+    else
+    {
+        auto ci = ui->twServerData->currentItem();
+        if (ci == nullptr)
+        {
+            return;
+        }
+
+        auto bookName = ci->text(0);
+        serverManager->downloadBook(bookName);
+    }
+}
+
+void MainWindow::on_pbDownloadServerBook_clicked()
+{
+    ui->actionDownload_Book->trigger();
+}
+
+void MainWindow::on_actionDeleteServerBook_triggered()
+{
+    ServerManager *serverManager = ServerManager::instance();
+    auto ci = ui->twServerData->currentItem();
+    if (ci == nullptr)
+    {
+        return;
+    }
+
+    auto bookName = ci->text(0);
+    serverManager->deleteBook(bookName);
+}
+
+void MainWindow::on_pbDeleteServerBook_clicked()
+{
+    ui->actionDeleteServerBook->trigger();
 }

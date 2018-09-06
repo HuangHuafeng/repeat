@@ -17,6 +17,7 @@ private:
 
 protected:
     void sendSimpleMessage(const QByteArray &msgToReply, qint32 msgCode);
+    void sendResponseOK(const QByteArray &msg);
 
 public:
     ClientHandler(ClientWaiter &clientWaiter);

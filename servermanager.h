@@ -27,6 +27,9 @@ public:
     void reloadServerData();
     bool okToSync(QString *errorString = nullptr);
     void syncToLocal();
+    void uploadBook(QString bookName);
+    void downloadBook(QString bookName);
+    void deleteBook(QString bookName);
 
 signals:
     void serverDataReloaded();
@@ -39,6 +42,8 @@ public slots:
     void onServerConnected();
     void onGetServerDataFinished();
     void onGetAllWordsWithoutDefinitionFinished(const QVector<QString> &spellings, const QVector<int> &ids, const QVector<int> &definitionLengths);
+    void onBookDeleted(QString bookName);
+    void onBookUploaded(QString bookName);
 
 private:
     ServerManager(QObject *parent = nullptr);
@@ -61,6 +66,9 @@ private:
 
     bool okToSyncBooks(QString *errorString = nullptr);
     bool okToSyncWords(QString *errorString = nullptr);
+
+    void sendBookWordList(QString bookName);
+    void sendWordsOfBook(QString bookName);
 };
 
 #endif // SERVERMANAGER_H

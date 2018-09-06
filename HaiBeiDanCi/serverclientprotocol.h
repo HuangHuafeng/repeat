@@ -65,6 +65,9 @@ public:
 
         ResponseGetWordsOfBookFinished = ResponseNoOperation + 6,   // Yes
 
+        // ResponseOK is useful when there's no data need to be sent, just to let the client know that the server got your message
+        ResponseOK = ResponseNoOperation + 8888,
+
         ResponseFailedToRequest = ResponseNoOperation + 9000,   // Yes
         ResponseUnknownRequest = ResponseNoOperation + 9001,    // Yes
     } ServerToClientMessageCode;
@@ -74,6 +77,7 @@ public:
         RequestPromoteToManager = ManagerToServerMessageCodeBase + 1,
         RequestGetAllWordsWithoutDefinition = ManagerToServerMessageCodeBase + 2,
         RequestGetServerDataFinished = ManagerToServerMessageCodeBase + 3,
+        RequestDeleteABook = ManagerToServerMessageCodeBase + 4,
     } ManagerToServerMessageCode;
 
     typedef enum {
@@ -84,6 +88,8 @@ public:
         ResponseGetAllWordsWithoutDefinitionFinished = ResponseGetAllWordsWithoutDefinition + 1000,
 
         ResponseGetServerDataFinished = ServerToManagerMessageCodeBase + 3,
+        ResponseDeleteABook = ServerToManagerMessageCodeBase + 4,
+        ResponseUploadABook = ServerToManagerMessageCodeBase + 5,
     } ServerToManagerMessageCode;
 };
 

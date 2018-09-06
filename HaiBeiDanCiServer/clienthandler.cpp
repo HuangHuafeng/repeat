@@ -84,6 +84,11 @@ void ClientHandler::sendResponseNoOperation(const QByteArray &msg)
     sendSimpleMessage(msg, ServerClientProtocol::ResponseNoOperation);
 }
 
+void ClientHandler::sendResponseOK(const QByteArray &msg)
+{
+    sendSimpleMessage(msg, ServerClientProtocol::ResponseOK);
+}
+
 void ClientHandler::sendSimpleMessage(const QByteArray &msgToReply, qint32 msgCode)
 {
     MessageHeader receivedMsgHeader(msgToReply);

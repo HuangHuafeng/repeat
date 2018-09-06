@@ -19,6 +19,10 @@ ServerManager::ServerManager(QObject *parent) : QObject(parent),
 
     connect(&m_mgrAgt, SIGNAL(getServerDataFinished()), this, SLOT(onGetServerDataFinished()));
     connect(&m_mgrAgt, SIGNAL(getAllWordsWithoutDefinitionFinished(const QVector<QString> &, const QVector<int> &, const QVector<int> &)), this, SLOT(onGetAllWordsWithoutDefinitionFinished(const QVector<QString> &, const QVector<int> &, const QVector<int> &)));
+    connect(&m_mgrAgt, SIGNAL(bookDeleted(QString)), this, SLOT(onBookDeleted(QString)));
+    connect(&m_mgrAgt, SIGNAL(bookUploaded(QString)), this, SLOT(onBookUploaded(QString)));
+
+    m_mgrAgt.connectToServer();
 }
 
 ServerManager * ServerManager::instance()
@@ -160,6 +164,23 @@ void ServerManager::onGetAllWordsWithoutDefinitionFinished(const QVector<QString
         sptr<Word> newWord = new Word(spelling, definition, id);
         m_mapWords.insert(spelling, newWord);
     }
+}
+
+void ServerManager::onBookDeleted(QString bookName)
+{
+    Q_ASSERT(m_mapBooks.contains(bookName) == true);
+    m_mapBooks.remove(bookName);
+    Q_ASSERT(m_mapBooksWordList.contains(bookName) == true);
+    m_mapBooksWordList.remove(bookName);
+
+    emit(serverDataReloaded());
+}
+
+void ServerManager::onBookUploaded(QString bookName)
+{
+    qDebug() << "successfully uploaded book:" << bookName;
+
+    reloadServerData();
 }
 
 /**
@@ -409,16 +430,84 @@ bool ServerManager::okToSyncWords(QString *errorString)
 
 void ServerManager::syncToLocal()
 {
-    if (okToSync() == false)
-    {
-        return;
-    }
+    Q_ASSERT(okToSync() == true);
 
-    auto sdd = ServerDataDownloader::instance();
     // download all the books
     auto books = m_mapBooks.keys();
     for (int i = 0;i < books.size();i ++)
     {
-        sdd->downloadBook(books.at(i));
+        downloadBook(books.at(i));
     }
+}
+
+void ServerManager::downloadBook(QString bookName)
+{
+    Q_ASSERT(okToSync() == true);
+
+    auto localBook = WordBook::getBook(bookName);
+    if (localBook.get() != nullptr)
+    {
+        // the book already exists locally
+        return;
+    }
+
+    auto sdd = ServerDataDownloader::instance();
+    sdd->downloadBook(bookName);
+}
+
+void ServerManager::deleteBook(QString bookName)
+{
+    Q_ASSERT(m_mapBooks.value(bookName).get() != nullptr);
+
+    m_mgrAgt.sendRequestDeleteABook(bookName);
+}
+
+void ServerManager::uploadBook(QString bookName)
+{
+    Q_ASSERT(okToSync() == true);
+
+    auto serverBook = m_mapBooks.value(bookName);
+    if (serverBook.get() != nullptr)
+    {
+        // the book already exists in the server
+        return;
+    }
+
+    // send the book
+    // send the list of words of the book
+    // send the words which do not exist in the server
+    // send upload complete
+    auto localBook = WordBook::getBook(bookName);
+    Q_ASSERT(localBook.get() != nullptr);
+    m_mgrAgt.sendResponseGetABook(*localBook);
+    sendBookWordList(bookName);
+    sendWordsOfBook(bookName);
+}
+
+void ServerManager::sendBookWordList(QString bookName)
+{
+    auto book = WordBook::getBook(bookName);
+    Q_ASSERT(book.get() != nullptr);
+    auto wordList = book->getAllWords();
+    m_mgrAgt.sendBookWordList(bookName, wordList);
+    m_mgrAgt.sendResponseBookWordListAllSent(bookName);
+}
+
+void ServerManager::sendWordsOfBook(QString bookName)
+{
+    auto book = WordBook::getBook(bookName);
+    Q_ASSERT(book.get() != nullptr);
+    auto wordList = book->getAllWords();
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        auto spelling = wordList.at(i);
+        if (m_mapWords.contains(spelling) == false)
+        {
+            // send the word only if it does not exit in the server
+            auto word = Word::getWord(spelling);
+            Q_ASSERT(word.get() != nullptr);
+            m_mgrAgt.sendResponseGetAWord(*word);
+        }
+    }
+    m_mgrAgt.sendResponseGetWordsOfBookFinished(bookName);
 }

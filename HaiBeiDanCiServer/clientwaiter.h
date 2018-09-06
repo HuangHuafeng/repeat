@@ -34,6 +34,8 @@ private:
 
     QByteArray readMessage();
     void sendResponsePromoteToManager(const QByteArray &msg);
+
+    void logMessage(const QByteArray &msg, int handleResult);
 };
 
 #endif // CLIENTWAITER_H

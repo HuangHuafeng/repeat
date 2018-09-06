@@ -49,6 +49,18 @@ private slots:
 
     void on_pbDeleteBook_clicked();
 
+    void on_actionUpload_Book_triggered();
+
+    void on_pbUploadBook_clicked();
+
+    void on_actionDownload_Book_triggered();
+
+    void on_pbDownloadServerBook_clicked();
+
+    void on_actionDeleteServerBook_triggered();
+
+    void on_pbDeleteServerBook_clicked();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;

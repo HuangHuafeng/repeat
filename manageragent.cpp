@@ -30,6 +30,14 @@ int ManagerAgent::handleMessage(const QByteArray &msg)
         handleResult = handleResponseGetServerDataFinished(msg);
         break;
 
+    case ServerClientProtocol::ResponseDeleteABook:
+        handleResult = handleResponseDeleteABook(msg);
+        break;
+
+    case ServerClientProtocol::ResponseUploadABook:
+        handleResult = handleResponseUploadABook(msg);
+        break;
+
     default:
         return SvrAgt::handleMessage(msg);
 
@@ -110,4 +118,110 @@ bool ManagerAgent::handleResponseGetServerDataFinished(const QByteArray &msg)
     emit(getServerDataFinished());
 
     return true;
+}
+
+bool ManagerAgent::handleResponseDeleteABook(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString bookName;
+    in.startTransaction();
+    in >> receivedMsgHeader >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the book name in handleResponseDeleteABook()";
+        return false;
+    }
+
+    emit(bookDeleted(bookName));
+
+    return true;
+}
+
+bool ManagerAgent::handleResponseUploadABook(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString bookName;
+    in.startTransaction();
+    in >> receivedMsgHeader >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the book name in handleResponseUploadABook()";
+        return false;
+    }
+
+    emit(bookUploaded(bookName));
+
+    return true;
+}
+
+void ManagerAgent::sendBookWordList(const QString bookName, const QVector<QString> &wordList)
+{
+    int total = wordList.size();
+    int pos = 0;
+    int counter = 0;
+    while (pos < total)
+    {
+        counter ++;
+        QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
+        sendResponseGetBookWordList(bookName, subList);
+        pos += subList.size();
+    }
+}
+
+// the following messages are used to upload a book
+void ManagerAgent::sendResponseGetABook(const WordBook &book)
+{
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetABook);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << book;
+    sendMessage(block);
+}
+
+void ManagerAgent::sendResponseGetBookWordList(const QString bookName, const QVector<QString> &wordList)
+{
+    Q_ASSERT(wordList.size() <= ServerClientProtocol::MaximumWordsInAMessage);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetBookWordList);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << bookName << wordList;
+    sendMessage(block);
+}
+
+void ManagerAgent::sendResponseBookWordListAllSent(const QString bookName)
+{
+    MessageHeader responseHeader(ServerClientProtocol::ResponseBookWordListAllSent);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << bookName;
+    sendMessage(block);
+}
+
+void ManagerAgent::sendResponseGetAWord(const Word &word)
+{
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetAWord);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << word;
+    sendMessage(block);
+}
+
+void ManagerAgent::sendResponseGetWordsOfBookFinished(const QString bookName)
+{
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetWordsOfBookFinished);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << bookName;
+    sendMessage(block);
+}
+
+void ManagerAgent::sendRequestDeleteABook(QString bookName)
+{
+    MessageHeader responseHeader(ServerClientProtocol::RequestDeleteABook);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << bookName;
+    sendMessage(block);
 }

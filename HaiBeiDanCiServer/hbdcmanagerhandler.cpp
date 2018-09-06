@@ -17,6 +17,30 @@ int HBDCManagerHandler::handleMessage(const QByteArray &msg)
         handleResult = handleRequestGetServerDataFinished(msg);
         break;
 
+    case ServerClientProtocol::ResponseGetABook:
+        handleResult = handleResponseGetABook(msg);
+        break;
+
+    case ServerClientProtocol::ResponseGetBookWordList:
+        handleResult = handleResponseGetBookWordList(msg);
+        break;
+
+    case ServerClientProtocol::ResponseBookWordListAllSent:
+        handleResult = handleResponseBookWordListAllSent(msg);
+        break;
+
+    case ServerClientProtocol::ResponseGetAWord:
+        handleResult = handleResponseGetAWord(msg);
+        break;
+
+    case ServerClientProtocol::ResponseGetWordsOfBookFinished:
+        handleResult = handleResponseGetWordsOfBookFinished(msg);
+        break;
+
+    case ServerClientProtocol::RequestDeleteABook:
+        handleResult = handleRequestDeleteABook(msg);
+        break;
+
     default:
         return HBDCAppHandler::handleMessage(msg);
 
@@ -98,4 +122,174 @@ void HBDCManagerHandler::sendResponseGetAllWordsWithoutDefinition(const QByteArr
 void HBDCManagerHandler::sendResponseGetAllWordsWithoutDefinitionFinished(const QByteArray &msg)
 {
     sendSimpleMessage(msg, ServerClientProtocol::ResponseGetAllWordsWithoutDefinitionFinished);
+}
+
+
+bool HBDCManagerHandler::handleResponseGetABook(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    WordBook book;
+    in.startTransaction();
+    in >> receivedMsgHeader >> book;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read words of the book in handleResponseGetABook()";
+        return false;
+    }
+
+    // store the book temporary in m_mapBooks, it will be saved to local database in completeBookDownload()
+    sptr<WordBook> newBook = new WordBook(book);
+    m_mapBooks.insert(book.getName(), newBook);
+
+    sendResponseOK(msg);
+
+    return true;
+}
+
+bool HBDCManagerHandler::handleResponseGetBookWordList(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString bookName;
+    QVector<QString> wordList;
+    in.startTransaction();
+    in >> receivedMsgHeader >> bookName >> wordList;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read words of the book in handleResponseGetBookWordList()";
+        return false;
+    }
+
+    auto currentList = m_mapBooksWordList.value(bookName);
+    auto newList = currentList + wordList;
+    m_mapBooksWordList.insert(bookName, newList);
+
+    sendResponseOK(msg);
+
+    return true;
+}
+
+bool HBDCManagerHandler::handleResponseBookWordListAllSent(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString bookName;
+    in.startTransaction();
+    in >> receivedMsgHeader >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read book name in handleResponseBookWordListAllSent()";
+        return false;
+    }
+
+    // nothing to do here, but keep this message both in client and server
+    sendResponseOK(msg);
+
+    return true;
+}
+
+bool HBDCManagerHandler::handleResponseGetAWord(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    Word word;
+    in.startTransaction();
+    in >> receivedMsgHeader >> word;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read words of the book in handleResponseGetAWord()";
+        return false;
+    }
+
+    // store the word
+    sptr<Word> newWord = new Word(word);
+    m_mapWords.insert(word.getSpelling(), newWord);
+
+    sendResponseOK(msg);
+
+    return true;
+}
+
+bool HBDCManagerHandler::handleResponseGetWordsOfBookFinished(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString bookName;
+    in.startTransaction();
+    in >> receivedMsgHeader >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the book name in handleResponseGetWordsOfBookFinished()";
+        return false;
+    }
+
+    // store the new received words
+    Word::v2StoreMultipleWordFromServer(m_mapWords);
+
+    // store the book
+    auto book = m_mapBooks.value(bookName);
+    auto serverBook = WordBook::getBook(bookName);
+    if (book.get() != nullptr && serverBook.get() == nullptr)
+    {
+        // only store the book if we have the book information received earlier
+        // AND there's no such book in the server database
+        auto wordList = m_mapBooksWordList.value(bookName);
+        WordBook::storeBookFromServer(book, wordList);
+    }
+
+    // clear the data
+    m_mapBooks.clear();
+    m_mapWords.clear();
+    m_mapBooksWordList.clear();
+
+    // how to update the server?! Not needed, it's already updated!
+
+    sendResponseUploadABook(msg, bookName);
+
+    return true;
+}
+
+bool HBDCManagerHandler::handleRequestDeleteABook(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString bookName;
+    in.startTransaction();
+    in >> receivedMsgHeader >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the book name in handleRequestDeleteABook()";
+        return false;
+    }
+
+    WordBook::deleteBook(bookName);
+
+    // how to update the server?! Not needed, it's already updated!
+
+    sendResponseDeleteABook(msg, bookName);
+
+    return true;
+}
+
+void HBDCManagerHandler::sendResponseUploadABook(const QByteArray &msg, QString bookName)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseUploadABook, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << bookName;
+    sendMessage(block);
+}
+
+void HBDCManagerHandler::sendResponseDeleteABook(const QByteArray &msg, QString bookName)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseDeleteABook, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << bookName;
+    sendMessage(block);
 }

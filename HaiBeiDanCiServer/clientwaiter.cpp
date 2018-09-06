@@ -35,8 +35,6 @@ void ClientWaiter::run()
             break;
         }
 
-        qDebug() << "consecutiveHeartbeat:" << consecutiveHeartbeat;
-
         // tries to read a message
         QByteArray msg = readMessage();
         if (msg.isEmpty() == true)
@@ -53,7 +51,7 @@ void ClientWaiter::run()
             continue;
         }
 
-        // we have a message here, process it
+        // we have a message here, process it        
         MessageHeader receivedMsgHeader(msg);
         int handleResult = ptrClientHandler->handleMessage(msg);
         if (handleResult == 0)
@@ -66,16 +64,9 @@ void ClientWaiter::run()
             {
                 consecutiveHeartbeat = 0;
             }
-            // successfully processed the message
-            qDebug() << QDateTime::currentDateTime().toString() << "successfully handled message with header: ";
-            qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
-            continue;
         }
         else if (handleResult == 1)
         {
-            qDebug() << QDateTime::currentDateTime().toString() << "failed to handle message with header: ";
-            qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
-            continue;
         }
         else if (handleResult == -1)
         {
@@ -84,30 +75,29 @@ void ClientWaiter::run()
             {
                 ptrClientHandler = new HBDCManagerHandler(*this);
                 sendResponsePromoteToManager(msg);
-                qDebug() << QDateTime::currentDateTime().toString() << "successfully handled message with header: ";
-                qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
-                qDebug() << "promoted the handler to manager";
+                qDebug() << "promoted the handler to manager\n";
+                handleResult = 0;
             }
             else
             {
-                qDebug() << QDateTime::currentDateTime().toString() << "unknown message with header: ";
-                qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
                 ptrClientHandler->handleUnknownMessage(msg);
 
-                // the message is discarded automatically, continue trying to get the next message
+                // treat unknown message as heartbeat, so client will be disconnected
+                // when there're too many unknown messages
+                consecutiveHeartbeat ++;
             }
         }
         else if (handleResult == -2)
         {
-            qDebug() << QDateTime::currentDateTime().toString() << "client said bye: ";
-            qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
             break;
         }
         else
         {
-            qCritical("unexpected result when handling message with header: %s", receivedMsgHeader.toString().toUtf8().constData());
             break;
         }
+
+        logMessage(msg, handleResult);
+        qDebug() << "consecutiveHeartbeat:" << consecutiveHeartbeat << endl;
     }
 
     disconnectPeer();
@@ -192,4 +182,12 @@ void ClientWaiter::sendResponsePromoteToManager(const QByteArray &msg)
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader;
     sendMessage(block);
+}
+
+void ClientWaiter::logMessage(const QByteArray &msg, int handleResult)
+{
+    MessageHeader receivedMsgHeader(msg);
+    qDebug() << QDateTime::currentDateTime().toString() << "received message with header:";
+    qDebug("%s", receivedMsgHeader.toString().toUtf8().constData());
+    qDebug() << "handle result:" << handleResult;
 }

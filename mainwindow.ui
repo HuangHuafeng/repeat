@@ -42,6 +42,9 @@
             <property name="indentation">
              <number>0</number>
             </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
             <column>
              <property name="text">
               <string notr="true">1</string>
@@ -132,13 +135,6 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="3">
-           <widget class="QPushButton" name="pbReloadServerData">
-            <property name="text">
-             <string>Reload</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="2">
            <widget class="QLabel" name="labelServerWords">
             <property name="text">
@@ -164,6 +160,9 @@
             <property name="indentation">
              <number>0</number>
             </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
             <column>
              <property name="text">
               <string notr="true">1</string>
@@ -175,13 +174,6 @@
            <widget class="QPushButton" name="pbDownloadServerBook">
             <property name="text">
              <string>Download</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
-           <widget class="QPushButton" name="pbSyncToLocal">
-            <property name="text">
-             <string>Sync to local</string>
             </property>
            </widget>
           </item>
@@ -199,6 +191,13 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QPushButton" name="pbReloadServerData">
+            <property name="text">
+             <string>Reload</string>
             </property>
            </widget>
           </item>
@@ -258,7 +257,6 @@
     <addaction name="actionReload_data"/>
     <addaction name="actionDownload_Book"/>
     <addaction name="actionDeleteServerBook"/>
-    <addaction name="actionSync_To_Local"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuLocal"/>

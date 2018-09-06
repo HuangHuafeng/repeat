@@ -90,6 +90,8 @@ void SvrAgt::onDisconnected()
 void SvrAgt::onError(QAbstractSocket::SocketError socketError)
 {
     qDebug() << "onError()" << socketError;
+    m_tcpSocket->deleteLater();
+    m_tcpSocket = nullptr;
 }
 
 void SvrAgt::onStateChanged(QAbstractSocket::SocketState socketState)
@@ -458,7 +460,7 @@ void SvrAgt::connectToServer()
     // it seems waitForConnected() helps to get/trigger the error ConnectionRefusedError
     if (m_tcpSocket->waitForConnected() == false)
     {
-        qDebug() << "waitForConnected() failed, error:" << m_tcpSocket->error();
+        qDebug() << "waitForConnected() failed!";
     }
 }
 

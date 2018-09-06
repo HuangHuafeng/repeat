@@ -30,6 +30,7 @@ public:
     void uploadBook(QString bookName);
     void downloadBook(QString bookName);
     void deleteBook(QString bookName);
+    QVector<QString> getWordListOfBook(QString bookName);
 
 signals:
     void serverDataReloaded();

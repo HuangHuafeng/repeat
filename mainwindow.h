@@ -37,8 +37,6 @@ private slots:
 
     void on_actionPreferences_triggered();
 
-    void on_pbSyncToLocal_clicked();
-
     void on_pbReloadServerData_clicked();
 
     void on_actionSync_To_Local_triggered();

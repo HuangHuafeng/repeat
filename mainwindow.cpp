@@ -170,8 +170,11 @@ void MainWindow::selectFirstItem(QTreeWidget *tw)
 
 void MainWindow::addBookToTheView(QTreeWidget * tw, WordBook &book)
 {
+    auto wordList = book.getAllWords();
+    QString numberOfWords = QString::number(wordList.size());
     QStringList infoList;
     infoList.append(book.getName());
+    infoList.append(numberOfWords);
     QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
     tw->addTopLevelItem(item);
 }
@@ -202,13 +205,15 @@ void MainWindow::listServerBooks(const QList<QString> books)
 {
     ui->twServerData->clear();
 
+    ServerManager *serverManager = ServerManager::instance();
     for (int i = 0;i < books.size();i ++)
     {
         QString bookName = books.at(i);
-
+        auto wordList = serverManager->getWordListOfBook(bookName);
+        QString numberOfWords = QString::number(wordList.size());
         QStringList infoList;
         infoList.append(bookName);
-        infoList.append("");
+        infoList.append(numberOfWords);
         QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
         ui->twServerData->addTopLevelItem(item);
     }
@@ -220,11 +225,6 @@ void MainWindow::on_actionPreferences_triggered()
 {
     PreferencesDialog pd(this);
     pd.exec();
-}
-
-void MainWindow::on_pbSyncToLocal_clicked()
-{
-    ui->actionSync_To_Local->trigger();
 }
 
 void MainWindow::on_pbReloadServerData_clicked()

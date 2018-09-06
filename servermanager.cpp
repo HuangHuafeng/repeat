@@ -462,6 +462,11 @@ void ServerManager::deleteBook(QString bookName)
     m_mgrAgt.sendRequestDeleteABook(bookName);
 }
 
+QVector<QString> ServerManager::getWordListOfBook(QString bookName)
+{
+    return m_mapBooksWordList.value(bookName);
+}
+
 void ServerManager::uploadBook(QString bookName)
 {
     Q_ASSERT(okToSync() == true);

@@ -3,6 +3,7 @@
 #include "wordbook.h"
 #include "mysettings.h"
 #include "serverdatadownloader.h"
+#include "helpfunc.h"
 
 #include <QMessageBox>
 
@@ -197,25 +198,6 @@ void ServerDataDialog::destroyProgressDialog()
 {
 }
 
-QSet<QString> & ServerDataDialog::removeExistingFiles(QSet<QString> &files)
-{
-    QSet<QString>::iterator it = files.begin();
-    while (it != files.end())
-    {
-        QString fileName = *it;
-        if (fileExistsLocally(fileName) == true)
-        {
-            it = files.erase(it);
-        }
-        else
-        {
-            it ++;
-        }
-    }
-
-    return files;
-}
-
 void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
 {
     sptr<WordBook> book = WordBook::getBook(bookName);
@@ -225,13 +207,13 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
     }
 
     // build the list of media files
-    QSet<QString> interestedFiles;
+    QStringList interestedFiles;
     QVector<QString> wordList = book->getAllWords();
-    QProgressDialog pd("    " + QObject::tr("Preparing the list of files to be downloaded ...") + "    ", QObject::tr("Cancel"), 0, wordList.size(), this);
+    QProgressDialog pd("    " + QObject::tr("Preparing the list of files to be downloaded ...") + "    ", QObject::tr("Cancel"), 0, wordList.size() - 1, this);
     pd.setModal(true);
     for (int i = 0;i < wordList.size();i ++)
     {
-        pd.setValue(i + 1);
+        pd.setValue(i);
         if (pd.wasCanceled() == true)
         {
             return;
@@ -243,13 +225,12 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
         {
             continue;
         }
-        QSet<QString> interestedWordFiles = word->pronounceFiles() + word->otherFiles();
-        interestedFiles += removeExistingFiles(interestedWordFiles);
+        interestedFiles += word->pronounceFiles() + word->otherFiles();
     }
 
     ServerDataDownloader *sdd = ServerDataDownloader::instance();
-    auto filesToDownload = sdd->downloadMultipleFiles(interestedFiles);
-    if (filesToDownload.isEmpty() == false)
+    sdd->downloadMultipleFiles(interestedFiles);
+    if (interestedFiles.isEmpty() == false)
     {
         // show the progress dialog
         createProgressDialog(QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
@@ -269,13 +250,13 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
     }
 
     // build the list of media files
-    QSet<QString> interestedFiles;
+    QStringList interestedFiles;
     QVector<QString> wordList = book->getAllWords();
-    QProgressDialog pd("    " + QObject::tr("Preparing the list of files to be downloaded ...") + "    ", QObject::tr("Cancel"), 0, wordList.size(), this);
+    QProgressDialog pd("    " + QObject::tr("Preparing the list of files to be downloaded ...") + "    ", QObject::tr("Cancel"), 0, wordList.size() - 1, this);
     pd.setModal(true);
     for (int i = 0;i < wordList.size();i ++)
     {
-        pd.setValue(i + 1);
+        pd.setValue(i);
         if (pd.wasCanceled() == true)
         {
             return;
@@ -287,13 +268,12 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
         {
             continue;
         }
-        QSet<QString> interestedWordFiles = word->exampleAudioFiles() + word->otherFiles();
-        interestedFiles += removeExistingFiles(interestedWordFiles);
+        interestedFiles += word->exampleAudioFiles() + word->otherFiles();
     }
 
     ServerDataDownloader *sdd = ServerDataDownloader::instance();
-    auto filesToDownload = sdd->downloadMultipleFiles(interestedFiles);
-    if (filesToDownload.isEmpty() == false)
+    sdd->downloadMultipleFiles(interestedFiles);
+    if (interestedFiles.isEmpty() == false)
     {
         // show the progress dialog
         createProgressDialog(QObject::tr("Downloading meida files ..."), QObject::tr("Cancel"));

@@ -1,5 +1,6 @@
 #include "serverdatadownloader.h"
 #include "mysettings.h"
+#include "helpfunc.h"
 
 ServerDataDownloader * ServerDataDownloader::m_sdd = nullptr;
 
@@ -82,6 +83,7 @@ void ServerDataDownloader::OnFileDownloaded(QString fileName, SvrAgt::DownloadSt
     if (result == SvrAgt::DownloadSucceeded)
     {
         saveFileFromServer(fileName, fileContent);
+        m_existingFiles.insert(fileName);
     }
     else
     {
@@ -149,9 +151,18 @@ void ServerDataDownloader::downloadFile(QString fileName)
     m_svrAgt.downloadFile(fileName);
 }
 
-const QMap<QString, SvrAgt::DownloadStatus> & ServerDataDownloader::downloadMultipleFiles(QSet<QString> files)
+void ServerDataDownloader::downloadMultipleFiles(QStringList &files)
 {
-    return m_svrAgt.downloadMultipleFiles(files);
+    if (m_existingFiles.isEmpty() == true)
+    {
+        refreshExistingFiles();
+    }
+
+    files.removeDuplicates();
+    QSet<QString> filesToDownload = QSet<QString>::fromList(files);
+    filesToDownload.subtract(m_existingFiles);
+    m_svrAgt.downloadMultipleFiles(filesToDownload);
+    files = filesToDownload.toList();
 }
 
 void ServerDataDownloader::cancelDownloading()
@@ -216,4 +227,10 @@ void ServerDataDownloader::saveFileFromServer(QString fileName, const QByteArray
     qDebug() << "saving" << fileName << "size" << fileContent.size();
     toSave.write(fileContent.constData(), fileContent.size());
     toSave.close();
+}
+
+void ServerDataDownloader::refreshExistingFiles()
+{
+    QStringList existingFilesList = HelpFunc::filesInDir(MySettings::dataDirectory() + "/media");
+    m_existingFiles = QSet<QString>::fromList(existingFilesList);
 }

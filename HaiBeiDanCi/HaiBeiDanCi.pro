@@ -49,7 +49,8 @@ SOURCES += \
     serverclientprotocol.cpp \
     aboutdialog.cpp \
     svragt.cpp \
-    serverdatadownloader.cpp
+    serverdatadownloader.cpp \
+    helpfunc.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -73,7 +74,8 @@ HEADERS += \
     serverclientprotocol.h \
     aboutdialog.h \
     svragt.h \
-    serverdatadownloader.h
+    serverdatadownloader.h \
+    helpfunc.h
 
 FORMS += \
     mainwindow.ui \

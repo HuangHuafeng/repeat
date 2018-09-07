@@ -28,9 +28,9 @@ class Word
     const QString &getDefinition() const;
     QString getDefinitionDIV() const;
 
-    QSet<QString> otherFiles() const;
-    QSet<QString> pronounceFiles() const;
-    QSet<QString> exampleAudioFiles() const;
+    QStringList otherFiles() const;
+    QStringList pronounceFiles() const;
+    QStringList exampleAudioFiles() const;
 
     bool dbsave();
 

@@ -36,7 +36,7 @@ public:
     void disconnectServer();
 
     void downloadWords(const QVector<QString> &wordList);
-    const QMap<QString, SvrAgt::DownloadStatus> & downloadMultipleFiles(QSet<QString> files);
+    void downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
 
     void getBookList();

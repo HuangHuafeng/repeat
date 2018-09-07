@@ -139,9 +139,9 @@ QString Word::getDefinitionDIV() const
     return div;
 }
 
-QSet<QString> Word::exampleAudioFiles() const
+QStringList Word::exampleAudioFiles() const
 {
-    QSet<QString> mf;
+    QStringList mf;
 
     const QRegularExpression mfre("media/exa/[^\"<>']*\\.mp3");
     QRegularExpressionMatchIterator it = mfre.globalMatch(m_definition);
@@ -149,18 +149,15 @@ QSet<QString> Word::exampleAudioFiles() const
     {
         QRegularExpressionMatch match = it.next();
         QString onemf = match.captured(0);
-        if (mf.contains(onemf) == false)
-        {
-            mf.insert(onemf);
-        }
+        mf.append(onemf);
     }
 
     return mf;
 }
 
-QSet<QString> Word::pronounceFiles() const
+QStringList Word::pronounceFiles() const
 {
-    QSet<QString> mf;
+    QStringList mf;
 
     const QRegularExpression mfre("media/hwd/[^\"<>']*\\.mp3");
     QRegularExpressionMatchIterator it = mfre.globalMatch(m_definition);
@@ -168,18 +165,15 @@ QSet<QString> Word::pronounceFiles() const
     {
         QRegularExpressionMatch match = it.next();
         QString onemf = match.captured(0);
-        if (mf.contains(onemf) == false)
-        {
-            mf.insert(onemf);
-        }
+        mf.append(onemf);
     }
 
     return mf;
 }
 
-QSet<QString> Word::otherFiles() const
+QStringList Word::otherFiles() const
 {
-    QSet<QString> mf;
+    QStringList mf;
 
     const QRegularExpression mfre("media/[^\"<>']*\\.(js|css|png|jpg)");
     QRegularExpressionMatchIterator it = mfre.globalMatch(m_definition);
@@ -187,10 +181,7 @@ QSet<QString> Word::otherFiles() const
     {
         QRegularExpressionMatch match = it.next();
         QString onemf = match.captured(0);
-        if (mf.contains(onemf) == false)
-        {
-            mf.insert(onemf);
-        }
+        mf.append(onemf);
     }
 
     return mf;

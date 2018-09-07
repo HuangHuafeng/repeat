@@ -568,7 +568,7 @@ void SvrAgt::downloadFile(QString fileName)
     }
 }
 
-const QMap<QString, SvrAgt::DownloadStatus> &SvrAgt::downloadMultipleFiles(QSet<QString> files)
+void SvrAgt::downloadMultipleFiles(QSet<QString> files)
 {
     //m_filesToDownload.clear();
     //m_mapFileContent.clear();
@@ -578,15 +578,12 @@ const QMap<QString, SvrAgt::DownloadStatus> &SvrAgt::downloadMultipleFiles(QSet<
     QSet<QString>::const_iterator it = files.constBegin();
     while (it != files.constEnd())
     {
-        QString fileName = *it;
-        downloadFile(fileName);
+        downloadFile(*it);
         it ++;
     }
 
     m_toDownload = m_filesToDownload.size();
     m_downloaded = 0;
-
-    return m_filesToDownload;
 }
 
 void SvrAgt::cancelDownloading()

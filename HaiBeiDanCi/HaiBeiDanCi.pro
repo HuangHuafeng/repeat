@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui webenginewidgets multimedia sql
+QT       += core gui webenginewidgets multimedia sql concurrent
 
 #greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -50,7 +50,8 @@ SOURCES += \
     aboutdialog.cpp \
     svragt.cpp \
     serverdatadownloader.cpp \
-    helpfunc.cpp
+    helpfunc.cpp \
+    mediafilemanager.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -75,7 +76,8 @@ HEADERS += \
     aboutdialog.h \
     svragt.h \
     serverdatadownloader.h \
-    helpfunc.h
+    helpfunc.h \
+    mediafilemanager.h
 
 FORMS += \
     mainwindow.ui \

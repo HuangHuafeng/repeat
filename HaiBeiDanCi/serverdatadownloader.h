@@ -21,7 +21,7 @@ public:
     QList<QString> getBookList();
     void downloadBook(QString bookName);
     void downloadFile(QString fileName);
-    void downloadMultipleFiles(QStringList &files);
+    void downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
     void disconnectServer();
 
@@ -53,12 +53,9 @@ private:
     QMap<QString, QVector<QString>> m_mapBooksWordList;
     QMap<QString, sptr<Word>> m_mapWords;
 
-    QSet<QString> m_existingFiles;
-
     void downloadAllBooks();
     void downloadWordsOfBook(QString bookName);
     void saveFileFromServer(QString fileName, const QByteArray &fileContent);
-    void refreshExistingFiles();
 };
 
 #endif // SERVERDATADOWNLOADER_H

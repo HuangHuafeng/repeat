@@ -3,7 +3,7 @@
 #include "wordbook.h"
 #include "mysettings.h"
 #include "serverdatadownloader.h"
-#include "helpfunc.h"
+#include "mediafilemanager.h"
 
 #include <QMessageBox>
 
@@ -62,9 +62,13 @@ void ServerDataDialog::onItemSelectionChanged()
     {
         downloaded = false;
     }
+
+    auto mfm = MediaFileManager::instance();
+    bool eflReady = mfm->isExistingFileListReady();
+
     ui->pbDownloadBook->setEnabled(downloaded == false);
-    ui->pbDownloadMediaFiles->setEnabled(downloaded == true);
-    ui->pbDownloadPronounceFiles->setEnabled(downloaded == true);
+    ui->pbDownloadMediaFiles->setEnabled(downloaded == true && eflReady == true);
+    ui->pbDownloadPronounceFiles->setEnabled(downloaded == true && eflReady == true);
 }
 
 void ServerDataDialog::onBookListReady(const QList<QString> books)
@@ -228,12 +232,17 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
         interestedFiles += word->pronounceFiles() + word->otherFiles();
     }
 
-    ServerDataDownloader *sdd = ServerDataDownloader::instance();
-    sdd->downloadMultipleFiles(interestedFiles);
-    if (interestedFiles.isEmpty() == false)
+    auto mfm = MediaFileManager::instance();
+    auto existingMediaFiles = mfm->existingMediaFiles();
+    QSet<QString> filesToDownload = QSet<QString>::fromList(interestedFiles);
+    filesToDownload.subtract(existingMediaFiles);
+
+    if (filesToDownload.isEmpty() == false)
     {
         // show the progress dialog
         createProgressDialog(QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
+        ServerDataDownloader *sdd = ServerDataDownloader::instance();
+        sdd->downloadMultipleFiles(filesToDownload);
     }
     else
     {
@@ -271,12 +280,17 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
         interestedFiles += word->exampleAudioFiles() + word->otherFiles();
     }
 
-    ServerDataDownloader *sdd = ServerDataDownloader::instance();
-    sdd->downloadMultipleFiles(interestedFiles);
-    if (interestedFiles.isEmpty() == false)
+    auto mfm = MediaFileManager::instance();
+    auto existingMediaFiles = mfm->existingMediaFiles();
+    QSet<QString> filesToDownload = QSet<QString>::fromList(interestedFiles);
+    filesToDownload.subtract(existingMediaFiles);
+
+    if (filesToDownload.isEmpty() == false)
     {
         // show the progress dialog
         createProgressDialog(QObject::tr("Downloading meida files ..."), QObject::tr("Cancel"));
+        ServerDataDownloader *sdd = ServerDataDownloader::instance();
+        sdd->downloadMultipleFiles(filesToDownload);
     }
     else
     {

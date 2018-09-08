@@ -495,7 +495,6 @@ void ServerManager::sendBookWordList(QString bookName)
     Q_ASSERT(book.get() != nullptr);
     auto wordList = book->getAllWords();
     m_mgrAgt.sendBookWordList(bookName, wordList);
-    m_mgrAgt.sendResponseBookWordListAllSent(bookName);
 }
 
 void ServerManager::sendWordsOfBook(QString bookName)

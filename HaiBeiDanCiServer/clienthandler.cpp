@@ -8,9 +8,9 @@ ClientHandler::~ClientHandler()
 {
 }
 
-void ClientHandler::sendMessage(QByteArray msg)
+void ClientHandler::sendMessage(QByteArray msg, bool needCompress)
 {
-    m_clientWaiter.sendMessage(msg);
+    m_clientWaiter.sendMessage(msg, needCompress);
 }
 
 int ClientHandler::handleMessage(const QByteArray &msg)

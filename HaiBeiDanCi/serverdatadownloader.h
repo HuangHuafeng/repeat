@@ -23,6 +23,7 @@ public:
     void downloadFile(QString fileName);
     void downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
+    void connectServer();
     void disconnectServer();
 
 signals:

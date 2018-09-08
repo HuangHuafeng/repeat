@@ -34,8 +34,10 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
     }
     else
     {
+        // in this case, sdd must failed to connect to the server when it's constructed
+        // so let it try ot connect to the server again
         connect(sdd, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
-        sdd->getBookList();
+        sdd->connectServer();
     }
 }
 

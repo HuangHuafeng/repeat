@@ -101,18 +101,24 @@ void SvrAgt::onStateChanged(QAbstractSocket::SocketState socketState)
 
 QByteArray SvrAgt::readMessage()
 {
-    if (m_tcpSocket == nullptr)
-    {
-        return QByteArray();
-    }
+    Q_ASSERT(m_tcpSocket != nullptr);
 
+    bool compressed;
     QByteArray msg;
     QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> msg;
+    in >> compressed >> msg;
     if (in.commitTransaction() == true)
     {
-        return msg;
+        if (compressed == true)
+        {
+            qDebug() << "received compressed message with size" << msg.size() << "bytes.";
+            return qUncompress(msg);
+        }
+        else
+        {
+            return msg;
+        }
     }
     else
     {
@@ -154,10 +160,6 @@ int SvrAgt::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::ResponseGetBookWordList:
         handleResult = handleResponseGetBookWordList(msg);
-        break;
-
-    case ServerClientProtocol::ResponseBookWordListAllSent:
-        handleResult = handleResponseBookWordListAllSent(msg);
         break;
 
     case ServerClientProtocol::ResponseGetFile:
@@ -242,43 +244,31 @@ bool SvrAgt::handleResponseGetAllBooks(const QByteArray &msg)
     return true;
 }
 
-bool SvrAgt::handleResponseBookWordListAllSent(const QByteArray &msg)
-{
-    QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
-    QString bookName;
-    in.startTransaction();
-    in >> receivedMsgHeader >> bookName;
-    if (in.commitTransaction() == false)
-    {
-        qCritical() << "failed to read book name in handleResponseBookWordListAllSent()";
-        return false;
-    }
-
-    emit(bookWordListReceived(bookName, m_mapBooksWordList.value(bookName)));
-    m_mapBooksWordList.remove(bookName);
-
-    return true;
-}
-
 bool SvrAgt::handleResponseGetBookWordList(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
     QVector<QString> wordList;
+    bool listComplete;
     in.startTransaction();
-    in >> receivedMsgHeader >> bookName >> wordList;
+    in >> receivedMsgHeader >> bookName >> wordList >> listComplete;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read words of the book in handleResponseGetBookWordList()";
         return false;
     }
 
-    //bookName = bookName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
     auto currentList = m_mapBooksWordList.value(bookName);
     auto newList = currentList + wordList;
     m_mapBooksWordList.insert(bookName, newList);
+
+    if (listComplete == true)
+    {
+        // we've got the full list
+        emit(bookWordListReceived(bookName, m_mapBooksWordList.value(bookName)));
+        m_mapBooksWordList.remove(bookName);
+    }
 
     return true;
 }
@@ -472,7 +462,7 @@ void SvrAgt::sendSimpleMessage(qint32 msgCode, bool now)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader;
-    sendMessage(block, now);
+    sendMessage(block, false, now);
 }
 
 /**
@@ -600,12 +590,20 @@ void SvrAgt::disconnectServer()
     sendRequestBye();
 }
 
-void SvrAgt::sendMessage(const QByteArray &msg, bool now)
+void SvrAgt::sendMessage(const QByteArray &msg, bool needCompress, bool now)
 {
     connectToServer();
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << msg;
+
+    if (needCompress == true)
+    {
+        out << true << qCompress(msg);
+    }
+    else
+    {
+        out << false << msg;
+    }
 
     if (now == false)
     {

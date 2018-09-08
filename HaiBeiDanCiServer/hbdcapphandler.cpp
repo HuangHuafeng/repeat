@@ -68,7 +68,7 @@ void HBDCAppHandler::sendResponseGetAllBooks(const QByteArray &msg, const QList<
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << books;
-    sendMessage(block);
+    sendMessage(block, true);
 }
 
 bool HBDCAppHandler::handleRequestGetAWord(const QByteArray &msg)
@@ -106,18 +106,7 @@ void HBDCAppHandler::sendResponseGetAWord(const QByteArray &msg, const Word &wor
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << word;
-    sendMessage(block);
-}
-
-void HBDCAppHandler::sendResponseBookWordListAllSent(const QByteArray &msg, const QString bookName)
-{
-    MessageHeader receivedMsgHeader(msg);
-    MessageHeader responseHeader(ServerClientProtocol::ResponseBookWordListAllSent, receivedMsgHeader.sequenceNumber());
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << bookName;
-    sendMessage(block);
+    sendMessage(block, true);
 }
 
 void HBDCAppHandler::sendResponseGetWordsOfBookFinished(const QByteArray &msg, const QString bookName)
@@ -200,7 +189,7 @@ void HBDCAppHandler::sendResponseGetABook(const QByteArray &msg, const WordBook 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << book;
-    sendMessage(block);
+    sendMessage(block, true);
 }
 
 bool HBDCAppHandler::handleRequestGetBookWordList(const QByteArray &msg)
@@ -260,13 +249,10 @@ void HBDCAppHandler::sendBookWordList(const QByteArray &msg, const QString bookN
     while (pos < total)
     {
         counter ++;
-        //const QString partName = ServerClientProtocol::partPrefix(counter) + bookName;
         QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-        sendResponseGetBookWordList(msg, bookName, subList);
         pos += subList.size();
+        sendResponseGetBookWordList(msg, bookName, subList, pos>=total);
     }
-
-    sendResponseBookWordListAllSent(msg, bookName);
 }
 
 bool HBDCAppHandler::okToSendFile(const QString fileName)
@@ -302,7 +288,7 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, const QString fileName)
     // check if the file is OK to send, we cannot expose everything on the sever!!!
     if (okToSendFile(fileName) != true)
     {
-        qDebug() << "cannot send file" << fileName << "because it violates the security policy!";
+        qCritical() << "cannot send file" << fileName << "because it violates the security policy!";
         return false;
     }
 
@@ -312,7 +298,7 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, const QString fileName)
     QFile toSend(localFile);
     if (toSend.open(QIODevice::ReadOnly | QIODevice::ExistingOnly) == false)
     {
-        qDebug() << "cannot open file" << fileName << "because" << toSend.errorString();
+        qCritical() << "cannot open file" << fileName << "because" << toSend.errorString();
         return false;
     }
 
@@ -321,7 +307,6 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, const QString fileName)
     int counter = 0;
     bool succeeded = true;
     QDataStream fileDS(&toSend);
-    //char *buf = new char[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
     char buf[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
     while (sentBytes < fileSize)
     {
@@ -333,13 +318,10 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, const QString fileName)
         }
 
         counter ++;
-        //const QString partName = ServerClientProtocol::partPrefix(counter) + fileName;
         sendResponseGetFile(msg, fileName, buf, static_cast<uint>(readBytes));
         sentBytes += readBytes;
         qDebug() << "send" << readBytes << "bytes of total" << fileSize;
     }
-
-    //delete[] buf;
 
     return succeeded;
 }
@@ -356,18 +338,15 @@ void HBDCAppHandler::sendResponseGetFile(const QByteArray &msg, const QString fi
     sendMessage(block);
 }
 
-void HBDCAppHandler::sendResponseGetBookWordList(const QByteArray &msg, const QString bookName, const QVector<QString> &wordList)
+void HBDCAppHandler::sendResponseGetBookWordList(const QByteArray &msg, const QString bookName, const QVector<QString> &wordList, bool listComplete)
 {
-    if (wordList.size() > ServerClientProtocol::MaximumWordsInAMessage)
-    {
-        return;
-    }
+    Q_ASSERT(wordList.size() <= ServerClientProtocol::MaximumWordsInAMessage);
 
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseGetBookWordList, receivedMsgHeader.sequenceNumber());
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << bookName << wordList;
-    sendMessage(block);
+    out << responseHeader << bookName << wordList << listComplete;
+    sendMessage(block, true);
 }

@@ -36,7 +36,7 @@ public:
     }
 
     typedef enum {
-        MaximumWordsInAMessage = 2000,
+        MaximumWordsInAMessage = 10000,
         MaximumBytesForFileTransfer = 1024 * 32,    // 32k, most of the files are less than 20k in this app
     } MessageParameters;
 
@@ -46,7 +46,9 @@ public:
         RequestGetAWord = RequestNoOperation + 2,   // Yes, 1:1
         RequestGetABook = RequestNoOperation + 3,   // Yes, 1:1
         RequestGetBookWordList = RequestNoOperation + 4, // Yes, n:1
+
         RequestGetFile = RequestNoOperation + 5,    // Yes, n:1
+
         RequestGetWordsOfBookFinished = RequestNoOperation + 6, // Yes, 1:1 // used to echo to the client to let it aware that downloading words finished
         RequestBye = RequestNoOperation + 7,    // Yes, 1:0
     } ClientToServerMessageCode;
@@ -56,9 +58,7 @@ public:
         ResponseGetAllBooks = ResponseNoOperation + 1,  // Yes
         ResponseGetAWord = ResponseNoOperation + 2, // Yes
         ResponseGetABook = ResponseNoOperation + 3, // Yes
-
         ResponseGetBookWordList = ResponseNoOperation + 4,   // Yes
-        ResponseBookWordListAllSent = ResponseGetBookWordList + 1000,   // Yes
 
         ResponseGetFile = ResponseNoOperation + 5,  // Yes
         ResponseGetFileFinished = ResponseGetFile + 1000,
@@ -85,10 +85,7 @@ public:
     typedef enum {
         ServerToManagerMessageCodeBase = 40000,
         ResponsePromoteToManager = ServerToManagerMessageCodeBase + 1,
-
         ResponseGetAllWordsWithoutDefinition = ServerToManagerMessageCodeBase + 2,
-        ResponseGetAllWordsWithoutDefinitionFinished = ResponseGetAllWordsWithoutDefinition + 1000,
-
         ResponseGetServerDataFinished = ServerToManagerMessageCodeBase + 3,
         ResponseDeleteABook = ServerToManagerMessageCodeBase + 4,
         ResponseUploadABook = ServerToManagerMessageCodeBase + 5,
@@ -101,12 +98,12 @@ class funcTracker
 public:
     funcTracker(QString funcName) : m_funcName(funcName)
     {
-        qInfo("funcTracker: entering %s", m_funcName.toLatin1().constData());
+        qDebug("funcTracker: entering %s", m_funcName.toLatin1().constData());
     }
 
     ~funcTracker()
     {
-        qInfo("funcTracker: leaving %s", m_funcName.toLatin1().constData());
+        qDebug("funcTracker: leaving %s", m_funcName.toLatin1().constData());
     }
 
 private:

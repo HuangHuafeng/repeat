@@ -145,31 +145,47 @@ void ClientWaiter::disconnectPeer()
 
 
 // should be changed later
-void ClientWaiter::sendMessage(QByteArray msg, bool /*now*/)
+void ClientWaiter::sendMessage(const QByteArray &msg, bool needCompress, bool /*now*/)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << msg;
+
+    if (needCompress == true)
+    {
+        out << true << qCompress(msg);
+    }
+    else
+    {
+        out << false << msg;
+    }
+
     m_tcpSocket->write(block);
 }
 
 QByteArray ClientWaiter::readMessage()
 {
-    if (m_tcpSocket == nullptr)
-    {
-        return QByteArray();
-    }
+    Q_ASSERT(m_tcpSocket != nullptr);
 
+    bool compressed;
     QByteArray msg;
     QDataStream in(m_tcpSocket);
     in.startTransaction();
-    in >> msg;
+    in >> compressed >> msg;
     if (in.commitTransaction() == true)
     {
-        return msg;
+        if (compressed == true)
+        {
+            qDebug() << "received compressed message with size" << msg.size() << "bytes.";
+            return qUncompress(msg);
+        }
+        else
+        {
+            return msg;
+        }
     }
     else
     {
+        // in this case, the transaction is restored by commitTransaction()
         return QByteArray();
     }
 }

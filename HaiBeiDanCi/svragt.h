@@ -109,7 +109,6 @@ protected:
     bool handleUnknownMessage(const QByteArray &msg);
     bool handleResponseGetAllBooks(const QByteArray &msg);
     bool handleResponseGetBookWordList(const QByteArray &msg);
-    bool handleResponseBookWordListAllSent(const QByteArray &msg);
     bool handleResponseUnknownRequest(const QByteArray &msg);
     bool handleResponseGetABook(const QByteArray &msg);
     bool handleResponseGetAWord(const QByteArray &msg);
@@ -117,7 +116,7 @@ protected:
     bool handleResponseGetFileFinished(const QByteArray &msg);
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
 
-    void sendMessage(const QByteArray &msg, bool now = false);
+    void sendMessage(const QByteArray &msg, bool needCompress = false, bool now = false);
     void updateAndEmitProgress();
     void cancelDownloadingWords();
     void cancelDownloadingFiles();

@@ -25,10 +25,6 @@ int HBDCManagerHandler::handleMessage(const QByteArray &msg)
         handleResult = handleResponseGetBookWordList(msg);
         break;
 
-    case ServerClientProtocol::ResponseBookWordListAllSent:
-        handleResult = handleResponseBookWordListAllSent(msg);
-        break;
-
     case ServerClientProtocol::ResponseGetAWord:
         handleResult = handleResponseGetAWord(msg);
         break;
@@ -83,14 +79,12 @@ void HBDCManagerHandler::sendAllWordsWithoutDefinition(const QByteArray &msg)
     while (pos < total)
     {
         auto subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-        sendAListOfWordsWithoutDefinition(msg, subList);
         pos += subList.size();
+        sendAListOfWordsWithoutDefinition(msg, subList, pos>=total);
     }
-
-    sendResponseGetAllWordsWithoutDefinitionFinished(msg);
 }
 
-void HBDCManagerHandler::sendAListOfWordsWithoutDefinition(const QByteArray &msg, const QList<QString> &wordList)
+void HBDCManagerHandler::sendAListOfWordsWithoutDefinition(const QByteArray &msg, const QList<QString> &wordList, bool listComplete)
 {
     QVector<QString> spellingList;
     QVector<int> idList;
@@ -105,25 +99,19 @@ void HBDCManagerHandler::sendAListOfWordsWithoutDefinition(const QByteArray &msg
         definitionLengthList.append(word->getDefinition().size());
     }
 
-    sendResponseGetAllWordsWithoutDefinition(msg, spellingList, idList, definitionLengthList);
+    sendResponseGetAllWordsWithoutDefinition(msg, spellingList, idList, definitionLengthList, listComplete);
 }
 
-void HBDCManagerHandler::sendResponseGetAllWordsWithoutDefinition(const QByteArray &msg, const QVector<QString> &spellings, const QVector<int> &ids, const QVector<int> &definitionLengths)
+void HBDCManagerHandler::sendResponseGetAllWordsWithoutDefinition(const QByteArray &msg, const QVector<QString> &spellings, const QVector<int> &ids, const QVector<int> &definitionLengths, bool listComplete)
 {
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseGetAllWordsWithoutDefinition, receivedMsgHeader.sequenceNumber());
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << spellings << ids << definitionLengths;
-    sendMessage(block);
+    out << responseHeader << spellings << ids << definitionLengths << listComplete;
+    sendMessage(block, true);
 }
-
-void HBDCManagerHandler::sendResponseGetAllWordsWithoutDefinitionFinished(const QByteArray &msg)
-{
-    sendSimpleMessage(msg, ServerClientProtocol::ResponseGetAllWordsWithoutDefinitionFinished);
-}
-
 
 bool HBDCManagerHandler::handleResponseGetABook(const QByteArray &msg)
 {
@@ -153,8 +141,9 @@ bool HBDCManagerHandler::handleResponseGetBookWordList(const QByteArray &msg)
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
     QVector<QString> wordList;
+    bool listComplete;
     in.startTransaction();
-    in >> receivedMsgHeader >> bookName >> wordList;
+    in >> receivedMsgHeader >> bookName >> wordList >> listComplete;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read words of the book in handleResponseGetBookWordList()";
@@ -165,25 +154,11 @@ bool HBDCManagerHandler::handleResponseGetBookWordList(const QByteArray &msg)
     auto newList = currentList + wordList;
     m_mapBooksWordList.insert(bookName, newList);
 
-    sendResponseOK(msg);
-
-    return true;
-}
-
-bool HBDCManagerHandler::handleResponseBookWordListAllSent(const QByteArray &msg)
-{
-    QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
-    QString bookName;
-    in.startTransaction();
-    in >> receivedMsgHeader >> bookName;
-    if (in.commitTransaction() == false)
+    if (listComplete == true)
     {
-        qCritical() << "failed to read book name in handleResponseBookWordListAllSent()";
-        return false;
+        // we've got the full list, but nothing need to be done here
     }
 
-    // nothing to do here, but keep this message both in client and server
     sendResponseOK(msg);
 
     return true;

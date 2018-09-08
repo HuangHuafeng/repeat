@@ -23,7 +23,7 @@ signals:
     void error(QTcpSocket::SocketError socketError);
 
 public:
-    void sendMessage(QByteArray msg, bool = false);
+    void sendMessage(const QByteArray &msg, bool needCompress = false, bool = false);
 
 private:
     qintptr m_socketDescriptor;

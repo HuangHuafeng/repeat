@@ -164,6 +164,11 @@ void ServerDataDownloader::cancelDownloading()
     m_mapWords.clear();
 }
 
+void ServerDataDownloader::connectServer()
+{
+    m_svrAgt.connectToServer();
+}
+
 void ServerDataDownloader::disconnectServer()
 {
     m_svrAgt.disconnectServer();

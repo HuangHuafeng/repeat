@@ -23,7 +23,7 @@ public:
     ClientHandler(ClientWaiter &clientWaiter);
     virtual ~ClientHandler();
 
-    void sendMessage(QByteArray msg);
+    void sendMessage(QByteArray msg, bool needCompress = false);
     virtual int handleMessage(const QByteArray &msg);
     void handleUnknownMessage(const QByteArray &msg);
 };

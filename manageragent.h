@@ -20,8 +20,7 @@ public:
     void sendBookWordList(const QString bookName, const QVector<QString> &wordList);
     // the following messages are used to upload a book
     void sendResponseGetABook(const WordBook &book);
-    void sendResponseGetBookWordList(const QString bookName, const QVector<QString> &wordList);
-    void sendResponseBookWordListAllSent(const QString bookName);
+    void sendResponseGetBookWordList(QString bookName, const QVector<QString> &wordList, bool listComplete);
     void sendResponseGetAWord(const Word &word);
     void sendResponseGetWordsOfBookFinished(const QString bookName);
 
@@ -41,7 +40,6 @@ private:
 
     bool handleResponsePromoteToManager(const QByteArray &msg);
     bool handleResponseGetAllWordsWithoutDefinition(const QByteArray &msg);
-    bool handleResponseGetAllWordsWithoutDefinitionFinished(const QByteArray &msg);
     bool handleResponseGetServerDataFinished(const QByteArray &msg);
     bool handleResponseDeleteABook(const QByteArray &msg);
     bool handleResponseUploadABook(const QByteArray &msg);

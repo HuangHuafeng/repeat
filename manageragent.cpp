@@ -22,10 +22,6 @@ int ManagerAgent::handleMessage(const QByteArray &msg)
         handleResult = handleResponseGetAllWordsWithoutDefinition(msg);
         break;
 
-    case ServerClientProtocol::ResponseGetAllWordsWithoutDefinitionFinished:
-        handleResult = handleResponseGetAllWordsWithoutDefinitionFinished(msg);
-        break;
-
     case ServerClientProtocol::ResponseGetServerDataFinished:
         handleResult = handleResponseGetServerDataFinished(msg);
         break;
@@ -84,8 +80,9 @@ bool ManagerAgent::handleResponseGetAllWordsWithoutDefinition(const QByteArray &
     QVector<QString> spellingList;
     QVector<int> idList;
     QVector<int> definitionLengthList;
+    bool listComplete;
     in.startTransaction();
-    in >> receivedMsgHeader >> spellingList >> idList >> definitionLengthList;
+    in >> receivedMsgHeader >> spellingList >> idList >> definitionLengthList >> listComplete;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read words of the book in handleResponseGetBookWordList()";
@@ -96,17 +93,13 @@ bool ManagerAgent::handleResponseGetAllWordsWithoutDefinition(const QByteArray &
     m_idList += idList;
     m_definitionLengthList += definitionLengthList;
 
-    return true;
-}
-
-bool ManagerAgent::handleResponseGetAllWordsWithoutDefinitionFinished(const QByteArray &msg)
-{
-    qDebug() << msg;
-
-    emit(getAllWordsWithoutDefinitionFinished(m_spellingList, m_idList, m_definitionLengthList));
-    m_spellingList.clear();
-    m_idList.clear();
-    m_definitionLengthList.clear();
+    if (listComplete == true)
+    {
+        emit(getAllWordsWithoutDefinitionFinished(m_spellingList, m_idList, m_definitionLengthList));
+        m_spellingList.clear();
+        m_idList.clear();
+        m_definitionLengthList.clear();
+    }
 
     return true;
 }
@@ -165,8 +158,8 @@ void ManagerAgent::sendBookWordList(const QString bookName, const QVector<QStrin
     {
         counter ++;
         QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
-        sendResponseGetBookWordList(bookName, subList);
         pos += subList.size();
+        sendResponseGetBookWordList(bookName, subList, pos>=total);
     }
 }
 
@@ -180,22 +173,13 @@ void ManagerAgent::sendResponseGetABook(const WordBook &book)
     sendMessage(block);
 }
 
-void ManagerAgent::sendResponseGetBookWordList(const QString bookName, const QVector<QString> &wordList)
+void ManagerAgent::sendResponseGetBookWordList(QString bookName, const QVector<QString> &wordList, bool listComplete)
 {
     Q_ASSERT(wordList.size() <= ServerClientProtocol::MaximumWordsInAMessage);
     MessageHeader responseHeader(ServerClientProtocol::ResponseGetBookWordList);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << bookName << wordList;
-    sendMessage(block);
-}
-
-void ManagerAgent::sendResponseBookWordListAllSent(const QString bookName)
-{
-    MessageHeader responseHeader(ServerClientProtocol::ResponseBookWordListAllSent);
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << bookName;
+    out << responseHeader << bookName << wordList << listComplete;
     sendMessage(block);
 }
 

@@ -25,8 +25,7 @@ private:
     void sendResponseGetAllBooks(const QByteArray &msg, const QList<QString> &books);
     void sendResponseGetAWord(const QByteArray &msg, const Word &word);
     void sendResponseGetABook(const QByteArray &msg, const WordBook &book);
-    void sendResponseGetBookWordList(const QByteArray &msg, const QString bookName, const QVector<QString> &wordList);
-    void sendResponseBookWordListAllSent(const QByteArray &msg, const QString bookName);
+    void sendResponseGetBookWordList(const QByteArray &msg, const QString bookName, const QVector<QString> &wordList, bool listComplete);
     void sendResponseGetFileFinished(const QByteArray &msg, const QString fileName, bool succeeded);
     void sendResponseGetFile(const QByteArray &msg, const QString fileName, const char *s, uint len);
     void sendResponseGetWordsOfBookFinished(const QByteArray &msg, const QString bookName);

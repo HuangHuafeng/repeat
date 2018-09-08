@@ -33,7 +33,7 @@ void SvrAgt::onReadyRead()
         int handleResult = handleMessage(msg);
         if (handleResult == 0)
         {
-            qDebug("successfully handled message with header: %s", receivedMsgHeader.toString().toUtf8().constData());
+            qDebug("successfully handled message with header: %s, message size: %d bytes", receivedMsgHeader.toString().toUtf8().constData(), msg.size());
 
             // if it's not a heartbeat message, update the counters
             if (receivedMsgHeader.code() != ServerClientProtocol::ResponseNoOperation)

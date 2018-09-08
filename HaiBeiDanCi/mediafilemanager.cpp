@@ -1,6 +1,8 @@
 #include "mediafilemanager.h"
 #include "helpfunc.h"
 #include "mysettings.h"
+#include "wordbook.h"
+#include "word.h"
 
 #include <QtConcurrent>
 
@@ -48,4 +50,52 @@ void MediaFileManager::fileDownloaded(QString fileName)
 bool MediaFileManager::isExistingFileListReady()
 {
     return m_efListReady;
+}
+
+const QSet<QString> MediaFileManager::missingPronounceAudioFiles(QString bookName)
+{
+    Q_ASSERT(m_efListReady == true);
+
+    sptr<WordBook> book = WordBook::getBook(bookName);
+    Q_ASSERT(book.get() != nullptr);
+
+    // build the list of media files
+    QStringList interestedFiles;
+    QVector<QString> wordList = book->getAllWords();
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        QString spelling = wordList.at(i);
+        sptr<Word> word = Word::getWord(spelling);
+        Q_ASSERT(word.get() != nullptr);
+        interestedFiles += word->pronounceFiles() + word->otherFiles();
+    }
+
+    QSet<QString> filesMissing = QSet<QString>::fromList(interestedFiles);
+    filesMissing.subtract(m_existingFiles);
+
+    return filesMissing;
+}
+
+const QSet<QString> MediaFileManager::missingExampleAudioFiles(QString bookName)
+{
+    Q_ASSERT(m_efListReady == true);
+
+    sptr<WordBook> book = WordBook::getBook(bookName);
+    Q_ASSERT(book.get() != nullptr);
+
+    // build the list of media files
+    QStringList interestedFiles;
+    QVector<QString> wordList = book->getAllWords();
+    for (int i = 0;i < wordList.size();i ++)
+    {
+        QString spelling = wordList.at(i);
+        sptr<Word> word = Word::getWord(spelling);
+        Q_ASSERT(word.get() != nullptr);
+        interestedFiles += word->exampleAudioFiles() + word->otherFiles();
+    }
+
+    QSet<QString> filesMissing = QSet<QString>::fromList(interestedFiles);
+    filesMissing.subtract(m_existingFiles);
+
+    return filesMissing;
 }

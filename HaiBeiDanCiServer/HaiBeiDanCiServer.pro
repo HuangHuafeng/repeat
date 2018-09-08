@@ -1,5 +1,5 @@
 QT -= gui
-QT += network sql
+QT += network sql concurrent
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -32,7 +32,9 @@ SOURCES += \
     ../HaiBeiDanCi/serverclientprotocol.cpp \
     clienthandler.cpp \
     hbdcapphandler.cpp \
-    hbdcmanagerhandler.cpp
+    hbdcmanagerhandler.cpp \
+    ../HaiBeiDanCi/mediafilemanager.cpp \
+    ../HaiBeiDanCi/helpfunc.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -52,7 +54,9 @@ HEADERS += \
     ../golddict/sptr.hh \
     clienthandler.h \
     hbdcapphandler.h \
-    hbdcmanagerhandler.h
+    hbdcmanagerhandler.h \
+    ../HaiBeiDanCi/mediafilemanager.h \
+    ../HaiBeiDanCi/helpfunc.h
 
 DISTFILES += \
     idea.txt

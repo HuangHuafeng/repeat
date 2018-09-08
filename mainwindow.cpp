@@ -5,6 +5,7 @@
 #include "HaiBeiDanCi/wordbook.h"
 #include "HaiBeiDanCi/mysettings.h"
 #include "HaiBeiDanCi/svragt.h"
+#include "HaiBeiDanCi/mediafilemanager.h"
 #include "newbook.h"
 #include "servermanager.h"
 #include "HaiBeiDanCi/serverdatadownloader.h"
@@ -53,6 +54,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ServerManager *serverManager = ServerManager::instance();
     connect(serverManager, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
+
+    // call MediaFileManager::instance() to get the existing file list ready
+    MediaFileManager::instance();
 
     reloadLocalData();
 }

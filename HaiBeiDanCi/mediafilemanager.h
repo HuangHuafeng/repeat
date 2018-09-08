@@ -9,6 +9,8 @@ class MediaFileManager
 public:
     static MediaFileManager * instance();
     const QSet<QString> & existingMediaFiles();
+    const QSet<QString> missingPronounceAudioFiles(QString bookName);
+    const QSet<QString> missingExampleAudioFiles(QString bookName);
     void fileDownloaded(QString fileName);
     bool isExistingFileListReady();
 

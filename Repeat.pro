@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml network webenginewidgets multimedia sql
+QT       += core gui xml network webenginewidgets multimedia sql concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -88,7 +88,8 @@ SOURCES += \
     manageragent.cpp \
     preferencesdialog.cpp \
     HaiBeiDanCi/serverdatadownloader.cpp \
-    HaiBeiDanCi/helpfunc.cpp
+    HaiBeiDanCi/helpfunc.cpp \
+    HaiBeiDanCi/mediafilemanager.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -147,7 +148,8 @@ HEADERS += \
     manageragent.h \
     preferencesdialog.h \
     HaiBeiDanCi/serverdatadownloader.h \
-    HaiBeiDanCi/helpfunc.h
+    HaiBeiDanCi/helpfunc.h \
+    HaiBeiDanCi/mediafilemanager.h
 
 FORMS += \
         mainwindow.ui \

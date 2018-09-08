@@ -3,6 +3,7 @@
 #include "../HaiBeiDanCi/word.h"
 #include "../HaiBeiDanCi/wordbook.h"
 #include "../HaiBeiDanCi/mysettings.h"
+#include "../HaiBeiDanCi/mediafilemanager.h"
 
 #include <QCoreApplication>
 #include <QtNetwork>
@@ -26,6 +27,9 @@ int main(int argc, char *argv[])
         qCritical("failed to load data from database!");
         return 1;
     }
+
+    // call MediaFileManager::instance() to get the existing file list ready
+    MediaFileManager::instance();
 
     HBDCServer server;
     if (server.listen() == false)

@@ -204,39 +204,9 @@ void ServerDataDialog::destroyProgressDialog()
 
 void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
 {
-    sptr<WordBook> book = WordBook::getBook(bookName);
-    if (book.get() == nullptr)
-    {
-        return;
-    }
-
-    // build the list of media files
-    QStringList interestedFiles;
-    QVector<QString> wordList = book->getAllWords();
-    QProgressDialog pd("    " + QObject::tr("Preparing the list of files to be downloaded ...") + "    ", QObject::tr("Cancel"), 0, wordList.size() - 1, this);
-    pd.setModal(true);
-    for (int i = 0;i < wordList.size();i ++)
-    {
-        pd.setValue(i);
-        if (pd.wasCanceled() == true)
-        {
-            return;
-        }
-
-        QString spelling = wordList.at(i);
-        sptr<Word> word = Word::getWord(spelling);
-        if (word.get() == nullptr)
-        {
-            continue;
-        }
-        interestedFiles += word->pronounceFiles() + word->otherFiles();
-    }
-
+    // removing the progress dialog, we should NOT have very big word book (10000+ words), so this should be fast
     auto mfm = MediaFileManager::instance();
-    auto existingMediaFiles = mfm->existingMediaFiles();
-    QSet<QString> filesToDownload = QSet<QString>::fromList(interestedFiles);
-    filesToDownload.subtract(existingMediaFiles);
-
+    QSet<QString> filesToDownload = mfm->missingPronounceAudioFiles(bookName);
     if (filesToDownload.isEmpty() == false)
     {
         // show the progress dialog
@@ -252,39 +222,9 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
 
 void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
 {
-    sptr<WordBook> book = WordBook::getBook(bookName);
-    if (book.get() == nullptr)
-    {
-        return;
-    }
-
-    // build the list of media files
-    QStringList interestedFiles;
-    QVector<QString> wordList = book->getAllWords();
-    QProgressDialog pd("    " + QObject::tr("Preparing the list of files to be downloaded ...") + "    ", QObject::tr("Cancel"), 0, wordList.size() - 1, this);
-    pd.setModal(true);
-    for (int i = 0;i < wordList.size();i ++)
-    {
-        pd.setValue(i);
-        if (pd.wasCanceled() == true)
-        {
-            return;
-        }
-
-        QString spelling = wordList.at(i);
-        sptr<Word> word = Word::getWord(spelling);
-        if (word.get() == nullptr)
-        {
-            continue;
-        }
-        interestedFiles += word->exampleAudioFiles() + word->otherFiles();
-    }
-
+    // removing the progress dialog, we should NOT have very big word book (10000+ words), so this should be fast
     auto mfm = MediaFileManager::instance();
-    auto existingMediaFiles = mfm->existingMediaFiles();
-    QSet<QString> filesToDownload = QSet<QString>::fromList(interestedFiles);
-    filesToDownload.subtract(existingMediaFiles);
-
+    QSet<QString> filesToDownload = mfm->missingExampleAudioFiles(bookName);
     if (filesToDownload.isEmpty() == false)
     {
         // show the progress dialog

@@ -21,13 +21,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_gdhelper(nullptr),
-    m_definitionView(this)
+    m_definitionView(this),
+    m_refreshTimer(this)
 {
     ui->setupUi(this);
 
     QStringList header;
     header.append(QObject::tr("Name"));
     header.append(QObject::tr("Words"));
+    header.append(QObject::tr("Missing Media Files"));
     ui->twLocalData->setHeaderLabels(header);
     ui->twServerData->setHeaderLabels(header);
 
@@ -59,6 +61,10 @@ MainWindow::MainWindow(QWidget *parent) :
     MediaFileManager::instance();
 
     reloadLocalData();
+
+    // start a timer to refresh the missing files.
+    connect(&m_refreshTimer, SIGNAL(timeout()), this, SLOT(onRefreshTimerTimeout()));
+    m_refreshTimer.start(1000);
 }
 
 MainWindow::~MainWindow()
@@ -176,9 +182,30 @@ void MainWindow::addBookToTheView(QTreeWidget * tw, WordBook &book)
 {
     auto wordList = book.getAllWords();
     QString numberOfWords = QString::number(wordList.size());
+    QString bookName = book.getName();
+
     QStringList infoList;
-    infoList.append(book.getName());
+    infoList.append(bookName);
     infoList.append(numberOfWords);
+    auto mfm = MediaFileManager::instance();
+    if (mfm->isDataReady() == true)
+    {
+        QSet<QString> missingMediaFiles;
+        auto bookMissingPronounceAudioFiles = mfm->bookMissingPronounceAudioFiles(bookName);
+        if (bookMissingPronounceAudioFiles.get() != nullptr)
+        {
+            missingMediaFiles += *bookMissingPronounceAudioFiles;
+        }
+
+        auto bookMissingExampleAudioFiles = mfm->bookMissingExampleAudioFiles(bookName);
+        if (bookMissingExampleAudioFiles.get() != nullptr)
+        {
+            missingMediaFiles += *bookMissingExampleAudioFiles;
+        }
+
+        QString numberOfMissingMediaFiles = QString::number(missingMediaFiles.size());
+        infoList.append(numberOfMissingMediaFiles);
+    }
     QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
     tw->addTopLevelItem(item);
 }
@@ -213,11 +240,17 @@ void MainWindow::listServerBooks(const QList<QString> books)
     for (int i = 0;i < books.size();i ++)
     {
         QString bookName = books.at(i);
+
         auto wordList = serverManager->getWordListOfBook(bookName);
         QString numberOfWords = QString::number(wordList.size());
+
+        auto missingMediaFiles = serverManager->getMissingMediaFilesOfBook(bookName);
+        QString numberOfMissingMediaFiles = QString::number(missingMediaFiles.size());
+
         QStringList infoList;
         infoList.append(bookName);
         infoList.append(numberOfWords);
+        infoList.append(numberOfMissingMediaFiles);
         QTreeWidgetItem *item = new QTreeWidgetItem(infoList);
         ui->twServerData->addTopLevelItem(item);
     }
@@ -262,6 +295,11 @@ void MainWindow::on_pbDeleteBook_clicked()
 
 void MainWindow::on_actionUpload_Book_triggered()
 {
+    if (localServerDataConflicts() == true)
+    {
+        return;
+    }
+
     auto ci = ui->twLocalData->currentItem();
     if (ci == nullptr)
     {
@@ -335,4 +373,75 @@ void MainWindow::on_actionDeleteServerBook_triggered()
 void MainWindow::on_pbDeleteServerBook_clicked()
 {
     ui->actionDeleteServerBook->trigger();
+}
+
+void MainWindow::onRefreshTimerTimeout()
+{
+    auto mfm = MediaFileManager::instance();
+    if (mfm->isDataReady() == true)
+    {
+        // data of all the books is ready
+        reloadLocalData();
+        m_refreshTimer.stop();
+    }
+    else
+    {
+        qDebug() << "MediaFileManager data is not ready!";
+    }
+}
+
+void MainWindow::on_actionFetch_Missing_Media_Files_triggered()
+{
+    auto ci = ui->twLocalData->currentItem();
+    if (ci == nullptr)
+    {
+        return;
+    }
+    auto bookName = ci->text(0);
+
+    auto mfm = MediaFileManager::instance();
+
+    QSet<QString> missingMediaFiles;
+    auto missingPronounceAudioFiles = mfm->bookMissingPronounceAudioFiles(bookName);
+    if (missingPronounceAudioFiles.get() != nullptr)
+    {
+        missingMediaFiles += *missingPronounceAudioFiles;
+    }
+    auto missingExampleAudioFiles = mfm->bookMissingExampleAudioFiles(bookName);
+    if (missingExampleAudioFiles.get() != nullptr)
+    {
+        missingMediaFiles += *missingExampleAudioFiles;
+    }
+
+    QProgressDialog pd("fetching media files from dictionary ...", "Cancel", 0, missingMediaFiles.size() - 1, this);
+    int counter = 0;
+    QSet<QString>::const_iterator it = missingMediaFiles.constBegin();
+    while (it != missingMediaFiles.constEnd()) {
+        m_gdhelper.fecthAndSaveFile((*it).mid(5));
+        mfm->fileDownloaded(*it);
+        it ++;
+
+        pd.setValue(counter);
+        counter ++;
+        if (pd.wasCanceled() == true)
+        {
+            break;
+        }
+    }
+
+    reloadLocalData();
+}
+
+bool MainWindow::localServerDataConflicts()
+{
+    ServerManager *serverManager = ServerManager::instance();
+    bool retValue = false;
+    QString errorString;
+    if (serverManager->okToSync(&errorString) == false)
+    {
+        QMessageBox::critical(this, MySettings::appName(), errorString);
+        retValue = true;
+    }
+
+    return retValue;
 }

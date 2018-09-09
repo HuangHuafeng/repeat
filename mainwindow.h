@@ -59,10 +59,15 @@ private slots:
 
     void on_pbDeleteServerBook_clicked();
 
+    void onRefreshTimerTimeout();
+
+    void on_actionFetch_Missing_Media_Files_triggered();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;
     QWebEngineView m_definitionView;
+    QTimer m_refreshTimer;
 
     void QueryWord();
 
@@ -72,6 +77,7 @@ private:
     void addBookToTheView(QTreeWidget *tw, WordBook &book);
     void selectFirstItem(QTreeWidget *tw);
     void listServerBooks(const QList<QString> books);
+    bool localServerDataConflicts();
 };
 
 #endif // MAINWINDOW_H

@@ -249,6 +249,7 @@
     <addaction name="actionNewBook"/>
     <addaction name="actionDeleteLocalBook"/>
     <addaction name="actionUpload_Book"/>
+    <addaction name="actionFetch_Missing_Media_Files"/>
    </widget>
    <widget class="QMenu" name="menuServer">
     <property name="title">
@@ -317,6 +318,11 @@
   <action name="actionDownload_Book">
    <property name="text">
     <string>Download Book</string>
+   </property>
+  </action>
+  <action name="actionFetch_Missing_Media_Files">
+   <property name="text">
+    <string>Fetch Missing Media Files</string>
    </property>
   </action>
  </widget>

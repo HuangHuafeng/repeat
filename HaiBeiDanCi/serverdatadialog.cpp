@@ -66,7 +66,7 @@ void ServerDataDialog::onItemSelectionChanged()
     }
 
     auto mfm = MediaFileManager::instance();
-    bool eflReady = mfm->isExistingFileListReady();
+    bool eflReady = mfm->isDataReady();
 
     ui->pbDownloadBook->setEnabled(downloaded == false);
     ui->pbDownloadMediaFiles->setEnabled(downloaded == true && eflReady == true);
@@ -208,13 +208,14 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
 {
     // removing the progress dialog, we should NOT have very big word book (10000+ words), so this should be fast
     auto mfm = MediaFileManager::instance();
-    QSet<QString> filesToDownload = mfm->missingPronounceAudioFiles(bookName);
-    if (filesToDownload.isEmpty() == false)
+    auto filesToDownload = mfm->bookMissingPronounceAudioFiles(bookName);
+    Q_ASSERT(filesToDownload.get() != nullptr);
+    if (filesToDownload->isEmpty() == false)
     {
         // show the progress dialog
         createProgressDialog(QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
         ServerDataDownloader *sdd = ServerDataDownloader::instance();
-        sdd->downloadMultipleFiles(filesToDownload);
+        sdd->downloadMultipleFiles(*filesToDownload);
     }
     else
     {
@@ -226,13 +227,14 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
 {
     // removing the progress dialog, we should NOT have very big word book (10000+ words), so this should be fast
     auto mfm = MediaFileManager::instance();
-    QSet<QString> filesToDownload = mfm->missingExampleAudioFiles(bookName);
-    if (filesToDownload.isEmpty() == false)
+    auto filesToDownload = mfm->bookMissingExampleAudioFiles(bookName);
+    Q_ASSERT(filesToDownload.get() != nullptr);
+    if (filesToDownload->isEmpty() == false)
     {
         // show the progress dialog
         createProgressDialog(QObject::tr("Downloading meida files ..."), QObject::tr("Cancel"));
         ServerDataDownloader *sdd = ServerDataDownloader::instance();
-        sdd->downloadMultipleFiles(filesToDownload);
+        sdd->downloadMultipleFiles(*filesToDownload);
     }
     else
     {

@@ -111,6 +111,10 @@ void ServerDataDownloader::OnGetWordsOfBookFinished(QString bookName)
     auto wordList = m_mapBooksWordList.value(bookName);
     WordBook::storeBookFromServer(book, wordList);
 
+    // update the media file manager that a new book is downloaded
+    auto mfm = MediaFileManager::instance();
+    mfm->bookDownloaded(book->getName());
+
 #ifndef QT_NO_DEBUG
     qDebug() << "Used" << t.elapsed() << "ms in OnGetWordsOfBookFinished()";
 #endif

@@ -46,6 +46,10 @@ void MediaFileManager::fileDownloaded(QString fileName)
 
 void MediaFileManager::bookDownloaded(QString bookName)
 {
+    m_dataRedayMutex.lock();
+    m_dataReady = false;
+    m_dataRedayMutex.unlock();
+
     qDebug() << bookName << "downloaded." << "Run initialize() again to build missing file list.";
     QtConcurrent::run(std::bind(&MediaFileManager::initialize, this));
 }

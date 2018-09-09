@@ -1,5 +1,9 @@
 #include "hbdcmanagerhandler.h"
 #include "../HaiBeiDanCi/mediafilemanager.h"
+#include "../HaiBeiDanCi/mysettings.h"
+
+#include <QDir>
+#include <QFile>
 
 HBDCManagerHandler::HBDCManagerHandler(ClientWaiter &clientWaiter) : HBDCAppHandler(clientWaiter)
 {
@@ -40,6 +44,14 @@ int HBDCManagerHandler::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::RequestMissingMediaFiles:
         handleResult = handleRequestMissingMediaFiles(msg);
+        break;
+
+    case ServerClientProtocol::ResponseGetFile:
+        handleResult = handleResponseGetFile(msg);
+        break;
+
+    case ServerClientProtocol::ResponseGetFileFinished:
+        handleResult = handleResponseGetFileFinished(msg);
         break;
 
     default:
@@ -285,6 +297,17 @@ void HBDCManagerHandler::sendResponseUploadABook(const QByteArray &msg, QString 
     sendMessage(block);
 }
 
+void HBDCManagerHandler::sendResponseUploadAFile(const QByteArray &msg, QString fileName)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseUploadAFile, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << fileName;
+    sendMessage(block);
+}
+
 void HBDCManagerHandler::sendResponseDeleteABook(const QByteArray &msg, QString bookName)
 {
     MessageHeader receivedMsgHeader(msg);
@@ -323,4 +346,82 @@ void HBDCManagerHandler::sendResponseMissingMediaFiles(const QByteArray &msg, QS
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << bookName << fileList;
     sendMessage(block, true);
+}
+
+
+bool HBDCManagerHandler::handleResponseGetFile(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString fileName;
+    char *data;
+    uint len;
+    in.startTransaction();
+    in >> receivedMsgHeader >> fileName;
+    in.readBytes(data, len);
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read words of the book in handleResponseGetFile()";
+        return false;
+    }
+
+    auto currentContent = m_mapFileContent.value(fileName);
+    auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
+    m_mapFileContent.insert(fileName, newContent);
+
+    sendResponseOK(msg);
+
+    return true;
+}
+
+bool HBDCManagerHandler::handleResponseGetFileFinished(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString fileName;
+    bool succeeded;
+    in.startTransaction();
+    in >> receivedMsgHeader >> fileName >> succeeded;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read books in handleResponseAllDataSentForRequestGetFile()";
+        return false;
+    }
+
+
+    if (succeeded == true)
+    {
+        saveFileFromServer(fileName, m_mapFileContent.value(fileName));
+        auto mfm = MediaFileManager::instance();
+        mfm->fileDownloaded(fileName);
+    }
+    else
+    {
+        qCritical() << fileName << "failed to upload in handleResponseAllDataSentForRequestGetFile()";
+    }
+
+    // remove the file content to release the memory, helpful?
+    m_mapFileContent.remove(fileName);
+
+    sendResponseUploadAFile(msg, fileName);
+
+    return true;
+}
+
+void HBDCManagerHandler::saveFileFromServer(QString fileName, const QByteArray &fileContent)
+{
+    QString localFile = MySettings::dataDirectory() + "/" + fileName;
+    QString folder = localFile.section('/', 0, -2);
+    QDir::current().mkpath(folder);
+    QFile toSave(localFile);
+
+    if (toSave.open(QIODevice::WriteOnly) == false)
+    {
+        qInfo() << "Could not open" << localFile << "for writing:" << toSave.errorString();
+        return;
+    }
+
+    qDebug() << "saving" << fileName << "size" << fileContent.size();
+    toSave.write(fileContent.constData(), fileContent.size());
+    toSave.close();
 }

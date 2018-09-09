@@ -18,6 +18,9 @@ public:
     void sendRequestDeleteABook(QString bookName);
     void sendRequestMissingMediaFiles(QString bookName);
 
+    void sendResponseGetFile(QString fileName, const char *s, uint len);
+    void sendResponseGetFileFinished(QString fileName, bool succeeded);
+
     void sendBookWordList(const QString bookName, const QVector<QString> &wordList);
     // the following messages are used to upload a book
     void sendResponseGetABook(const WordBook &book);
@@ -30,6 +33,7 @@ signals:
     void getServerDataFinished();
     void bookDeleted(QString bookName);
     void bookUploaded(QString bookName);
+    void fileUploaded(QString fileName);
     void gotMissingMediaFilesOfBook(QString bookName, const QList<QString> &fileList);
 
 protected:
@@ -46,6 +50,7 @@ private:
     bool handleResponseDeleteABook(const QByteArray &msg);
     bool handleResponseUploadABook(const QByteArray &msg);
     bool handleResponseMissingMediaFiles(const QByteArray &msg);
+    bool handleResponseUploadAFile(const QByteArray &msg);
 };
 
 #endif // MANAGERAGENT_H

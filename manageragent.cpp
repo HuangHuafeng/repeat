@@ -38,6 +38,10 @@ int ManagerAgent::handleMessage(const QByteArray &msg)
         handleResult = handleResponseMissingMediaFiles(msg);
         break;
 
+    case ServerClientProtocol::ResponseUploadAFile:
+        handleResult = handleResponseUploadAFile(msg);
+        break;
+
     default:
         return SvrAgt::handleMessage(msg);
 
@@ -153,6 +157,24 @@ bool ManagerAgent::handleResponseUploadABook(const QByteArray &msg)
     return true;
 }
 
+bool ManagerAgent::handleResponseUploadAFile(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString fileName;
+    in.startTransaction();
+    in >> receivedMsgHeader >> fileName;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the book name in handleResponseUploadABook()";
+        return false;
+    }
+
+    emit(fileUploaded(fileName));
+
+    return true;
+}
+
 bool ManagerAgent::handleResponseMissingMediaFiles(const QByteArray &msg)
 {
     QDataStream in(msg);
@@ -239,5 +261,27 @@ void ManagerAgent::sendRequestMissingMediaFiles(QString bookName)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << bookName;
+    sendMessage(block);
+}
+
+
+void ManagerAgent::sendResponseGetFile(QString fileName, const char *s, uint len)
+{
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetFile);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << fileName;
+    out.writeBytes(s, len);
+    sendMessage(block);
+}
+
+void ManagerAgent::sendResponseGetFileFinished(QString fileName, bool succeeded)
+{
+    MessageHeader responseHeader(ServerClientProtocol::ResponseGetFileFinished);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << fileName << succeeded;
     sendMessage(block);
 }

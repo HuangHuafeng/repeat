@@ -14,15 +14,23 @@ private:
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
     QMap<QString, sptr<Word>> m_mapWords;
+    QMap<QString, QByteArray>  m_mapFileContent;
 
     bool handleRequestGetAllWordsWithoutDefinition(const QByteArray &msg);
     bool handleRequestGetServerDataFinished(const QByteArray &msg);
+    bool handleRequestMissingMediaFiles(const QByteArray &msg);
+    bool handleRequestDeleteABook(const QByteArray &msg);
+
+    // for uploading a book from the manager
     bool handleResponseGetABook(const QByteArray &msg);
     bool handleResponseGetBookWordList(const QByteArray &msg);
     bool handleResponseGetAWord(const QByteArray &msg);
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
-    bool handleRequestDeleteABook(const QByteArray &msg);
-    bool handleRequestMissingMediaFiles(const QByteArray &msg);
+
+    // for uploading a file from the manager
+    bool handleResponseGetFile(const QByteArray &msg);
+    bool handleResponseGetFileFinished(const QByteArray &msg);
+    void saveFileFromServer(QString fileName, const QByteArray &fileContent);
 
     void sendResponseGetServerDataFinished(const QByteArray &msg);
 
@@ -32,6 +40,7 @@ private:
 
     void sendResponseUploadABook(const QByteArray &msg, QString bookName);
     void sendResponseDeleteABook(const QByteArray &msg, QString bookName);
+    void sendResponseUploadAFile(const QByteArray &msg, QString fileName);
 
     void sendBookMissingMediaFiles(const QByteArray &msg, QString bookName);
     void sendResponseMissingMediaFiles(const QByteArray &msg, QString bookName, const QList<QString> &fileList);

@@ -28,7 +28,8 @@
         "unordered_map": "cpp",
         "hashtable": "cpp",
         "__config": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "__locale": "cpp"
     },
     "C_Cpp.autocomplete": "Disabled",
     "clang.cxxflags": ["-std=c++11"]

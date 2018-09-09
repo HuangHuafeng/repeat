@@ -28,10 +28,12 @@ public:
     bool okToSync(QString *errorString = nullptr);
     void syncToLocal();
     void uploadBook(QString bookName);
+    void uploadfile(QString fileName);
     void downloadBook(QString bookName);
     void deleteBook(QString bookName);
     QVector<QString> getWordListOfBook(QString bookName);
     QList<QString> getMissingMediaFilesOfBook(QString bookName);
+    void uploadBookMissingMediaFiles(QString bookName);
 
 signals:
     void serverDataReloaded();
@@ -73,6 +75,9 @@ private:
 
     void sendBookWordList(QString bookName);
     void sendWordsOfBook(QString bookName);
+
+    bool okToSendFile(const QString fileName);
+    bool sendFile(const QString fileName);
 };
 
 #endif // SERVERMANAGER_H

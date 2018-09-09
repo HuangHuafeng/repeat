@@ -528,3 +528,90 @@ void ServerManager::sendWordsOfBook(QString bookName)
     }
     m_mgrAgt.sendResponseGetWordsOfBookFinished(bookName);
 }
+
+bool ServerManager::sendFile(const QString fileName)
+{
+    // check if the file is OK to send, we cannot expose everything on the sever!!!
+    if (okToSendFile(fileName) != true)
+    {
+        qCritical() << "cannot send file" << fileName << "because it violates the security policy!";
+        return false;
+    }
+
+    QString localFile = MySettings::dataDirectory() + "/" + fileName;
+    qDebug() << "send file" << localFile;
+
+    QFile toSend(localFile);
+    if (toSend.open(QIODevice::ReadOnly | QIODevice::ExistingOnly) == false)
+    {
+        qCritical() << "cannot open file" << fileName << "because" << toSend.errorString();
+        return false;
+    }
+
+    const int fileSize = static_cast<int>(toSend.size());
+    int sentBytes = 0;
+    int counter = 0;
+    bool succeeded = true;
+    QDataStream fileDS(&toSend);
+    char buf[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
+    while (sentBytes < fileSize)
+    {
+        auto readBytes = fileDS.readRawData(buf, ServerClientProtocol::MaximumBytesForFileTransfer);
+        if (readBytes == -1)
+        {
+            succeeded = false;
+            break;
+        }
+
+        counter ++;
+        m_mgrAgt.sendResponseGetFile(fileName, buf, static_cast<uint>(readBytes));
+        sentBytes += readBytes;
+        qDebug() << "send" << readBytes << "bytes of total" << fileSize;
+    }
+
+    return succeeded;
+}
+
+bool ServerManager::okToSendFile(const QString fileName)
+{
+    // only allow files in folder media
+    if (fileName.startsWith("media", Qt::CaseInsensitive) == false)
+    {
+        return false;
+    }
+
+    // only allow mp3/png/jpg/css/js
+    QString ext = fileName.section('.', -1);
+    if (ext.compare("mp3", Qt::CaseInsensitive) != 0
+            && ext.compare("png", Qt::CaseInsensitive) != 0
+            && ext.compare("jpg", Qt::CaseInsensitive) != 0
+            && ext.compare("css", Qt::CaseInsensitive) != 0
+            && ext.compare("js", Qt::CaseInsensitive) != 0)
+    {
+        return false;
+    }
+
+    // don't allow to move upper level folder
+    if (fileName.contains("..") == true)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void ServerManager::uploadfile(QString fileName)
+{
+    qDebug() << "uploading file" << fileName;
+    bool succeeded = sendFile(fileName);
+    m_mgrAgt.sendResponseGetFileFinished(fileName, succeeded);
+}
+
+void ServerManager::uploadBookMissingMediaFiles(QString bookName)
+{
+    auto bookMissingMediaFiles = m_mapBooksMissingFiles.value(bookName);
+    for (int i = 0;i < bookMissingMediaFiles.size();i ++)
+    {
+        uploadfile(bookMissingMediaFiles.at(i));
+    }
+}

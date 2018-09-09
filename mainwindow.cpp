@@ -445,3 +445,17 @@ bool MainWindow::localServerDataConflicts()
 
     return retValue;
 }
+
+void MainWindow::on_actionUpload_Book_Missing_Media_Files_triggered()
+{
+    auto ci = ui->twLocalData->currentItem();
+    if (ci == nullptr)
+    {
+        return;
+    }
+    auto bookName = ci->text(0);
+
+
+    ServerManager *serverManager = ServerManager::instance();
+    serverManager->uploadBookMissingMediaFiles(bookName);
+}

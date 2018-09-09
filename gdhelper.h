@@ -23,6 +23,7 @@ public:
     QString getWordDefinitionPage(QString word);
     bool saveWord(const QString &spelling);
     bool saveWord(const QString &spelling, const QString &lemma);
+    void fecthAndSaveFile(QString fileName);
 
 private:
     void modifyHtml(QString &html);

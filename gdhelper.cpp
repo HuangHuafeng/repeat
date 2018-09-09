@@ -100,3 +100,14 @@ bool GDHelper::saveWord(const QString &spelling, const QString &lemma)
 
     return true;
 }
+
+void GDHelper::fecthAndSaveFile(QString fileName)
+{
+    QUrl url;
+    url.setScheme("bres");
+    auto dictionaries = m_dict.getDictionaries();
+    Q_ASSERT(dictionaries[0].get() != nullptr);
+    url.setHost(QString::fromStdString(dictionaries[0]->getId()));
+    url.setPath(fileName);
+    m_dictSchemeHandler.fetchAndSaveFile(url);
+}

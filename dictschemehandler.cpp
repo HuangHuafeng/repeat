@@ -253,3 +253,8 @@ void DictSchemeHandler::modifyHtml(QString &html)
     */
 }
 
+void DictSchemeHandler::fetchAndSaveFile(QUrl url)
+{
+    saveMediaFile(url);
+}
+

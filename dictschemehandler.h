@@ -35,6 +35,7 @@ public:
 
     void installSchemeHandler();
     void modifyHtml(QString &html);
+    void fetchAndSaveFile(QUrl url);
 
     virtual void requestStarted(QWebEngineUrlRequestJob *request) override;
 };

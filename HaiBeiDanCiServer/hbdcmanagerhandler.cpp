@@ -1,4 +1,5 @@
 #include "hbdcmanagerhandler.h"
+#include "../HaiBeiDanCi/mediafilemanager.h"
 
 HBDCManagerHandler::HBDCManagerHandler(ClientWaiter &clientWaiter) : HBDCAppHandler(clientWaiter)
 {
@@ -35,6 +36,10 @@ int HBDCManagerHandler::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::RequestDeleteABook:
         handleResult = handleRequestDeleteABook(msg);
+        break;
+
+    case ServerClientProtocol::RequestMissingMediaFiles:
+        handleResult = handleRequestMissingMediaFiles(msg);
         break;
 
     default:
@@ -213,6 +218,10 @@ bool HBDCManagerHandler::handleResponseGetWordsOfBookFinished(const QByteArray &
         WordBook::storeBookFromServer(book, wordList);
     }
 
+    // update the media file manager
+    auto mfm = MediaFileManager::instance();
+    mfm->bookDownloaded(bookName);
+
     // clear the data
     m_mapBooks.clear();
     m_mapWords.clear();
@@ -247,6 +256,24 @@ bool HBDCManagerHandler::handleRequestDeleteABook(const QByteArray &msg)
     return true;
 }
 
+bool HBDCManagerHandler::handleRequestMissingMediaFiles(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString bookName;
+    in.startTransaction();
+    in >> receivedMsgHeader >> bookName;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the book name in handleRequestDeleteABook()";
+        return false;
+    }
+
+    sendBookMissingMediaFiles(msg, bookName);
+
+    return true;
+}
+
 void HBDCManagerHandler::sendResponseUploadABook(const QByteArray &msg, QString bookName)
 {
     MessageHeader receivedMsgHeader(msg);
@@ -267,4 +294,33 @@ void HBDCManagerHandler::sendResponseDeleteABook(const QByteArray &msg, QString 
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << bookName;
     sendMessage(block);
+}
+
+void HBDCManagerHandler::sendBookMissingMediaFiles(const QByteArray &msg, QString bookName)
+{
+    auto mfm = MediaFileManager::instance();
+    QSet<QString> missingMediaFiles;
+    auto missingPronounceAudioFiles = mfm->bookMissingPronounceAudioFiles(bookName);
+    if (missingPronounceAudioFiles.get() != nullptr)
+    {
+        missingMediaFiles += *missingPronounceAudioFiles;
+    }
+    auto missingExampleAudioFiles = mfm->bookMissingExampleAudioFiles(bookName);
+    if (missingExampleAudioFiles.get() != nullptr)
+    {
+        missingMediaFiles += *missingExampleAudioFiles;
+    }
+    auto fileList = missingMediaFiles.toList();
+    sendResponseMissingMediaFiles(msg, bookName, fileList);
+}
+
+void HBDCManagerHandler::sendResponseMissingMediaFiles(const QByteArray &msg, QString bookName, const QList<QString> &fileList)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseMissingMediaFiles, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << bookName << fileList;
+    sendMessage(block, true);
 }

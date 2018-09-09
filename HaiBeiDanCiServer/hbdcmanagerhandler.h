@@ -22,13 +22,20 @@ private:
     bool handleResponseGetAWord(const QByteArray &msg);
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
     bool handleRequestDeleteABook(const QByteArray &msg);
+    bool handleRequestMissingMediaFiles(const QByteArray &msg);
+
+    void sendResponseGetServerDataFinished(const QByteArray &msg);
 
     void sendAllWordsWithoutDefinition(const QByteArray &msg);
-    void sendResponseGetServerDataFinished(const QByteArray &msg);
     void sendAListOfWordsWithoutDefinition(const QByteArray &msg, const QList<QString> &wordList, bool listComplete);
     void sendResponseGetAllWordsWithoutDefinition(const QByteArray &msg, const QVector<QString> &spellings, const QVector<int> &ids, const QVector<int> &definitionLengths, bool listComplete);
+
     void sendResponseUploadABook(const QByteArray &msg, QString bookName);
     void sendResponseDeleteABook(const QByteArray &msg, QString bookName);
+
+    void sendBookMissingMediaFiles(const QByteArray &msg, QString bookName);
+    void sendResponseMissingMediaFiles(const QByteArray &msg, QString bookName, const QList<QString> &fileList);
+
 };
 
 #endif // HBDCMANAGERHANDLER_H

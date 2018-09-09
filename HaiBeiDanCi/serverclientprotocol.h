@@ -79,7 +79,7 @@ public:
         RequestGetServerDataFinished = ManagerToServerMessageCodeBase + 3,
         RequestDeleteABook = ManagerToServerMessageCodeBase + 4,
         RequestUploadABook = ManagerToServerMessageCodeBase + 5,    // not used, uploading a book uses Response* messages
-        RequestMediaFileStatus = ManagerToServerMessageCodeBase + 6,    // 1:n
+        RequestMissingMediaFiles = ManagerToServerMessageCodeBase + 6,    // 1:n
     } ManagerToServerMessageCode;
 
     typedef enum {
@@ -89,7 +89,7 @@ public:
         ResponseGetServerDataFinished = ServerToManagerMessageCodeBase + 3,
         ResponseDeleteABook = ServerToManagerMessageCodeBase + 4,
         ResponseUploadABook = ServerToManagerMessageCodeBase + 5,
-        ResponseMediaFileStatus = ServerToManagerMessageCodeBase + 6,   // n:1
+        ResponseMissingMediaFiles = ServerToManagerMessageCodeBase + 6,   // n:1
     } ServerToManagerMessageCode;
 };
 

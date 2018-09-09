@@ -1,6 +1,9 @@
 #ifndef MEDIAFILEMANAGER_H
 #define MEDIAFILEMANAGER_H
 
+#include "../golddict/sptr.hh"
+
+#include <QMap>
 #include <QSet>
 #include <QMutex>
 
@@ -8,22 +11,28 @@ class MediaFileManager
 {
 public:
     static MediaFileManager * instance();
-    const QSet<QString> & existingMediaFiles();
-    const QSet<QString> missingPronounceAudioFiles(QString bookName);
-    const QSet<QString> missingExampleAudioFiles(QString bookName);
+    bool isDataReady();
+    sptr<QSet<QString>> bookMissingPronounceAudioFiles(QString bookName);
+    sptr<QSet<QString>> bookMissingExampleAudioFiles(QString bookName);
+
     void fileDownloaded(QString fileName);
-    bool isExistingFileListReady();
+    void bookDownloaded(QString bookName);
 
 private:
     MediaFileManager();
 
     static MediaFileManager *m_mfm;
 
-    QSet<QString> m_existingFiles;
+    QMap<QString, sptr<QSet<QString>>> m_mapBookMissingPronounceAudioFiles;
+    QMap<QString, sptr<QSet<QString>>> m_mapBookMissingExampleAudioFiles;
     QMutex m_efMutex;
-    bool m_efListReady;
+    bool m_dataReady;
+    QMutex m_dataRedayMutex;
 
-    void refreshExistingFiles();
+    void initialize();
+    void initializeBookMissingFileList(QString bookName, const QSet<QString> &existingFiles);
+    QStringList bookPronounceMediaFileList(QString bookName);
+    QStringList bookExampleMediaFileList(QString bookName);
 };
 
 #endif // MEDIAFILEMANAGER_H

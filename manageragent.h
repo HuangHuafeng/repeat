@@ -16,19 +16,21 @@ public:
     void sendRequestGetServerDataFinished();
 
     void sendRequestDeleteABook(QString bookName);
+    void sendRequestMissingMediaFiles(QString bookName);
 
     void sendBookWordList(const QString bookName, const QVector<QString> &wordList);
     // the following messages are used to upload a book
     void sendResponseGetABook(const WordBook &book);
     void sendResponseGetBookWordList(QString bookName, const QVector<QString> &wordList, bool listComplete);
     void sendResponseGetAWord(const Word &word);
-    void sendResponseGetWordsOfBookFinished(const QString bookName);
+    void sendResponseGetWordsOfBookFinished(QString bookName);
 
 signals:
     void getAllWordsWithoutDefinitionFinished(const QVector<QString> &spellings, const QVector<int> &ids, const QVector<int> &definitionLengths);
     void getServerDataFinished();
     void bookDeleted(QString bookName);
     void bookUploaded(QString bookName);
+    void gotMissingMediaFilesOfBook(QString bookName, const QList<QString> &fileList);
 
 protected:
     virtual int handleMessage(const QByteArray &msg) override;    
@@ -43,6 +45,7 @@ private:
     bool handleResponseGetServerDataFinished(const QByteArray &msg);
     bool handleResponseDeleteABook(const QByteArray &msg);
     bool handleResponseUploadABook(const QByteArray &msg);
+    bool handleResponseMissingMediaFiles(const QByteArray &msg);
 };
 
 #endif // MANAGERAGENT_H

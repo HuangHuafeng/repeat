@@ -31,6 +31,7 @@ public:
     void downloadBook(QString bookName);
     void deleteBook(QString bookName);
     QVector<QString> getWordListOfBook(QString bookName);
+    QList<QString> getMissingMediaFilesOfBook(QString bookName);
 
 signals:
     void serverDataReloaded();
@@ -45,6 +46,7 @@ public slots:
     void onGetAllWordsWithoutDefinitionFinished(const QVector<QString> &spellings, const QVector<int> &ids, const QVector<int> &definitionLengths);
     void onBookDeleted(QString bookName);
     void onBookUploaded(QString bookName);
+    void onGotMissingMediaFilesOfBook(QString bookName, const QList<QString> &missingFiles);
 
 private:
     ServerManager(QObject *parent = nullptr);
@@ -56,6 +58,7 @@ private:
 
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
+    QMap<QString, QList<QString>> m_mapBooksMissingFiles;
     QMap<QString, sptr<Word>> m_mapWords;
 
     void downloadAllBooks();

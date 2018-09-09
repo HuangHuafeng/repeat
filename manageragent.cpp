@@ -34,6 +34,10 @@ int ManagerAgent::handleMessage(const QByteArray &msg)
         handleResult = handleResponseUploadABook(msg);
         break;
 
+    case ServerClientProtocol::ResponseMissingMediaFiles:
+        handleResult = handleResponseMissingMediaFiles(msg);
+        break;
+
     default:
         return SvrAgt::handleMessage(msg);
 
@@ -149,6 +153,25 @@ bool ManagerAgent::handleResponseUploadABook(const QByteArray &msg)
     return true;
 }
 
+bool ManagerAgent::handleResponseMissingMediaFiles(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString bookName;
+    QList<QString> missingMediaFiles;
+    in.startTransaction();
+    in >> receivedMsgHeader >> bookName >> missingMediaFiles;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the book name in handleResponseUploadABook()";
+        return false;
+    }
+
+    emit(gotMissingMediaFilesOfBook(bookName, missingMediaFiles));
+
+    return true;
+}
+
 void ManagerAgent::sendBookWordList(const QString bookName, const QVector<QString> &wordList)
 {
     int total = wordList.size();
@@ -192,7 +215,7 @@ void ManagerAgent::sendResponseGetAWord(const Word &word)
     sendMessage(block);
 }
 
-void ManagerAgent::sendResponseGetWordsOfBookFinished(const QString bookName)
+void ManagerAgent::sendResponseGetWordsOfBookFinished(QString bookName)
 {
     MessageHeader responseHeader(ServerClientProtocol::ResponseGetWordsOfBookFinished);
     QByteArray block;
@@ -204,6 +227,15 @@ void ManagerAgent::sendResponseGetWordsOfBookFinished(const QString bookName)
 void ManagerAgent::sendRequestDeleteABook(QString bookName)
 {
     MessageHeader responseHeader(ServerClientProtocol::RequestDeleteABook);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << bookName;
+    sendMessage(block);
+}
+
+void ManagerAgent::sendRequestMissingMediaFiles(QString bookName)
+{
+    MessageHeader responseHeader(ServerClientProtocol::RequestMissingMediaFiles);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << bookName;

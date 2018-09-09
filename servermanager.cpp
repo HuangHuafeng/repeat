@@ -21,6 +21,7 @@ ServerManager::ServerManager(QObject *parent) : QObject(parent),
     connect(&m_mgrAgt, SIGNAL(getAllWordsWithoutDefinitionFinished(const QVector<QString> &, const QVector<int> &, const QVector<int> &)), this, SLOT(onGetAllWordsWithoutDefinitionFinished(const QVector<QString> &, const QVector<int> &, const QVector<int> &)));
     connect(&m_mgrAgt, SIGNAL(bookDeleted(QString)), this, SLOT(onBookDeleted(QString)));
     connect(&m_mgrAgt, SIGNAL(bookUploaded(QString)), this, SLOT(onBookUploaded(QString)));
+    connect(&m_mgrAgt, SIGNAL(gotMissingMediaFilesOfBook(QString, const QList<QString> &)), this, SLOT(onGotMissingMediaFilesOfBook(QString, const QList<QString> &)));
 
     m_mgrAgt.connectToServer();
 }
@@ -49,11 +50,13 @@ void ServerManager::OnBookListReady(const QList<QString> &books)
     // STEP 2: we now know the names of the books, we can get
     // * id, intro of each book
     // * word list of each book
+    // * missing media files of each book
     for (int i = 0;i < books.size();i ++)
     {
         auto bookName = books.at(i);
         m_mgrAgt.sendRequestGetABook(bookName);
         m_mgrAgt.sendRequestGetBookWordList(bookName);
+        m_mgrAgt.sendRequestMissingMediaFiles(bookName);
     }
 
     // RELOAD SERVER DATA
@@ -181,6 +184,11 @@ void ServerManager::onBookUploaded(QString bookName)
     qDebug() << "successfully uploaded book:" << bookName;
 
     reloadServerData();
+}
+
+void ServerManager::onGotMissingMediaFilesOfBook(QString bookName, const QList<QString> &missingFiles)
+{
+    m_mapBooksMissingFiles.insert(bookName, missingFiles);
 }
 
 /**
@@ -465,6 +473,11 @@ void ServerManager::deleteBook(QString bookName)
 QVector<QString> ServerManager::getWordListOfBook(QString bookName)
 {
     return m_mapBooksWordList.value(bookName);
+}
+
+QList<QString> ServerManager::getMissingMediaFilesOfBook(QString bookName)
+{
+    return m_mapBooksMissingFiles.value(bookName);
 }
 
 void ServerManager::uploadBook(QString bookName)

@@ -41,6 +41,7 @@ private:
     void sendResponseUploadABook(const QByteArray &msg, QString bookName);
     void sendResponseDeleteABook(const QByteArray &msg, QString bookName);
     void sendResponseUploadAFile(const QByteArray &msg, QString fileName);
+    void sendResponseUploadAWord(const QByteArray &msg, QString spelling);
 
     void sendBookMissingMediaFiles(const QByteArray &msg, QString bookName);
     void sendResponseMissingMediaFiles(const QByteArray &msg, QString bookName, const QList<QString> &fileList);

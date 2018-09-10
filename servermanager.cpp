@@ -22,6 +22,8 @@ ServerManager::ServerManager(QObject *parent) : QObject(parent),
     connect(&m_mgrAgt, SIGNAL(bookDeleted(QString)), this, SLOT(onBookDeleted(QString)));
     connect(&m_mgrAgt, SIGNAL(bookUploaded(QString)), this, SLOT(onBookUploaded(QString)));
     connect(&m_mgrAgt, SIGNAL(gotMissingMediaFilesOfBook(QString, const QList<QString> &)), this, SLOT(onGotMissingMediaFilesOfBook(QString, const QList<QString> &)));
+    connect(&m_mgrAgt, SIGNAL(fileUploaded(QString)), this, SLOT(onFileUploaded(QString)));
+    connect(&m_mgrAgt, SIGNAL(wordUploaded(QString)), this, SLOT(onWordUploaded(QString)));
 
     m_mgrAgt.connectToServer();
 }
@@ -141,6 +143,7 @@ void ServerManager::onServerConnected()
     qDebug() << "server connected";
 
     m_mgrAgt.sendRequestPromoteToManager();
+    reloadServerData();
 }
 
 void ServerManager::onGetServerDataFinished()
@@ -185,6 +188,38 @@ void ServerManager::onBookUploaded(QString bookName)
 
     reloadServerData();
 }
+
+void ServerManager::onFileUploaded(QString fileName)
+{
+    qDebug() << "successfully uploaded book:" << fileName;
+    m_uploaded ++;
+    if (m_toUpload != 0)
+    {
+        emit(uploadProgress(m_uploaded * 1.0f / m_toUpload));
+    }
+
+    if (m_uploaded == m_toUpload)
+    {
+        reloadServerData();
+    }
+}
+
+void ServerManager::onWordUploaded(QString spelling)
+{
+    qDebug() << "successfully uploaded word:" << spelling;
+    m_uploaded ++;
+    if (m_toUpload != 0)
+    {
+        emit(uploadProgress(m_uploaded * 1.0f / m_toUpload));
+    }
+
+    // no need to reload, as it will be reloaded later when the book finish uploading onBookUploaded()
+    //if (m_uploaded == m_toUpload)
+    //{
+    //    reloadServerData();
+    //}
+}
+
 
 void ServerManager::onGotMissingMediaFilesOfBook(QString bookName, const QList<QString> &missingFiles)
 {
@@ -515,6 +550,8 @@ void ServerManager::sendWordsOfBook(QString bookName)
     auto book = WordBook::getBook(bookName);
     Q_ASSERT(book.get() != nullptr);
     auto wordList = book->getAllWords();
+    m_toUpload = wordList.size();
+    m_uploaded = 0;
     for (int i = 0;i < wordList.size();i ++)
     {
         auto spelling = wordList.at(i);
@@ -524,6 +561,12 @@ void ServerManager::sendWordsOfBook(QString bookName)
             auto word = Word::getWord(spelling);
             Q_ASSERT(word.get() != nullptr);
             m_mgrAgt.sendResponseGetAWord(*word);
+            QCoreApplication::processEvents();
+        }
+        else
+        {
+            // no need to upload this word, so mark it as uploaded for progress calculation
+            onWordUploaded(spelling);
         }
     }
     m_mgrAgt.sendResponseGetWordsOfBookFinished(bookName);
@@ -610,8 +653,18 @@ void ServerManager::uploadfile(QString fileName)
 void ServerManager::uploadBookMissingMediaFiles(QString bookName)
 {
     auto bookMissingMediaFiles = m_mapBooksMissingFiles.value(bookName);
+    m_toUpload = bookMissingMediaFiles.size();
+    m_uploaded = 0;
     for (int i = 0;i < bookMissingMediaFiles.size();i ++)
     {
         uploadfile(bookMissingMediaFiles.at(i));
+        QCoreApplication::processEvents();
     }
+
+}
+
+bool ServerManager::bookExistsInServer(QString bookName)
+{
+    Q_ASSERT(m_serverDataLoaded == true);
+    return m_mapBooks.value(bookName).get() != nullptr;
 }

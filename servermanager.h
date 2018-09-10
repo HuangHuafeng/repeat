@@ -27,6 +27,7 @@ public:
     void reloadServerData();
     bool okToSync(QString *errorString = nullptr);
     void syncToLocal();
+    bool bookExistsInServer(QString bookName);
     void uploadBook(QString bookName);
     void uploadfile(QString fileName);
     void downloadBook(QString bookName);
@@ -37,6 +38,7 @@ public:
 
 signals:
     void serverDataReloaded();
+    void uploadProgress(float percentage);
 
 public slots:
     void OnBookListReady(const QList<QString> &books);
@@ -49,6 +51,8 @@ public slots:
     void onBookDeleted(QString bookName);
     void onBookUploaded(QString bookName);
     void onGotMissingMediaFilesOfBook(QString bookName, const QList<QString> &missingFiles);
+    void onFileUploaded(QString fileName);
+    void onWordUploaded(QString spelling);
 
 private:
     ServerManager(QObject *parent = nullptr);
@@ -62,6 +66,10 @@ private:
     QMap<QString, QVector<QString>> m_mapBooksWordList;
     QMap<QString, QList<QString>> m_mapBooksMissingFiles;
     QMap<QString, sptr<Word>> m_mapWords;
+
+    // used to calculate upload progress
+    int m_toUpload;
+    int m_uploaded;
 
     void downloadAllBooks();
     void downloadWordsOfBook(QString bookName);

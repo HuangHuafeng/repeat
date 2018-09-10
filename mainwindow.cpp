@@ -15,7 +15,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDateTime>
-#include <QProgressDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -25,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_refreshTimer(this)
 {
     ui->setupUi(this);
+
+    initializeProgressDialog();
 
     QStringList header;
     header.append(QObject::tr("Name"));
@@ -56,15 +57,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ServerManager *serverManager = ServerManager::instance();
     connect(serverManager, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
+    connect(serverManager, SIGNAL(uploadProgress(float)), this, SLOT(onUploadProgress(float)));
 
     // call MediaFileManager::instance() to get the existing file list ready
     MediaFileManager::instance();
 
-    reloadLocalData();
-
     // start a timer to refresh the missing files.
     connect(&m_refreshTimer, SIGNAL(timeout()), this, SLOT(onRefreshTimerTimeout()));
     m_refreshTimer.start(1000);
+
+    reloadLocalData();
 }
 
 MainWindow::~MainWindow()
@@ -232,6 +234,11 @@ void MainWindow::onServerDataReloaded()
     ui->labelServerWords->setText(serverWords);
 }
 
+void MainWindow::onUploadProgress(float percentage)
+{
+    m_progressDialog.setValue(static_cast<int>(100 * percentage));
+}
+
 void MainWindow::listServerBooks(const QList<QString> books)
 {
     ui->twServerData->clear();
@@ -295,11 +302,6 @@ void MainWindow::on_pbDeleteBook_clicked()
 
 void MainWindow::on_actionUpload_Book_triggered()
 {
-    if (localServerDataConflicts() == true)
-    {
-        return;
-    }
-
     auto ci = ui->twLocalData->currentItem();
     if (ci == nullptr)
     {
@@ -307,8 +309,19 @@ void MainWindow::on_actionUpload_Book_triggered()
     }
 
     auto bookName = ci->text(0);
-
     ServerManager *serverManager = ServerManager::instance();
+    if (serverManager->bookExistsInServer(bookName) == true)
+    {
+        QMessageBox::information(this, MySettings::appName(), "Book \"" + bookName + "\" already exists in server.");
+        return;
+    }
+
+    if (localServerDataConflicts() == true)
+    {
+        return;
+    }
+
+    createProgressDialog("uploading book \"" + bookName + "\" ...", QString());
     serverManager->uploadBook(bookName);
 }
 
@@ -454,8 +467,36 @@ void MainWindow::on_actionUpload_Book_Missing_Media_Files_triggered()
         return;
     }
     auto bookName = ci->text(0);
-
-
     ServerManager *serverManager = ServerManager::instance();
+    if (serverManager->bookExistsInServer(bookName) == false)
+    {
+        QMessageBox::information(this, MySettings::appName(), "Book \"" + bookName + "\" does not exist in server.");
+        return;
+    }
+
+    auto missingMediaFiles = serverManager->getMissingMediaFilesOfBook(bookName);
+    if (missingMediaFiles.isEmpty() == true)
+    {
+        // no file missing
+        QMessageBox::information(this, MySettings::appName(), "All media files of book \"" + bookName + "\" are already available in server.");
+        return;
+    }
+
+    createProgressDialog("uploading media files of book \"" + bookName + "\" ...", QString());
     serverManager->uploadBookMissingMediaFiles(bookName);
+}
+
+
+void MainWindow::initializeProgressDialog()
+{
+    m_progressDialog.setModal(true);
+    m_progressDialog.cancel();
+}
+
+void MainWindow::createProgressDialog(const QString &labelText, const QString &cancelButtonText)
+{
+    m_progressDialog.reset();
+    m_progressDialog.setLabelText("    " + labelText + "    ");
+    m_progressDialog.setCancelButtonText(cancelButtonText);
+    m_progressDialog.setValue(0);
 }

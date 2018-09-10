@@ -34,6 +34,7 @@ signals:
     void bookDeleted(QString bookName);
     void bookUploaded(QString bookName);
     void fileUploaded(QString fileName);
+    void wordUploaded(QString spelling);
     void gotMissingMediaFilesOfBook(QString bookName, const QList<QString> &fileList);
 
 protected:
@@ -51,6 +52,7 @@ private:
     bool handleResponseUploadABook(const QByteArray &msg);
     bool handleResponseMissingMediaFiles(const QByteArray &msg);
     bool handleResponseUploadAFile(const QByteArray &msg);
+    bool handleResponseUploadAWord(const QByteArray &msg);
 };
 
 #endif // MANAGERAGENT_H

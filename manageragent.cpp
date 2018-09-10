@@ -42,6 +42,10 @@ int ManagerAgent::handleMessage(const QByteArray &msg)
         handleResult = handleResponseUploadAFile(msg);
         break;
 
+    case ServerClientProtocol::ResponseUploadAWord:
+        handleResult = handleResponseUploadAWord(msg);
+        break;
+
     default:
         return SvrAgt::handleMessage(msg);
 
@@ -175,6 +179,24 @@ bool ManagerAgent::handleResponseUploadAFile(const QByteArray &msg)
     return true;
 }
 
+bool ManagerAgent::handleResponseUploadAWord(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString spelling;
+    in.startTransaction();
+    in >> receivedMsgHeader >> spelling;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the spelling in handleResponseUploadAWord()";
+        return false;
+    }
+
+    emit(wordUploaded(spelling));
+
+    return true;
+}
+
 bool ManagerAgent::handleResponseMissingMediaFiles(const QByteArray &msg)
 {
     QDataStream in(msg);
@@ -198,10 +220,8 @@ void ManagerAgent::sendBookWordList(const QString bookName, const QVector<QStrin
 {
     int total = wordList.size();
     int pos = 0;
-    int counter = 0;
     while (pos < total)
     {
-        counter ++;
         QVector<QString> subList = wordList.mid(pos, ServerClientProtocol::MaximumWordsInAMessage);
         pos += subList.size();
         sendResponseGetBookWordList(bookName, subList, pos>=total);

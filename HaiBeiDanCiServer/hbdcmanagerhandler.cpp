@@ -88,6 +88,17 @@ void HBDCManagerHandler::sendResponseGetServerDataFinished(const QByteArray &msg
     sendSimpleMessage(msg, ServerClientProtocol::ResponseGetServerDataFinished);
 }
 
+void HBDCManagerHandler::sendResponseUploadAWord(const QByteArray &msg, QString spelling)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseUploadAWord, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << spelling;
+    sendMessage(block);
+}
+
 void HBDCManagerHandler::sendAllWordsWithoutDefinition(const QByteArray &msg)
 {
     auto wordList = Word::getAllWords();
@@ -198,7 +209,7 @@ bool HBDCManagerHandler::handleResponseGetAWord(const QByteArray &msg)
     sptr<Word> newWord = new Word(word);
     m_mapWords.insert(word.getSpelling(), newWord);
 
-    sendResponseOK(msg);
+    sendResponseUploadAWord(msg, word.getSpelling());
 
     return true;
 }

@@ -8,6 +8,7 @@
 #include <QMainWindow>
 #include <QWebEngineView>
 #include <QTreeWidget>
+#include <QProgressDialog>
 
 namespace Ui {
 class MainWindow;
@@ -34,6 +35,7 @@ private slots:
 
     void onServerDataReloaded();
     void onBookDownloaded(QString bookName);
+    void onUploadProgress(float percentage);
 
     void on_actionPreferences_triggered();
 
@@ -71,11 +73,14 @@ private:
     QWebEngineView m_definitionView;
     QTimer m_refreshTimer;
 
+    QProgressDialog m_progressDialog;
+    void initializeProgressDialog();
+    void createProgressDialog(const QString &labelText, const QString &cancelButtonText);
+
     void QueryWord();
 
     void reloadLocalData();
     void reloadLocalBooks();
-    void reloadServerBooks();
     void addBookToTheView(QTreeWidget *tw, WordBook &book);
     void selectFirstItem(QTreeWidget *tw);
     void listServerBooks(const QList<QString> books);

@@ -81,6 +81,7 @@ public:
         RequestUploadABook = ManagerToServerMessageCodeBase + 5,    // not used, uploading a book uses Response* messages
         RequestMissingMediaFiles = ManagerToServerMessageCodeBase + 6,    // 1:n
         RequestUploadAFile = ManagerToServerMessageCodeBase + 7,    // not used, uploading a file uses Response* messages
+        RequestUploadAWord = ManagerToServerMessageCodeBase + 8,    // not used, uploading a word uses Response* messages
     } ManagerToServerMessageCode;
 
     typedef enum {
@@ -92,6 +93,7 @@ public:
         ResponseUploadABook = ServerToManagerMessageCodeBase + 5,
         ResponseMissingMediaFiles = ServerToManagerMessageCodeBase + 6,   // n:1
         ResponseUploadAFile = ServerToManagerMessageCodeBase + 7,
+        ResponseUploadAWord = ServerToManagerMessageCodeBase + 8,
     } ServerToManagerMessageCode;
 };
 

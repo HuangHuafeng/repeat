@@ -111,7 +111,8 @@ class MySettings : public QObject
     void updateInfoFileNow();
 
   private slots:
-    void onInfoFileDownloadedFromGithub(QString fileName);
+    void onInfoFileDownloaded(QString fileName);
+    void onInfoFileDownloadFailed(QString fileName);
 
   private:
     MySettings();

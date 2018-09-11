@@ -41,6 +41,8 @@ QString MySettings::m_appName;
 
 MySettings::MySettings()
 {
+    connect(&m_downloadManager, SIGNAL(fileDownloaded(QString)), this, SLOT(onInfoFileDownloaded(QString)));
+    connect(&m_downloadManager, SIGNAL(fileDownloadFailed(QString)), this, SLOT(onInfoFileDownloadFailed(QString)));
 }
 
 MySettings::~MySettings()
@@ -56,7 +58,6 @@ MySettings *MySettings::instance()
     if (m_settings == nullptr)
     {
         m_settings = new MySettings();
-        connect(&m_settings->m_downloadManager, SIGNAL(fileDownloaded(QString)), m_settings, SLOT(onInfoFileDownloadedFromGithub(QString)));
         m_settings->loadSettingsFromInfoFile();
     }
 
@@ -627,12 +628,6 @@ void MySettings::readInfoFile(QString infoFileName)
     }
 }
 
-void MySettings::onInfoFileDownloadedFromGithub(QString fileName)
-{
-    readInfoFile(fileName);
-    MySettings::saveLastUpdateTime();
-}
-
 /**
  * @brief MySettings::loadSettingsFromInfoFile
  * We need a stragety to decide when to download info.json from Github!
@@ -643,43 +638,76 @@ void MySettings::loadSettingsFromInfoFile()
     QString infoFileName = MySettings::dataDirectory() + "/info.txt";
     if (QFile::exists(infoFileName) == true)
     {
+        // we should read the settings in the current file, downloading might fail!
+        // then if the download succeed, we refresh the settings
+        readInfoFile(infoFileName);
+
         QDateTime lut = MySettings::lastUpdateTime();
         QDateTime curTime = QDateTime::currentDateTime();
         auto pastDays = lut.daysTo(curTime);
-        if (pastDays < MySettings::updateInterval())
+        if (pastDays >= MySettings::updateInterval())
         {
-            // no need to update the info file
-            readInfoFile(infoFileName);
-            return;
+            // we haven't update the file for a period longer then the settings
+            // so update it
+            updateInfoFileNow();
         }
     }
-
-    updateInfoFileNow();
+    else
+    {
+        updateInfoFileNow();
+    }
 }
 
 void MySettings::updateInfoFileNow()
 {
-    QString infoFileName = MySettings::dataDirectory() + "/info.txt";
-
-    if (QFile::exists(infoFileName) == true)
+    QString tempFileName = MySettings::dataDirectory() + "/info.tmp";
+    if (QFile::exists(tempFileName) == true && QFile::remove(tempFileName) == false)
     {
-        QString backupFile = infoFileName + ".bak";
-        // delete the backup file
-        if (QFile::exists(backupFile) == true && QFile::remove(backupFile) == false)
-        {
-            qDebug("failed to remove the old backup file!");
-        }
-
-        // save the current one as backup
-        if (QFile::rename(infoFileName, backupFile) == false)
-        {
-            qDebug("failed to create info file backup!");
-        }
+        qCritical() << tempFileName << "exists and cannot be removed. This is unexpected!";
     }
-
-    downloadInfoFileFromGitHub(infoFileName);
+    downloadInfoFileFromGitHub(tempFileName);
 }
 
+void MySettings::onInfoFileDownloaded(QString fileName)
+{
+    QString tempFileName = MySettings::dataDirectory() + "/info.tmp";
+    if (tempFileName.compare(fileName) == 0)
+    {
+        QString infoFileName = MySettings::dataDirectory() + "/info.txt";
+
+        if (QFile::exists(infoFileName) == true)
+        {
+            QString backupFile = infoFileName + ".bak";
+            // delete the backup file
+            if (QFile::exists(backupFile) == true && QFile::remove(backupFile) == false)
+            {
+                qCritical() << "failed to remove the old backup file" << backupFile;
+            }
+
+            // rename the current one as backup
+            if (QFile::rename(infoFileName, backupFile) == false)
+            {
+                qCritical() << "failed to create a new backup" << backupFile;
+            }
+        }
+
+        if (QFile::rename(fileName, infoFileName) == true)
+        {
+            readInfoFile(infoFileName);
+            MySettings::saveLastUpdateTime();
+        }
+        else
+        {
+            qCritical() << "failed to save file" << infoFileName;
+        }
+    }
+}
+
+void MySettings::onInfoFileDownloadFailed(QString fileName)
+{
+    // no need to log precisely as the error is already logged in DownloadManager::downloadFinished()
+    qCritical() << "downloading" << fileName << "failed!";
+}
 
 QString MySettings::getSettingString(QString key)
 {

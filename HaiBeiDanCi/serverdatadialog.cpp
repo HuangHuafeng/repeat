@@ -66,11 +66,14 @@ void ServerDataDialog::onItemSelectionChanged()
     }
 
     auto mfm = MediaFileManager::instance();
-    bool eflReady = mfm->isDataReady();
 
     ui->pbDownloadBook->setEnabled(downloaded == false);
-    ui->pbDownloadMediaFiles->setEnabled(downloaded == true && eflReady == true);
-    ui->pbDownloadPronounceFiles->setEnabled(downloaded == true && eflReady == true);
+    ui->pbDownloadMediaFiles->setEnabled(downloaded == true
+                                         && mfm->isDataReady() == true
+                                         && mfm->bookMissingExampleAudioFiles(bookName)->isEmpty() == false);
+    ui->pbDownloadPronounceFiles->setEnabled(downloaded == true
+                                             && mfm->isDataReady() == true
+                                             && mfm->bookMissingPronounceAudioFiles(bookName)->isEmpty() == false);
 }
 
 void ServerDataDialog::onBookListReady(const QList<QString> books)

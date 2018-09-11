@@ -1,8 +1,3 @@
-* improve the server agent, it should not have any specific logic. Add new class to handle logic (like saving file/word/book)
-* add server manager.
-* add server management
-    # data sync to server
-    # anything wrong, sync from server
 * add "leave a message to the author"
 * deploy HaiBeiDanCi server
 * add server setting in info.json
@@ -17,6 +12,11 @@ LOW PRIORITY
 
 
 // DONE
+DONE * improve the server agent, it should not have any specific logic. Add new class to handle logic (like saving file/word/book)
+DONE * add server manager.
+DONE * add server management
+    # data sync to server
+    # anything wrong, sync from server
 DONE (removed from Intro, no change to study/browse) * QWebEgingeView seems heavy, remove it from Intro, create dynamicly for study/browse
 DONE * improve about
 DONE * building the list of media files could take time, so we should show progress dialog

@@ -1,5 +1,7 @@
 #include "mysettings.h"
 
+#include <QtDebug>
+#include <QDateTime>
 #include <QSettings>
 #include <QCoreApplication>
 #include <QUrl>
@@ -663,7 +665,7 @@ void MySettings::updateInfoFileNow()
     {
         QString backupFile = infoFileName + ".bak";
         // delete the backup file
-        if (QFile::remove(backupFile) == false)
+        if (QFile::exists(backupFile) == true && QFile::remove(backupFile) == false)
         {
             qDebug("failed to remove the old backup file!");
         }

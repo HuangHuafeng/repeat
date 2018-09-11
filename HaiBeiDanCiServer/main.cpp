@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(MySettings::appName());
 
     // this should be after the above 3 lines!!!
-    MySettings::saveDataDirectory("/Users/huafeng/Documents/GitHub/HaiBeiDanCiServerData");
+    //MySettings::saveDataDirectory("/Users/huafeng/Documents/GitHub/HaiBeiDanCiServerData");
 
     if (WordDB::initialize() == false)
     {

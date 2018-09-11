@@ -117,7 +117,7 @@ bool WordDB::connectDB(const QString &connectionName)
     newDatabase->setDatabaseName(dbFileName);
     if (!newDatabase->open())
     {
-        qCritical("Unable to open database file!");
+        qCritical() << "Unable to open database file:" << dbFileName;
         return false;
     }
 

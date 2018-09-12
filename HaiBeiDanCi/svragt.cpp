@@ -565,11 +565,19 @@ void SvrAgt::downloadMultipleFiles(QSet<QString> files)
     Q_ASSERT(m_filesToDownload.isEmpty() == true);
     Q_ASSERT(m_mapFileContent.isEmpty() == true);
 
+    int counter = 0;
+    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
     QSet<QString>::const_iterator it = files.constBegin();
     while (it != files.constEnd())
     {
         downloadFile(*it);
         it ++;
+
+        if (counter ++ % requestsForARound == 0)
+        {
+            // process events so we don't make the app unresponsive
+            QCoreApplication::processEvents();
+        }
     }
 
     m_toDownload = m_filesToDownload.size();
@@ -672,6 +680,7 @@ void SvrAgt::downloadWords(const QVector<QString> &wordList)
     // don't clear this as it breaks multiple downloading. In other words,
     // it's possible that there are books in downloading at this moment!
 
+    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
     // send message to download the words
     for (int i = 0;i < wordList.size();i ++)
     {
@@ -680,6 +689,12 @@ void SvrAgt::downloadWords(const QVector<QString> &wordList)
         {
             m_wordsToDownload.insert(spelling, WaitingDataFromServer);  // mark it as request has been sent
             sendRequestGetAWord(spelling);
+        }
+
+        if (i % requestsForARound == 0)
+        {
+            // process events so we don't make the app unresponsive
+            QCoreApplication::processEvents();
         }
     }
 

@@ -510,7 +510,7 @@ QString MySettings::infoFileHttpUrl()
     QString infoHttp = MySettings::getSettingString("infoFileHttpUrl");
     if (infoHttp.isEmpty() == true)
     {
-        infoHttp = "http://www.huafeng.ga/info.json";
+        infoHttp = "http://www.huafeng.ga/wp-content/uploads/info.json";
     }
 
     return infoHttp;
@@ -607,6 +607,7 @@ int MySettings::numberOfRequestInEveryDownloadRound()
 void MySettings::downloadInfoFileFromGitHub(QString saveToFileName)
 {
     QString urlString = MySettings::infoFileHttpUrl();
+    qDebug() << "try to download" << urlString << "and save as" << saveToFileName;
     m_downloadManager.download(urlString, saveToFileName);
 }
 
@@ -693,6 +694,7 @@ void MySettings::onInfoFileDownloaded(QString fileName)
 
         if (QFile::rename(fileName, infoFileName) == true)
         {
+            qCritical() << infoFileName << "updated.";
             readInfoFile(infoFileName);
             MySettings::saveLastUpdateTime();
         }

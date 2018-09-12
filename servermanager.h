@@ -71,12 +71,9 @@ private:
     int m_toUpload;
     int m_uploaded;
 
-    void downloadAllBooks();
-    void downloadWordsOfBook(QString bookName);
-    void saveFileFromServer(QString fileName, const QByteArray &fileContent);
+    void downloadBookDetails(QString bookName);
 
     void clearData();
-    void printData();
 
     bool okToSyncBooks(QString *errorString = nullptr);
     bool okToSyncWords(QString *errorString = nullptr);

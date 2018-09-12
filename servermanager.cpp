@@ -55,10 +55,7 @@ void ServerManager::OnBookListReady(const QList<QString> &books)
     // * missing media files of each book
     for (int i = 0;i < books.size();i ++)
     {
-        auto bookName = books.at(i);
-        m_mgrAgt.sendRequestGetABook(bookName);
-        m_mgrAgt.sendRequestGetBookWordList(bookName);
-        m_mgrAgt.sendRequestMissingMediaFiles(bookName);
+        downloadBookDetails(books.at(i));
     }
 
     // RELOAD SERVER DATA
@@ -80,57 +77,11 @@ void ServerManager::OnBookWordListReceived(QString bookName, const QVector<QStri
     m_mapBooksWordList.insert(bookName, wordList);
 }
 
-/**
- * @brief ServerManager::downloadAllBooks
- * downloadAllBooks()
- * * does not download the list of words in the book
- * * let alone the words
- */
-void ServerManager::downloadAllBooks()
+void ServerManager::downloadBookDetails(QString bookName)
 {
-    auto books = m_mapBooks.keys();
-    for (int i = 0;i < books.size();i ++)
-    {
-        m_mgrAgt.sendRequestGetABook(books.at(i));
-    }
-}
-
-void ServerManager::saveFileFromServer(QString fileName, const QByteArray &fileContent)
-{
-    QString localFile = MySettings::dataDirectory() + "/" + fileName;
-    QString folder = localFile.section('/', 0, -2);
-    QDir::current().mkpath(folder);
-    QFile toSave(localFile);
-
-    if (toSave.open(QIODevice::WriteOnly) == false)
-    {
-        qInfo() << "Could not open" << localFile << "for writing:" << toSave.errorString();
-        return;
-    }
-
-    qDebug() << "saving" << fileName << "size" << fileContent.size();
-    toSave.write(fileContent.constData(), fileContent.size());
-    toSave.close();
-}
-
-void ServerManager::downloadWordsOfBook(QString bookName)
-{
-    m_mapWords.clear();
-    auto wordList = m_mapBooksWordList.value(bookName);
-    QVector<QString> wordsToDownload;
-    // get the list of words which are not available locally
-    for (int i = 0;i < wordList.size();i ++)
-    {
-        auto spelling = wordList.at(i);
-
-        if (Word::getWord(spelling).get() == nullptr && m_mapWords.contains(spelling) == false)
-        {
-            wordsToDownload.append(spelling);
-        }
-    }
-
-    m_mgrAgt.downloadWords(wordsToDownload);
-    m_mgrAgt.sendRequestGetWordsOfBookFinished(bookName);
+    m_mgrAgt.sendRequestGetABook(bookName);
+    m_mgrAgt.sendRequestGetBookWordList(bookName);
+    m_mgrAgt.sendRequestMissingMediaFiles(bookName);
 }
 
 QList<QString> ServerManager::getBookList()
@@ -152,7 +103,6 @@ void ServerManager::onGetServerDataFinished()
     // we got all the data when we get this message
     m_serverDataLoaded = true;
     emit(serverDataReloaded());
-    printData();
 }
 
 void ServerManager::onGetAllWordsWithoutDefinitionFinished(const QVector<QString> &spellings, const QVector<int> &ids, const QVector<int> &definitionLengths)
@@ -186,21 +136,38 @@ void ServerManager::onBookUploaded(QString bookName)
 {
     qDebug() << "successfully uploaded book:" << bookName;
 
-    reloadServerData();
+    downloadBookDetails(bookName);
 }
 
 void ServerManager::onFileUploaded(QString fileName)
 {
-    qDebug() << "successfully uploaded book:" << fileName;
+    qDebug() << "successfully uploaded file:" << fileName;
     m_uploaded ++;
     if (m_toUpload != 0)
     {
         emit(uploadProgress(m_uploaded * 1.0f / m_toUpload));
     }
 
+    /*
+     * this way is to time consuming!!!
+    auto books = m_mapBooks.keys();
+    for (int i = 0;i < books.size();i ++)
+    {
+        auto bookName = books.at(i);
+        auto missingFiles = m_mapBooksMissingFiles.value(bookName);
+        missingFiles.removeOne(fileName);
+        m_mapBooksMissingFiles.insert(bookName, missingFiles);
+    }
+    */
+
     if (m_uploaded == m_toUpload)
     {
-        reloadServerData();
+        // get the updated missing file information of all books
+        auto books = m_mapBooks.keys();
+        for (int i = 0;i < books.size();i ++)
+        {
+            m_mgrAgt.sendRequestMissingMediaFiles(books.at(i));
+        }
     }
 }
 
@@ -224,6 +191,7 @@ void ServerManager::onWordUploaded(QString spelling)
 void ServerManager::onGotMissingMediaFilesOfBook(QString bookName, const QList<QString> &missingFiles)
 {
     m_mapBooksMissingFiles.insert(bookName, missingFiles);
+    emit(serverDataReloaded());
 }
 
 /**
@@ -250,18 +218,6 @@ void ServerManager::clearData()
     m_mapBooks.clear();
     m_mapBooksWordList.clear();
     m_mapWords.clear();
-}
-
-void ServerManager::printData()
-{
-    auto books = m_mapBooks.keys();
-    for (int i = 0;i < books.size();i ++)
-    {
-        auto bookName = books.at(i);
-        qDebug() << bookName << m_mapBooksWordList.value(bookName).size() << "words";
-    }
-
-    qDebug() << "total words:" << m_mapWords.size();
 }
 
 bool ServerManager::okToSync(QString *errorString)

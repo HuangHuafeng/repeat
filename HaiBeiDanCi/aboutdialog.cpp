@@ -47,6 +47,6 @@ void AboutDialog::on_pbOK_clicked()
 
 void AboutDialog::setMyTitle()
 {
-    QString title = QObject::tr("About ") + MySettings::appName();
+    QString title = QObject::tr("About");
     setWindowTitle(title);
 }

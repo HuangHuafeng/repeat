@@ -43,7 +43,7 @@ bool StudyList::responseToCurrent(sptr<WordCard> current, MemoryItem::ResponseQu
     return true;
 }
 
-void StudyList::learnWordAgain(const QString spelling)
+void StudyList::learnWordAgain(QString spelling)
 {
     m_words.append(spelling);
 }

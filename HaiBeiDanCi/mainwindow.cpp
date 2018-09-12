@@ -86,7 +86,7 @@ void MainWindow::loadSetting()
 
 void MainWindow::loadFont()
 {
-    const QString fontString = MySettings::applicationFont();
+    QString fontString = MySettings::applicationFont();
     if (fontString.isEmpty() == false)
     {
         QFont font;

@@ -81,8 +81,8 @@ private:
     void sendBookWordList(QString bookName);
     void sendWordsOfBook(QString bookName);
 
-    bool okToSendFile(const QString fileName);
-    bool sendFile(const QString fileName);
+    bool okToSendFile(QString fileName);
+    bool sendFile(QString fileName);
 };
 
 #endif // SERVERMANAGER_H

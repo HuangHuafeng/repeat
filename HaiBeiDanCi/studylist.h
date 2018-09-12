@@ -46,7 +46,7 @@ class StudyList
     sptr<WordCard> m_current;
 
     void setWordList(const QVector<QString> &wordList);
-    void learnWordAgain(const QString spelling);
+    void learnWordAgain(QString spelling);
 };
 
 #endif // STUDYLIST_H

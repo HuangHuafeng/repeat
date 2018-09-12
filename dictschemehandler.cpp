@@ -175,7 +175,7 @@ void DictSchemeHandler::saveQcrx(QUrl url)
     }
 }
 
-void DictSchemeHandler::fetchHrefFiles(const QString html)
+void DictSchemeHandler::fetchHrefFiles(const QString &html)
 {
     const QRegularExpression gdlink("(bres|gdau|gico|qrcx|gdlookup|gdpicture|gdvideo|bword)://[^\"<>']*");
 

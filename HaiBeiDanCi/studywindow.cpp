@@ -101,7 +101,7 @@ void StudyWindow::showCurrentCard()
 void StudyWindow::allCardsFinished()
 {
     m_state = StudyWindow::NoCard;
-    const QString msg = QObject::tr("Congratulations! All cards finished!");
+    QString msg = QObject::tr("Congratulations! All cards finished!");
     QMessageBox::information(this,
                              MySettings::appName(),
                              msg);

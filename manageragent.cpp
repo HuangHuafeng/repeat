@@ -216,7 +216,7 @@ bool ManagerAgent::handleResponseMissingMediaFiles(const QByteArray &msg)
     return true;
 }
 
-void ManagerAgent::sendBookWordList(const QString bookName, const QVector<QString> &wordList)
+void ManagerAgent::sendBookWordList(QString bookName, const QVector<QString> &wordList)
 {
     int total = wordList.size();
     int pos = 0;

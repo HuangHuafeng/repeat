@@ -31,7 +31,7 @@ private:
 
     QMap<QString, QString> m_lemmaMap;
 
-    void addWordsToBook(WordBook &book, const QString fileName);
+    void addWordsToBook(WordBook &book, QString fileName);
     void addWordListToBook(WordBook &book, const QStringList wordList);
     bool addWord(QString spelling);
     QString lemmaWord(QString spelling);

@@ -18,17 +18,17 @@ private:
     bool handleRequestGetABook(const QByteArray &msg);
     bool handleRequestGetFile(const QByteArray &msg);
 
-    void sendBookWordList(const QByteArray &msg, const QString bookName);
-    bool sendFile(const QByteArray &msg, const QString fileName);
-    bool okToSendFile(const QString fileName);
+    void sendBookWordList(const QByteArray &msg, QString bookName);
+    bool sendFile(const QByteArray &msg, QString fileName);
+    bool okToSendFile(QString fileName);
 
     void sendResponseGetAllBooks(const QByteArray &msg, const QList<QString> &books);
     void sendResponseGetAWord(const QByteArray &msg, const Word &word);
     void sendResponseGetABook(const QByteArray &msg, const WordBook &book);
-    void sendResponseGetBookWordList(const QByteArray &msg, const QString bookName, const QVector<QString> &wordList, bool listComplete);
-    void sendResponseGetFileFinished(const QByteArray &msg, const QString fileName, bool succeeded);
-    void sendResponseGetFile(const QByteArray &msg, const QString fileName, const char *s, uint len);
-    void sendResponseGetWordsOfBookFinished(const QByteArray &msg, const QString bookName);
+    void sendResponseGetBookWordList(const QByteArray &msg, QString bookName, const QVector<QString> &wordList, bool listComplete);
+    void sendResponseGetFileFinished(const QByteArray &msg, QString fileName, bool succeeded);
+    void sendResponseGetFile(const QByteArray &msg, QString fileName, const char *s, uint len);
+    void sendResponseGetWordsOfBookFinished(const QByteArray &msg, QString bookName);
 };
 
 #endif // HBDCAPPHANDLER_H

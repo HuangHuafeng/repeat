@@ -140,7 +140,7 @@ bool WordDB::connectDB(const QString &connectionName)
 }
 
 // static
-void WordDB::databaseError(QSqlQuery &query, const QString what)
+void WordDB::databaseError(QSqlQuery &query, QString what)
 {
     QSqlError error = query.lastError();
     QString errorText = QObject::tr("Database error when ") + what + ": " + error.text();

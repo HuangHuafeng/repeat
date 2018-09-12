@@ -22,7 +22,7 @@ class WordDB
     static void shutdown();
     static bool prepareDatabaseForThisThread();
     static sptr<QSqlQuery> createSqlQuery();
-    static void databaseError(QSqlQuery &query, const QString what);
+    static void databaseError(QSqlQuery &query, QString what);
     static sptr<QSqlDatabase> connectedDatabase();
 
   private:

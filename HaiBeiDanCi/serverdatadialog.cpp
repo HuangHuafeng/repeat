@@ -247,6 +247,6 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
 
 bool ServerDataDialog::fileExistsLocally(QString fileName)
 {
-    const QString dd = MySettings::dataDirectory() + "/";
+    QString dd = MySettings::dataDirectory() + "/";
     return QFile::exists(dd + fileName);
 }

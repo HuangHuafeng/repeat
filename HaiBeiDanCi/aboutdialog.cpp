@@ -27,7 +27,7 @@ AboutDialog::~AboutDialog()
 
 QString AboutDialog::aboutText()
 {
-    const QString compileTime = QString(__DATE__) + " " + __TIME__;
+    QString compileTime = QString(__DATE__) + " " + __TIME__;
     QString text = "<b>" + MySettings::appName() + " " + APP_VERSION + "</b>";
     text += "<br />";
     text += "<br />";

@@ -109,7 +109,7 @@ void HBDCAppHandler::sendResponseGetAWord(const QByteArray &msg, const Word &wor
     sendMessage(block, true);
 }
 
-void HBDCAppHandler::sendResponseGetWordsOfBookFinished(const QByteArray &msg, const QString bookName)
+void HBDCAppHandler::sendResponseGetWordsOfBookFinished(const QByteArray &msg, QString bookName)
 {
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseGetWordsOfBookFinished, receivedMsgHeader.sequenceNumber());
@@ -120,7 +120,7 @@ void HBDCAppHandler::sendResponseGetWordsOfBookFinished(const QByteArray &msg, c
     sendMessage(block);
 }
 
-void HBDCAppHandler::sendResponseGetFileFinished(const QByteArray &msg, const QString fileName, bool succeeded)
+void HBDCAppHandler::sendResponseGetFileFinished(const QByteArray &msg, QString fileName, bool succeeded)
 {
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseGetFileFinished, receivedMsgHeader.sequenceNumber());
@@ -234,7 +234,7 @@ bool HBDCAppHandler::handleRequestGetWordsOfBookFinished(const QByteArray &msg)
     return true;
 }
 
-void HBDCAppHandler::sendBookWordList(const QByteArray &msg, const QString bookName)
+void HBDCAppHandler::sendBookWordList(const QByteArray &msg, QString bookName)
 {
     auto book = WordBook::getBook(bookName);
     if (book == nullptr)
@@ -255,7 +255,7 @@ void HBDCAppHandler::sendBookWordList(const QByteArray &msg, const QString bookN
     }
 }
 
-bool HBDCAppHandler::okToSendFile(const QString fileName)
+bool HBDCAppHandler::okToSendFile(QString fileName)
 {
     // only allow files in folder media
     if (fileName.startsWith("media", Qt::CaseInsensitive) == false)
@@ -283,7 +283,7 @@ bool HBDCAppHandler::okToSendFile(const QString fileName)
     return true;
 }
 
-bool HBDCAppHandler::sendFile(const QByteArray &msg, const QString fileName)
+bool HBDCAppHandler::sendFile(const QByteArray &msg, QString fileName)
 {
     // check if the file is OK to send, we cannot expose everything on the sever!!!
     if (okToSendFile(fileName) != true)
@@ -326,7 +326,7 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, const QString fileName)
     return succeeded;
 }
 
-void HBDCAppHandler::sendResponseGetFile(const QByteArray &msg, const QString fileName, const char *s, uint len)
+void HBDCAppHandler::sendResponseGetFile(const QByteArray &msg, QString fileName, const char *s, uint len)
 {
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseGetFile, receivedMsgHeader.sequenceNumber());
@@ -338,7 +338,7 @@ void HBDCAppHandler::sendResponseGetFile(const QByteArray &msg, const QString fi
     sendMessage(block);
 }
 
-void HBDCAppHandler::sendResponseGetBookWordList(const QByteArray &msg, const QString bookName, const QVector<QString> &wordList, bool listComplete)
+void HBDCAppHandler::sendResponseGetBookWordList(const QByteArray &msg, QString bookName, const QVector<QString> &wordList, bool listComplete)
 {
     Q_ASSERT(wordList.size() <= ServerClientProtocol::MaximumWordsInAMessage);
 

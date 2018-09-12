@@ -528,7 +528,7 @@ void ServerManager::sendWordsOfBook(QString bookName)
     m_mgrAgt.sendResponseGetWordsOfBookFinished(bookName);
 }
 
-bool ServerManager::sendFile(const QString fileName)
+bool ServerManager::sendFile(QString fileName)
 {
     // check if the file is OK to send, we cannot expose everything on the sever!!!
     if (okToSendFile(fileName) != true)
@@ -571,7 +571,7 @@ bool ServerManager::sendFile(const QString fileName)
     return succeeded;
 }
 
-bool ServerManager::okToSendFile(const QString fileName)
+bool ServerManager::okToSendFile(QString fileName)
 {
     // only allow files in folder media
     if (fileName.startsWith("media", Qt::CaseInsensitive) == false)

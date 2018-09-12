@@ -14,7 +14,7 @@
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="aboutdialog.ui" line="69"/>
+        <location filename="aboutdialog.ui" line="72"/>
         <source>TextLabel</source>
         <translation></translation>
     </message>
@@ -230,19 +230,19 @@
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="35"/>
+        <location filename="mainwindow.cpp" line="37"/>
         <source>database error</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="155"/>
-        <location filename="mainwindow.cpp" line="166"/>
-        <location filename="mainwindow.cpp" line="177"/>
-        <location filename="mainwindow.cpp" line="188"/>
-        <location filename="mainwindow.cpp" line="202"/>
-        <location filename="mainwindow.cpp" line="213"/>
-        <location filename="mainwindow.cpp" line="224"/>
-        <location filename="mainwindow.cpp" line="235"/>
+        <location filename="mainwindow.cpp" line="165"/>
+        <location filename="mainwindow.cpp" line="176"/>
+        <location filename="mainwindow.cpp" line="187"/>
+        <location filename="mainwindow.cpp" line="198"/>
+        <location filename="mainwindow.cpp" line="212"/>
+        <location filename="mainwindow.cpp" line="223"/>
+        <location filename="mainwindow.cpp" line="234"/>
+        <location filename="mainwindow.cpp" line="245"/>
         <source> words</source>
         <translation>个单词</translation>
     </message>
@@ -250,22 +250,22 @@
 <context>
     <name>MainWindow::MainWindow</name>
     <message>
-        <location filename="mainwindow.cpp" line="246"/>
+        <location filename="mainwindow.cpp" line="256"/>
         <source>No word to study!</source>
         <translation>没有单词！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="260"/>
+        <location filename="mainwindow.cpp" line="270"/>
         <source>failed to set the word list to study!</source>
         <translation>设置单词列表失败！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="270"/>
+        <location filename="mainwindow.cpp" line="280"/>
         <source>No word to Browse!</source>
         <translation>没有单词！</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="284"/>
+        <location filename="mainwindow.cpp" line="294"/>
         <source>failed to set the word list to browse!</source>
         <translation>设置单词列表失败！</translation>
     </message>
@@ -458,63 +458,59 @@ Click OK to exit the app.</source>
 确定要这么做吗？</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="26"/>
-        <location filename="serverdatadialog.cpp" line="21"/>
+        <location filename="mainwindow.cpp" line="28"/>
+        <location filename="serverdatadialog.cpp" line="23"/>
         <source>Book Name</source>
         <translation>单词本</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="22"/>
+        <location filename="serverdatadialog.cpp" line="24"/>
         <source>Status</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="101"/>
+        <location filename="serverdatadialog.cpp" line="116"/>
         <source>Downloading </source>
         <translation>正在下载</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="101"/>
-        <location filename="serverdatadialog.cpp" line="229"/>
-        <location filename="serverdatadialog.cpp" line="254"/>
-        <location filename="serverdatadialog.cpp" line="273"/>
-        <location filename="serverdatadialog.cpp" line="298"/>
+        <location filename="serverdatadialog.cpp" line="116"/>
+        <location filename="serverdatadialog.cpp" line="219"/>
+        <location filename="serverdatadialog.cpp" line="238"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="137"/>
+        <location filename="serverdatadialog.cpp" line="152"/>
         <source>downloaded</source>
         <translation>已下载</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="141"/>
+        <location filename="serverdatadialog.cpp" line="156"/>
         <source>not downloaded</source>
         <translation>未下载</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="229"/>
-        <location filename="serverdatadialog.cpp" line="273"/>
         <source>Preparing the list of files to be downloaded ...</source>
-        <translation>正在检查哪些文件需要下载 ...</translation>
+        <translation type="vanished">正在检查哪些文件需要下载 ...</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="254"/>
+        <location filename="serverdatadialog.cpp" line="219"/>
         <source>Downloading pronounce files ...</source>
         <translation>正在下载单词发音的音频文件 ...</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="258"/>
+        <location filename="serverdatadialog.cpp" line="225"/>
         <source>All pronounce files are already available locally!</source>
         <translation>所有单词发音的音频文件已存在！</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="298"/>
+        <location filename="serverdatadialog.cpp" line="238"/>
         <source>Downloading meida files ...</source>
         <translation>正在下载单词例句的音频文件 ...</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.cpp" line="302"/>
+        <location filename="serverdatadialog.cpp" line="244"/>
         <source>All media files are already available locally!</source>
         <translation>所有单词例句的音频文件已存在！</translation>
     </message>
@@ -530,7 +526,8 @@ Click OK to exit the app.</source>
     </message>
     <message>
         <location filename="aboutdialog.cpp" line="50"/>
-        <source>About </source>
+        <source>About</source>
+        <oldsource>About </oldsource>
         <translation>关于</translation>
     </message>
 </context>
@@ -547,19 +544,19 @@ Click OK to exit the app.</source>
         <translation>下载单词本</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.ui" line="31"/>
+        <location filename="serverdatadialog.ui" line="34"/>
         <source>Download
 pronounce files</source>
         <translation>下载发音音频</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.ui" line="39"/>
+        <location filename="serverdatadialog.ui" line="45"/>
         <source>Download
 all media files</source>
         <translation>下载例句音频</translation>
     </message>
     <message>
-        <location filename="serverdatadialog.ui" line="47"/>
+        <location filename="serverdatadialog.ui" line="56"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>

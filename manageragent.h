@@ -21,7 +21,7 @@ public:
     void sendResponseGetFile(QString fileName, const char *s, uint len);
     void sendResponseGetFileFinished(QString fileName, bool succeeded);
 
-    void sendBookWordList(const QString bookName, const QVector<QString> &wordList);
+    void sendBookWordList(QString bookName, const QVector<QString> &wordList);
     // the following messages are used to upload a book
     void sendResponseGetABook(const WordBook &book);
     void sendResponseGetBookWordList(QString bookName, const QVector<QString> &wordList, bool listComplete);

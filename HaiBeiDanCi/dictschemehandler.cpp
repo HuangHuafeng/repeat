@@ -80,7 +80,7 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
         m_mediaPlayer.play(audioFile);
     } else
     {
-        const QString fileName = path.mid(1);
+        QString fileName = path.mid(1);
         m_filesInDownloading.append(fileName);
         ServerDataDownloader *sdd = ServerDataDownloader::instance();
         sdd->downloadFile(fileName);

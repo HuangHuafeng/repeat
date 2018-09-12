@@ -527,7 +527,7 @@ void MySettings::saveLastUpdateTime()
 
 QDateTime MySettings::lastUpdateTime()
 {
-    const QString defaultLastUpdateTime = "2016-10-31T10:00:00+08:00";
+    QString defaultLastUpdateTime = "2016-10-31T10:00:00+08:00";
     QSettings settings;
     settings.beginGroup(MySettings::group());
     QString lutSting = settings.value("lastUpdateTime", defaultLastUpdateTime).toString();

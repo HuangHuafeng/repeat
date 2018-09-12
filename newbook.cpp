@@ -45,7 +45,7 @@ void NewBook::on_pushSelectFile_clicked()
     ui->lineSelectedFile->setText(fileName);
 }
 
-void NewBook::addWordsToBook(WordBook &book, const QString fileName)
+void NewBook::addWordsToBook(WordBook &book, QString fileName)
 {
     QFile wordFile(fileName);
     if (!wordFile.open(QIODevice::ReadOnly | QIODevice::Text))

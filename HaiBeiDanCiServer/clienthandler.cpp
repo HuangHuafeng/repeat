@@ -8,11 +8,6 @@ ClientHandler::~ClientHandler()
 {
 }
 
-void ClientHandler::sendMessage(QByteArray msg, bool needCompress)
-{
-    m_clientWaiter.sendMessage(msg, needCompress);
-}
-
 int ClientHandler::handleMessage(const QByteArray &msg)
 {
     MessageHeader receivedMsgHeader(msg);
@@ -89,12 +84,13 @@ void ClientHandler::sendResponseOK(const QByteArray &msg)
     sendSimpleMessage(msg, ServerClientProtocol::ResponseOK);
 }
 
+
+void ClientHandler::sendMessage(QByteArray msg, bool needCompress)
+{
+    m_clientWaiter.sendMessage(msg, needCompress);
+}
+
 void ClientHandler::sendSimpleMessage(const QByteArray &msgToReply, qint32 msgCode)
 {
-    MessageHeader receivedMsgHeader(msgToReply);
-    MessageHeader responseHeader(msgCode, receivedMsgHeader.sequenceNumber());
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader;
-    sendMessage(block);
+    m_clientWaiter.sendSimpleMessage(msgToReply, msgCode);
 }

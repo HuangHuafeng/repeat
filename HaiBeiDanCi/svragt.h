@@ -39,7 +39,6 @@ public:
     void downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
 
-    void getBookList();
     void downloadFile(QString fileName);
 
     void sendRequestNoOperation();

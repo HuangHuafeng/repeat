@@ -13,18 +13,11 @@ public:
     static ServerDataDownloader * instance();
     static void destroy();
 
-    bool isBookListReady()
-    {
-        return m_bookListDownloaded == true;
-    }
-
     QList<QString> getBookList();
     void downloadBook(QString bookName);
     void downloadFile(QString fileName);
     void downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
-    void connectServer();
-    void disconnectServer();
 
 signals:
     void bookListReady(const QList<QString> &books);
@@ -48,7 +41,6 @@ private:
     static ServerDataDownloader *m_sdd;
 
     SvrAgt m_svrAgt;
-    bool m_bookListDownloaded;
 
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;

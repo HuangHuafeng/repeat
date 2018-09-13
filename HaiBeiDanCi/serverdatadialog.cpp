@@ -28,17 +28,9 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
     connect(sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
     connect(sdd, SIGNAL(downloadProgress(float)), this, SLOT(onDownloadProgress(float)));
 
-    if (sdd->isBookListReady() == true)
-    {
-        onBookListReady(sdd->getBookList());
-    }
-    else
-    {
-        // in this case, sdd must failed to connect to the server when it's constructed
-        // so let it try ot connect to the server again
-        connect(sdd, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
-        sdd->connectServer();
-    }
+    // connect to signal "bookListReady", it will be signalled by ServerDataDownloader if the book list is not ready yet
+    connect(sdd, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
+    onBookListReady(sdd->getBookList());
 }
 
 ServerDataDialog::~ServerDataDialog()

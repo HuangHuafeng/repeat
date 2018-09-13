@@ -667,12 +667,6 @@ void SvrAgt::sendTheFirstMessage()
     m_messagesSent ++;
 }
 
-
-void SvrAgt::getBookList()
-{
-    sendRequestGetAllBooks();
-}
-
 void SvrAgt::downloadWords(const QVector<QString> &wordList)
 {
     // clear m_wordsToDownload as previous download must finished, NO!!!!

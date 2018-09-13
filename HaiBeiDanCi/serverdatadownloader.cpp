@@ -6,8 +6,7 @@
 ServerDataDownloader * ServerDataDownloader::m_sdd = nullptr;
 
 ServerDataDownloader::ServerDataDownloader(QObject *parent) : QObject(parent),
-    m_svrAgt(MySettings::serverHostName(), MySettings::serverPort(), this),
-    m_bookListDownloaded(false)
+    m_svrAgt(MySettings::serverHostName(), MySettings::serverPort(), this)
 {
     connect(&m_svrAgt, SIGNAL(serverConnected()), this, SLOT(onServerConnected()));
     connect(&m_svrAgt, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(OnBookListReady(const QList<QString>)));
@@ -17,8 +16,6 @@ ServerDataDownloader::ServerDataDownloader(QObject *parent) : QObject(parent),
     connect(&m_svrAgt, SIGNAL(fileDownloaded(QString, SvrAgt::DownloadStatus, const QByteArray &)), this, SLOT(OnFileDownloaded(QString, SvrAgt::DownloadStatus, QByteArray)));
     connect(&m_svrAgt, SIGNAL(getWordsOfBookFinished(QString)), this, SLOT(OnGetWordsOfBookFinished(QString)));
     connect(&m_svrAgt, SIGNAL(bookWordListReceived(QString, const QVector<QString> &)), this, SLOT(OnBookWordListReceived(QString, const QVector<QString> &)));
-
-    m_svrAgt.connectToServer();
 }
 
 ServerDataDownloader * ServerDataDownloader::instance()
@@ -35,7 +32,6 @@ void ServerDataDownloader::destroy()
 {
     if (m_sdd != nullptr)
     {
-        m_sdd->disconnectServer();
         m_sdd->deleteLater();
         m_sdd = nullptr;
     }
@@ -54,7 +50,6 @@ void ServerDataDownloader::OnBookListReady(const QList<QString> &books)
     {
         m_mapBooks.insert(books.at(i), sptr<WordBook>());
     }
-    m_bookListDownloaded = true;
     emit(bookListReady(books));
     downloadAllBooks();
 }
@@ -138,11 +133,23 @@ void ServerDataDownloader::OnBookWordListReceived(QString bookName, const QVecto
 
 QList<QString> ServerDataDownloader::getBookList()
 {
+    if (m_mapBooks.isEmpty() == true)
+    {
+        // if the book list is empty, there are several possible reasons
+        // 1. ServerDataDownloader has not talked to the server yet
+        // 2. ServerDataDownloader connected to the server, but there're no book in the server
+        // for case 1, call m_svrAgt.connectToServer() and book list will be requested once connected to the server
+        // for case 2, nothing to do. m_svrAgt.connectToServer() also does nothing in this case
+        m_svrAgt.connectToServer();
+    }
+
     return m_mapBooks.keys();
 }
 
 void ServerDataDownloader::downloadBook(QString bookName)
 {
+    Q_ASSERT(m_mapBooks.contains(bookName) == true);
+
     // only download a book when it does NOT exist locally
     if (WordBook::getBook(bookName).get() == nullptr)
     {
@@ -166,16 +173,6 @@ void ServerDataDownloader::cancelDownloading()
 {
     m_svrAgt.cancelDownloading();
     m_mapWords.clear();
-}
-
-void ServerDataDownloader::connectServer()
-{
-    m_svrAgt.connectToServer();
-}
-
-void ServerDataDownloader::disconnectServer()
-{
-    m_svrAgt.disconnectServer();
 }
 
 /**

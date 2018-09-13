@@ -2,12 +2,15 @@
 * deploy HaiBeiDanCi server
 * add server setting in info.json
 * application icon (DONE on Windows)
+* auto update
+* log in / register / etc
 
 
 PARTLY DONE * add security to the server, currently it exposes anything to the client!!!
 
 
 LOW PRIORITY
+* MediaFileManager should inherit QObject and emit signals
 * saving files to disk is slow, maybe good to use a separate thread.(This should have low priority!)
 
 

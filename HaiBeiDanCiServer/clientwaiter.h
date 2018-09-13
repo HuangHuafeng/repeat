@@ -24,6 +24,7 @@ signals:
 
 public:
     void sendMessage(const QByteArray &msg, bool needCompress = false, bool = false);
+    void sendSimpleMessage(const QByteArray &msgToReply, qint32 msgCode);
 
 private:
     qintptr m_socketDescriptor;

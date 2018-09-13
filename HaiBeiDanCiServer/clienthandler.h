@@ -16,6 +16,7 @@ private:
     void sendResponseNoOperation(const QByteArray &msg);
 
 protected:
+    void sendMessage(QByteArray msg, bool needCompress = false);
     void sendSimpleMessage(const QByteArray &msgToReply, qint32 msgCode);
     void sendResponseOK(const QByteArray &msg);
 
@@ -23,7 +24,6 @@ public:
     ClientHandler(ClientWaiter &clientWaiter);
     virtual ~ClientHandler();
 
-    void sendMessage(QByteArray msg, bool needCompress = false);
     virtual int handleMessage(const QByteArray &msg);
     void handleUnknownMessage(const QByteArray &msg);
 };

@@ -143,6 +143,15 @@ void ClientWaiter::disconnectPeer()
     qDebug() << "disconnected.";
 }
 
+void ClientWaiter::sendSimpleMessage(const QByteArray &msgToReply, qint32 msgCode)
+{
+    MessageHeader receivedMsgHeader(msgToReply);
+    MessageHeader responseHeader(msgCode, receivedMsgHeader.sequenceNumber());
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader;
+    sendMessage(block);
+}
 
 // should be changed later
 void ClientWaiter::sendMessage(const QByteArray &msg, bool needCompress, bool /*now*/)
@@ -192,12 +201,7 @@ QByteArray ClientWaiter::readMessage()
 
 void ClientWaiter::sendResponsePromoteToManager(const QByteArray &msg)
 {
-    MessageHeader receivedMsgHeader(msg);
-    MessageHeader responseHeader(ServerClientProtocol::ResponsePromoteToManager, receivedMsgHeader.sequenceNumber());
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader;
-    sendMessage(block);
+    sendSimpleMessage(msg, ServerClientProtocol::ResponsePromoteToManager);
 }
 
 void ClientWaiter::logMessage(const QByteArray &msg, int handleResult)

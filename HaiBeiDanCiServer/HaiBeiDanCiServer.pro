@@ -34,7 +34,8 @@ SOURCES += \
     hbdcapphandler.cpp \
     hbdcmanagerhandler.cpp \
     ../HaiBeiDanCi/mediafilemanager.cpp \
-    ../HaiBeiDanCi/helpfunc.cpp
+    ../HaiBeiDanCi/helpfunc.cpp \
+    ../HaiBeiDanCi/applicationuser.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -56,7 +57,8 @@ HEADERS += \
     hbdcapphandler.h \
     hbdcmanagerhandler.h \
     ../HaiBeiDanCi/mediafilemanager.h \
-    ../HaiBeiDanCi/helpfunc.h
+    ../HaiBeiDanCi/helpfunc.h \
+    ../HaiBeiDanCi/applicationuser.h
 
 DISTFILES += \
     idea.txt

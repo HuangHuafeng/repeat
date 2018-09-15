@@ -37,6 +37,10 @@ int HBDCAppHandler::handleMessage(const QByteArray &msg)
         handleResult = handleRequestGetWordsOfBookFinished(msg);
         break;
 
+    case ServerClientProtocol::RequestRegister:
+        handleResult = handleRequestRegister(msg);
+        break;
+
     default:
         return ClientHandler::handleMessage(msg);
 
@@ -179,6 +183,63 @@ bool HBDCAppHandler::handleRequestGetFile(const QByteArray &msg)
 
     // the message has been processed, so return true regardless if succeeded or not
     return true;
+}
+
+bool HBDCAppHandler::handleRequestRegister(const QByteArray &msg)
+{
+    funcTracker ft("handleRequestRegister()");
+
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    ApplicationUser user = ApplicationUser::invalidUser;
+    in.startTransaction();
+    in >> receivedMsgHeader >> user;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to get file name in handleRequestGetFile()";
+        return false;
+    }
+
+    return registerUser(msg, user);
+}
+
+bool HBDCAppHandler::registerUser(const QByteArray &msg, ApplicationUser &user)
+{
+    bool retVal = false;
+    qint32 result = ApplicationUser::ResultFailedUnknown;
+    if (ApplicationUser::userExist(user.name()) == true)
+    {
+        result = ApplicationUser::ResultFailedNameAlreadyUsed;
+        retVal = false;
+    }
+    else
+    {
+        // add more check here later, now we just create the user
+        retVal = ApplicationUser::createUser(user);
+        if (retVal == true)
+        {
+            result = ApplicationUser::ResultOK;
+        }
+        else
+        {
+            result = ApplicationUser::ResultFailedUnknown;
+        }
+    }
+
+    sendResponseResponseRegister(msg, result, user);
+
+    return retVal;
+}
+
+void HBDCAppHandler::sendResponseResponseRegister(const QByteArray &msg, qint32 result, const ApplicationUser &user)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseRegister, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << result << user;
+    sendMessage(block, true);
 }
 
 void HBDCAppHandler::sendResponseGetABook(const QByteArray &msg, const WordBook &book)

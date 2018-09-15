@@ -51,7 +51,10 @@ SOURCES += \
     svragt.cpp \
     serverdatadownloader.cpp \
     helpfunc.cpp \
-    mediafilemanager.cpp
+    mediafilemanager.cpp \
+    applicationuser.cpp \
+    registerdialog.cpp \
+    serveruseragent.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -77,7 +80,10 @@ HEADERS += \
     svragt.h \
     serverdatadownloader.h \
     helpfunc.h \
-    mediafilemanager.h
+    mediafilemanager.h \
+    applicationuser.h \
+    registerdialog.h \
+    serveruseragent.h
 
 FORMS += \
     mainwindow.ui \
@@ -85,7 +91,8 @@ FORMS += \
     browserwindow.ui \
     preferencesdialog.ui \
     serverdatadialog.ui \
-    aboutdialog.ui
+    aboutdialog.ui \
+    registerdialog.ui
 
 SUBDIRS += \
     HaiBeiDanCi.pro

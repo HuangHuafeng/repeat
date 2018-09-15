@@ -4,6 +4,7 @@
 #include "wordbook.h"
 #include "../golddict/sptr.hh"
 #include "serverclientprotocol.h"
+#include "applicationuser.h"
 
 #include <QObject>
 #include <QtNetwork>
@@ -50,6 +51,8 @@ public:
     void sendRequestGetFile(QString fileName);
     void sendRequestBye();
 
+    void sendRequestRegister(const ApplicationUser &user);
+
 signals:
     void bookListReady(const QList<QString> &books);
     void bookDownloaded(sptr<WordBook> book);
@@ -67,6 +70,8 @@ signals:
     void bookWordListReceived(QString bookName, const QVector<QString> &wordList);
 
     void serverConnected();
+
+    void registerResult(qint32 result, const ApplicationUser &user);
 
 private slots:
     void onConnected();
@@ -114,6 +119,7 @@ protected:
     bool handleResponseGetFile(const QByteArray &msg);
     bool handleResponseGetFileFinished(const QByteArray &msg);
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
+    bool handleResponseRegister(const QByteArray &msg);
 
     void sendMessage(const QByteArray &msg, bool needCompress = false, bool now = false);
     void updateAndEmitProgress();

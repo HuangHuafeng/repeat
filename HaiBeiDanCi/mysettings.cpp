@@ -726,3 +726,38 @@ QString MySettings::getSettingString(QString key)
 
     return value;
 }
+
+QRegularExpression MySettings::namePattern()
+{
+    QString pattern = MySettings::getSettingString("namePattern");
+    if (pattern.isEmpty() == true)
+    {
+        // letters in alphabet and digital, at least 4 characters
+        pattern = "^[A-Z0-9]{4,}$";
+    }
+
+    return QRegularExpression(pattern, QRegularExpression::CaseInsensitiveOption);
+}
+
+QRegularExpression MySettings::passwordPattern()
+{
+    QString pattern = MySettings::getSettingString("passwordPattern");
+    if (pattern.isEmpty() == true)
+    {
+        // must include letters in alphabet and digital, at least 6 characters
+        pattern = "^(?=.*\\d)(?=.*[A-Za-z]).{6,}$";
+    }
+
+    return QRegularExpression(pattern);
+}
+
+QRegularExpression MySettings::emailPattern()
+{
+    QString pattern = MySettings::getSettingString("emailPattern");
+    if (pattern.isEmpty() == true)
+    {
+        pattern = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}$";
+    }
+
+    return QRegularExpression(pattern, QRegularExpression::CaseInsensitiveOption);
+}

@@ -178,6 +178,10 @@ int SvrAgt::handleMessage(const QByteArray &msg)
         handleResult = handleResponseUnknownRequest(msg);
         break;
 
+    case ServerClientProtocol::ResponseRegister:
+        handleResult = handleResponseRegister(msg);
+        break;
+
     default:
         handleUnknownMessage(msg);
         unknowMessage = true;
@@ -326,6 +330,25 @@ bool SvrAgt::handleResponseGetWordsOfBookFinished(const QByteArray &msg)
     return true;
 }
 
+bool SvrAgt::handleResponseRegister(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    qint32 result;
+    ApplicationUser user = ApplicationUser::invalidUser;
+    in.startTransaction();
+    in >> receivedMsgHeader >> result >> user;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read info in handleResponseRegister()";
+        return false;
+    }
+
+    emit(registerResult(result, user));
+
+    return true;
+}
+
 bool SvrAgt::handleResponseGetABook(const QByteArray &msg)
 {
     QDataStream in(msg);
@@ -463,6 +486,16 @@ void SvrAgt::sendSimpleMessage(qint32 msgCode, bool now)
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader;
     sendMessage(block, false, now);
+}
+
+void SvrAgt::sendRequestRegister(const ApplicationUser &user)
+{
+    MessageHeader msgHeader(ServerClientProtocol::RequestRegister);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader << user;
+    sendMessage(block);
 }
 
 /**

@@ -8,6 +8,7 @@
 #include <QString>
 #include <QJsonDocument>
 #include <QCoreApplication>
+#include <QRegularExpression>
 
 class MySettings : public QObject
 {
@@ -96,6 +97,10 @@ class MySettings : public QObject
     static int maximumReadTimeout();
     static int downloadIntervalInMilliseconds();
     static int numberOfRequestInEveryDownloadRound();
+
+    static QRegularExpression namePattern();
+    static QRegularExpression passwordPattern();
+    static QRegularExpression emailPattern();
 
 #ifndef HAIBEIDANCI_SERVER
 

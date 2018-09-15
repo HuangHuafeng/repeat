@@ -2,6 +2,7 @@
 #include "word.h"
 #include "wordcard.h"
 #include "wordbook.h"
+#include "applicationuser.h"
 #include "mysettings.h"
 
 #include <QCoreApplication>
@@ -132,6 +133,11 @@ bool WordDB::connectDB(const QString &connectionName)
     }
 
     if (WordBook::createDatabaseTables() == false)
+    {
+        return false;
+    }
+
+    if (ApplicationUser::createDatabaseTables() == false)
     {
         return false;
     }

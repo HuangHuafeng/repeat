@@ -68,6 +68,8 @@ class MainWindow : public QMainWindow
 
     void on_actionexit_triggered();
 
+    void on_actionRegister_User_triggered();
+
 private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;

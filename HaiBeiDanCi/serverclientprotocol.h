@@ -2,7 +2,6 @@
 #define SERVERCLIENTPROTOCOL_H
 
 #include <QString>
-#include <QRegExp>
 #include <QDataStream>
 
 /**
@@ -18,23 +17,6 @@
 class ServerClientProtocol
 {
 public:
-    static QString partPrefix(qint32 partNumber = -1)
-    {
-        if (partNumber == -1)
-        {
-            return "__PART__";
-        }
-        else
-        {
-            return "__PART__" + QString::number(partNumber) + "__";
-        }
-    }
-
-    static QRegExp partPrefixReplaceRegExp()
-    {
-        return QRegExp("__PART__\\d+__");
-    }
-
     typedef enum {
         MaximumWordsInAMessage = 10000,
         MaximumBytesForFileTransfer = 1024 * 32,    // 32k, most of the files are less than 20k in this app
@@ -53,6 +35,9 @@ public:
         RequestBye = RequestNoOperation + 7,    // Yes, 1:0
 
         RequestAppVersion = RequestNoOperation + 8,
+
+        RequestLogin = RequestNoOperation + 9,
+        RequestRegister = RequestNoOperation + 10,
     } ClientToServerMessageCode;
 
     typedef enum {
@@ -68,6 +53,9 @@ public:
         ResponseGetWordsOfBookFinished = ResponseNoOperation + 6,   // Yes
 
         ResponseAppVersion = ResponseNoOperation + 8,
+
+        ResponseLogin = ResponseNoOperation + 9,
+        ResponseRegister = ResponseNoOperation + 10,
 
         // ResponseOK is useful when there's no data need to be sent, just to let the client know that the server got your message
         ResponseOK = ResponseNoOperation + 8888,

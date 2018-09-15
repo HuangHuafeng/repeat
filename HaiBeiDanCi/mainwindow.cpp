@@ -10,6 +10,7 @@
 #include "aboutdialog.h"
 #include "serverdatadownloader.h"
 #include "mediafilemanager.h"
+#include "registerdialog.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -476,4 +477,10 @@ void MainWindow::on_actionBooks_triggered()
 void MainWindow::on_actionexit_triggered()
 {
     QApplication::exit();
+}
+
+void MainWindow::on_actionRegister_User_triggered()
+{
+    RegisterDialog rd(this);
+    rd.exec();
 }

@@ -524,6 +524,7 @@
     </property>
     <addaction name="actionBooks"/>
     <addaction name="actionRegister_User"/>
+    <addaction name="actionLogin"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -576,7 +577,12 @@
   </action>
   <action name="actionRegister_User">
    <property name="text">
-    <string>Register User</string>
+    <string>Register</string>
+   </property>
+  </action>
+  <action name="actionLogin">
+   <property name="text">
+    <string>Login</string>
    </property>
   </action>
  </widget>

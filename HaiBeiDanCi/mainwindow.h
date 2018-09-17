@@ -5,6 +5,7 @@
 #include "wordbook.h"
 #include "studylist.h"
 #include "browserwindow.h"
+#include "applicationuser.h"
 
 #include <QMainWindow>
 
@@ -69,6 +70,8 @@ class MainWindow : public QMainWindow
     void on_actionexit_triggered();
 
     void on_actionRegister_User_triggered();
+
+    void on_actionLogin_triggered();
 
 private:
     Ui::MainWindow *ui;

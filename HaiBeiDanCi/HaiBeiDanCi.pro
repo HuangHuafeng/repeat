@@ -54,7 +54,8 @@ SOURCES += \
     mediafilemanager.cpp \
     applicationuser.cpp \
     registerdialog.cpp \
-    serveruseragent.cpp
+    serveruseragent.cpp \
+    logindialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -83,7 +84,8 @@ HEADERS += \
     mediafilemanager.h \
     applicationuser.h \
     registerdialog.h \
-    serveruseragent.h
+    serveruseragent.h \
+    logindialog.h
 
 FORMS += \
     mainwindow.ui \
@@ -92,7 +94,8 @@ FORMS += \
     preferencesdialog.ui \
     serverdatadialog.ui \
     aboutdialog.ui \
-    registerdialog.ui
+    registerdialog.ui \
+    logindialog.ui
 
 SUBDIRS += \
     HaiBeiDanCi.pro

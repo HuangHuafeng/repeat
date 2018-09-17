@@ -82,14 +82,16 @@ sptr<ApplicationUser> ApplicationUser::getUser(QString name)
     return user;
 }
 
+/**
+ * @brief ApplicationUser::createUser
+ * @param user
+ * @return
+ * createUser should ONLY be called in the server code
+ */
 bool ApplicationUser::createUser(ApplicationUser &user)
 {
     Q_ASSERT(ApplicationUser::userExist(user.name()) == false);
-
-    if (user.id() != 0)
-    {
-        return true;
-    }
+    Q_ASSERT(user.id() == 0);
 
     auto ptrQuery = WordDB::createSqlQuery();
     if (ptrQuery.get() == nullptr)
@@ -113,6 +115,37 @@ bool ApplicationUser::createUser(ApplicationUser &user)
     return true;
 }
 
+/**
+ * @brief ApplicationUser::saveRegisteredUser
+ * @param user
+ * @return
+ * used the the app to save a user locally when the user successfully registered
+ */
+bool ApplicationUser::saveRegisteredUser(const ApplicationUser &user)
+{
+    Q_ASSERT(ApplicationUser::userExist(user.name()) == false);
+    Q_ASSERT(user.id() != 0);
+
+    auto ptrQuery = WordDB::createSqlQuery();
+    if (ptrQuery.get() == nullptr)
+    {
+        return false;
+    }
+
+    auto query = *ptrQuery;
+    query.prepare("INSERT INTO users(id, name, password, email) VALUES(:id, :name, :password, :email)");
+    query.bindValue(":id", user.id());
+    query.bindValue(":name", user.name());
+    query.bindValue(":password", user.password());
+    query.bindValue(":email", user.email());
+    if (query.exec() == false)
+    {
+        WordDB::databaseError(query, "insert user \"" + user.name() + "\"");
+        return false;
+    }
+
+    return true;
+}
 
 QDataStream &operator<<(QDataStream &ds, const ApplicationUser &appUser)
 {

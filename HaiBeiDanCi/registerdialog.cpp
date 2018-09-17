@@ -23,7 +23,7 @@ RegisterDialog::~RegisterDialog()
 
 void RegisterDialog::on_pbCancel_clicked()
 {
-    close();
+    reject();
 }
 
 void RegisterDialog::on_pbRegister_clicked()
@@ -37,7 +37,10 @@ void RegisterDialog::on_pbRegister_clicked()
 
 void RegisterDialog::onRegisterSucceed(const ApplicationUser &user)
 {
-    QMessageBox::information(this, MySettings::appName(), QObject::tr("register succeeded!") + " " + user.name());
+    QMessageBox::information(this, MySettings::appName(), "\"" + user.name() +"\"" + QObject::tr(" registered successfully!"));
+    Q_ASSERT(ApplicationUser::userExist(user.name()) == false);
+    user.saveRegisteredUser(user);
+    accept();
 }
 
 void RegisterDialog::onRegisterFailed(QString why)

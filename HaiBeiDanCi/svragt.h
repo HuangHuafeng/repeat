@@ -52,6 +52,7 @@ public:
     void sendRequestBye();
 
     void sendRequestRegister(const ApplicationUser &user);
+    void sendRequestLogin(const ApplicationUser &user);
 
 signals:
     void bookListReady(const QList<QString> &books);
@@ -72,6 +73,7 @@ signals:
     void serverConnected();
 
     void registerResult(qint32 result, const ApplicationUser &user);
+    void loginResult(qint32 result, const ApplicationUser &user);
 
 private slots:
     void onConnected();
@@ -120,6 +122,7 @@ protected:
     bool handleResponseGetFileFinished(const QByteArray &msg);
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
     bool handleResponseRegister(const QByteArray &msg);
+    bool handleResponseLogin(const QByteArray &msg);
 
     void sendMessage(const QByteArray &msg, bool needCompress = false, bool now = false);
     void updateAndEmitProgress();

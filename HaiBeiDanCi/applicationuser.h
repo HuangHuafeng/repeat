@@ -17,11 +17,22 @@ class ApplicationUser
 public:
     typedef enum
     {
-        ResultOK = 0,
-        ResultFailedNameAlreadyUsed = 1,
-        ResultFailedNotAllowed = 2,   // server does not allow this client to register, probably that this client regists too often
-        ResultFailedUnknown = 3,
+        ResultRegisterOK = 0,
+        ResultRegisterFailedNameAlreadyUsed = 1,
+        ResultRegisterFailedNotAllowed = 2,   // server does not allow this client to register, probably that this client regists too often
+        ResultRegisterFailedUnknown = 3,
+        ResultRegisterFailedServerError = 4,
     } RegisterResult;
+
+    typedef enum
+    {
+        ResultLoginOK = 0,
+        ResultLoginFailedNameDoesNotExist = 1,
+        ResultLoginFailedNotAllowed = 2,   // server does not allow this client to register, probably that this client regists too often
+        ResultLoginFailedUnknown = 3,
+        ResultLoginFailedServerError = 4,
+        ResultLoginFailedIncorrectPassword = 5,
+    } LoginResult;
 
     static const ApplicationUser invalidUser;
 
@@ -57,6 +68,7 @@ public:
     static bool userExist(QString name);
     static sptr<ApplicationUser> getUser(QString name);
     static bool createUser(ApplicationUser &user);
+    static bool saveRegisteredUser(const ApplicationUser &user);
 };
 
 

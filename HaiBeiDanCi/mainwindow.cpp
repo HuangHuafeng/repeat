@@ -11,6 +11,7 @@
 #include "serverdatadownloader.h"
 #include "mediafilemanager.h"
 #include "registerdialog.h"
+#include "logindialog.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -482,5 +483,27 @@ void MainWindow::on_actionexit_triggered()
 void MainWindow::on_actionRegister_User_triggered()
 {
     RegisterDialog rd(this);
-    rd.exec();
+    auto result = rd.exec();
+    if (result == QDialog::Accepted)
+    {
+        // a new user is registered, here we can conintue logging in with the newly created user
+    }
+    else
+    {
+        // no user is registered and the dialog is cancelled
+    }
+}
+
+void MainWindow::on_actionLogin_triggered()
+{
+    LoginDialog ld(this);
+    auto result = ld.exec();
+    if (result == QDialog::Accepted)
+    {
+        // a new user is registered, here we can conintue logging in with the newly created user
+    }
+    else
+    {
+        // no user is registered and the dialog is cancelled
+    }
 }

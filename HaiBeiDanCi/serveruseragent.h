@@ -14,13 +14,18 @@ public:
     explicit ServerUserAgent(QObject *parent = nullptr);
 
     void registerUser(QString name, QString password, QString email);
+    void loginUser(QString name, QString password);
 
 signals:
     void registerSucceed(const ApplicationUser &user);
     void registerFailed(QString why);
 
+    void loginSucceed(const ApplicationUser &user);
+    void loginFailed(QString why);
+
 private slots:
     void onRegisterResult(qint32 result, const ApplicationUser &user);
+    void onLoginResult(qint32 result, const ApplicationUser &user);
 
 public slots:
 };

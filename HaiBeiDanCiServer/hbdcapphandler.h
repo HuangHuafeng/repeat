@@ -19,8 +19,11 @@ private:
     bool handleRequestGetABook(const QByteArray &msg);
     bool handleRequestGetFile(const QByteArray &msg);
     bool handleRequestRegister(const QByteArray &msg);
+    bool handleRequestLogin(const QByteArray &msg);
 
     bool registerUser(const QByteArray &msg, ApplicationUser &user);
+    bool loginUser(const QByteArray &msg, ApplicationUser &user);
+    bool validateUser(const ApplicationUser &user);
 
     void sendBookWordList(const QByteArray &msg, QString bookName);
     bool sendFile(const QByteArray &msg, QString fileName);
@@ -34,7 +37,8 @@ private:
     void sendResponseGetFile(const QByteArray &msg, QString fileName, const char *s, uint len);
     void sendResponseGetWordsOfBookFinished(const QByteArray &msg, QString bookName);
 
-    void sendResponseResponseRegister(const QByteArray &msg, qint32 result, const ApplicationUser &user);
+    void sendResponseRegister(const QByteArray &msg, qint32 result, const ApplicationUser &user);
+    void sendResponseLogin(const QByteArray &msg, qint32 result, const ApplicationUser &user);
 };
 
 #endif // HBDCAPPHANDLER_H

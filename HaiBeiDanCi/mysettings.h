@@ -103,6 +103,7 @@ class MySettings : public QObject
     static QRegularExpression emailPattern();
 
     static int tokenLifeInSeconds();
+    static int audioDownloadTimeoutInSeconds();
 
 #ifndef HAIBEIDANCI_SERVER
 

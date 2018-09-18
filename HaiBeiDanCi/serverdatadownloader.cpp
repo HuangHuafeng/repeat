@@ -2,8 +2,7 @@
 #include "mysettings.h"
 #include "helpfunc.h"
 #include "mediafilemanager.h"
-
-ServerDataDownloader * ServerDataDownloader::m_sdd = nullptr;
+#include "clienttoken.h"
 
 ServerDataDownloader::ServerDataDownloader(QObject *parent) : QObject(parent),
     m_svrAgt(MySettings::serverHostName(), MySettings::serverPort(), this)
@@ -18,29 +17,9 @@ ServerDataDownloader::ServerDataDownloader(QObject *parent) : QObject(parent),
     connect(&m_svrAgt, SIGNAL(bookWordListReceived(QString, const QVector<QString> &)), this, SLOT(OnBookWordListReceived(QString, const QVector<QString> &)));
 }
 
-ServerDataDownloader * ServerDataDownloader::instance()
-{
-    if (m_sdd == nullptr)
-    {
-        m_sdd = new ServerDataDownloader();
-    }
-
-    return m_sdd;
-}
-
-void ServerDataDownloader::destroy()
-{
-    if (m_sdd != nullptr)
-    {
-        m_sdd->deleteLater();
-        m_sdd = nullptr;
-    }
-}
-
 void ServerDataDownloader::onServerConnected()
 {
     qDebug() << "server connected";
-    m_svrAgt.sendRequestGetAllBooks();
 }
 
 void ServerDataDownloader::OnBookListReady(const QList<QString> &books)
@@ -135,12 +114,20 @@ QList<QString> ServerDataDownloader::getBookList()
 {
     if (m_mapBooks.isEmpty() == true)
     {
-        // if the book list is empty, there are several possible reasons
-        // 1. ServerDataDownloader has not talked to the server yet
-        // 2. ServerDataDownloader connected to the server, but there're no book in the server
-        // for case 1, call m_svrAgt.connectToServer() and book list will be requested once connected to the server
-        // for case 2, nothing to do. m_svrAgt.connectToServer() also does nothing in this case
-        m_svrAgt.connectToServer();
+        auto ct = ClientToken::instance();
+        if (ct->hasValidUser() == false || ct->hasAliveToken() == false)
+        {
+            // do nothing
+        }
+        else
+        {
+            // if the book list is empty, there are several possible reasons
+            // 1. ServerDataDownloader has not talked to the server yet
+            // 2. ServerDataDownloader connected to the server, but there're no book in the server
+            // for case 1, call m_svrAgt.connectToServer() and book list will be requested once connected to the server
+            // for case 2, nothing to do. m_svrAgt.connectToServer() also does nothing in this case
+            m_svrAgt.sendRequestGetAllBooks();
+        }
     }
 
     return m_mapBooks.keys();
@@ -148,6 +135,12 @@ QList<QString> ServerDataDownloader::getBookList()
 
 void ServerDataDownloader::downloadBook(QString bookName)
 {
+    auto ct = ClientToken::instance();
+    if (ct->hasValidUser() == false || ct->hasAliveToken() == false)
+    {
+        return;
+    }
+
     Q_ASSERT(m_mapBooks.contains(bookName) == true);
 
     // only download a book when it does NOT exist locally
@@ -161,11 +154,23 @@ void ServerDataDownloader::downloadBook(QString bookName)
 
 void ServerDataDownloader::downloadFile(QString fileName)
 {
+    auto ct = ClientToken::instance();
+    if (ct->hasValidUser() == false || ct->hasAliveToken() == false)
+    {
+        return;
+    }
+
     m_svrAgt.downloadFile(fileName);
 }
 
 void ServerDataDownloader::downloadMultipleFiles(QSet<QString> files)
 {
+    auto ct = ClientToken::instance();
+    if (ct->hasValidUser() == false || ct->hasAliveToken() == false)
+    {
+        return;
+    }
+
     m_svrAgt.downloadMultipleFiles(files);
 }
 

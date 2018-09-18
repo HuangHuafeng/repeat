@@ -13,31 +13,10 @@ DictSchemeHandler::DictSchemeHandler(QObject *parent) : QWebEngineUrlSchemeHandl
                                                         m_mediaPlayer()
 {
     installSchemeHandler();
-
-    ServerDataDownloader *sdd = ServerDataDownloader::instance();
-    connect(sdd, SIGNAL(fileDownloaded(QString, bool)), this, SLOT(onFileDownloaded(QString, bool)));
 }
 
 DictSchemeHandler::~DictSchemeHandler()
 {
-}
-
-void DictSchemeHandler::onFileDownloaded(QString fileName, bool succeeded)
-{
-    if (m_filesInDownloading.contains(fileName) == true)
-    {
-        // this is a file that DictSchemeHandler asked to download
-        m_filesInDownloading.removeOne(fileName);   // remove from the list
-        if (succeeded == true)
-        {
-            QString audioFile = MySettings::dataDirectory() + "/" + fileName;
-            m_mediaPlayer.play(audioFile);
-        }
-        else
-        {
-            qDebug() << "cannot play" << fileName << "because downloading from the server failed";
-        }
-    }
 }
 
 void DictSchemeHandler::installSchemeHandler()
@@ -80,9 +59,43 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
         m_mediaPlayer.play(audioFile);
     } else
     {
-        QString fileName = path.mid(1);
-        m_filesInDownloading.append(fileName);
-        ServerDataDownloader *sdd = ServerDataDownloader::instance();
-        sdd->downloadFile(fileName);
+        downloadFile(path.mid(1));
+    }
+}
+
+void DictSchemeHandler::downloadFile(QString fileName)
+{
+    ServerDataDownloader *sdd = new ServerDataDownloader(this);
+    // create a timer, we consider the downloading failed if it times out
+    QTimer *t = new QTimer(this);
+    //connect(sdd, SIGNAL(fileDownloaded(QString, bool)), this, SLOT(onFileDownloaded(QString, bool)));
+
+    connect(sdd, &ServerDataDownloader::fileDownloaded, [sdd, t, this] (QString fileName, bool succeeded) {
+        this->onFileDownloaded(fileName, succeeded);
+        sdd->deleteLater();
+        t->deleteLater();
+        qDebug() << "sdd->deleteLater() called because file downloaded!";
+    });
+
+    connect(t, &QTimer::timeout, [sdd, t] () {
+        sdd->deleteLater();
+        t->deleteLater();
+        qDebug() << "sdd->deleteLater() called because timer timed out!";
+    });
+
+    t->start(MySettings::audioDownloadTimeoutInSeconds() * 1000);
+    sdd->downloadFile(fileName);
+}
+
+void DictSchemeHandler::onFileDownloaded(QString fileName, bool succeeded)
+{
+    if (succeeded == true)
+    {
+        QString audioFile = MySettings::dataDirectory() + "/" + fileName;
+        m_mediaPlayer.play(audioFile);
+    }
+    else
+    {
+        qDebug() << "cannot play" << fileName << "because downloading from the server failed";
     }
 }

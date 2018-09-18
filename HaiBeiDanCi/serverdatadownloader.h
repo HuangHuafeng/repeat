@@ -10,8 +10,7 @@ class ServerDataDownloader : public QObject
     Q_OBJECT
 
 public:
-    static ServerDataDownloader * instance();
-    static void destroy();
+    explicit ServerDataDownloader(QObject *parent = nullptr);
 
     QList<QString> getBookList();
     void downloadBook(QString bookName);
@@ -36,10 +35,6 @@ public slots:
     void OnBookWordListReceived(QString bookName, const QVector<QString> &wordList);
 
 private:
-    explicit ServerDataDownloader(QObject *parent = nullptr);
-
-    static ServerDataDownloader *m_sdd;
-
     SvrAgt m_svrAgt;
 
     QMap<QString, sptr<WordBook>> m_mapBooks;

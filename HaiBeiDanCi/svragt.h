@@ -34,9 +34,6 @@ public:
     explicit SvrAgt(const QString &hostName, quint16 port = 61027, QObject *parent = nullptr);
     virtual ~SvrAgt();
 
-    void connectToServer();
-    void disconnectServer();
-
     void downloadWords(const QVector<QString> &wordList);
     void downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
@@ -110,6 +107,9 @@ private:
 
     QByteArray readMessage();
     void sendTheFirstMessage();
+
+    void connectToServer();
+    void disconnectServer();
 
 protected:
     virtual int handleMessage(const QByteArray &msg);

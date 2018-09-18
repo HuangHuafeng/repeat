@@ -49,8 +49,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     reloadBooks();
     updateAllBooksData();
 
-    ServerDataDownloader *sdd = ServerDataDownloader::instance();
-    connect(sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
+    //ServerDataDownloader *sdd = ServerDataDownloader::instance();
+    //connect(sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
 
     // call MediaFileManager::instance() so it starts to initialize the existing file list
     MediaFileManager::instance();
@@ -64,7 +64,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    ServerDataDownloader::destroy();
     saveSettings();
     event->accept();
 }

@@ -224,28 +224,28 @@ int SvrAgt::handleMessage(const QByteArray &msg)
 
 bool SvrAgt::handleResponseOK(const QByteArray &msg)
 {
-    qDebug() << msg;
+    Q_ASSERT(msg.size() >= 0);
 
     return true;
 }
 
 bool SvrAgt::handleResponseInvalidTokenId(const QByteArray &msg)
 {
-    qDebug() << msg;
+    Q_ASSERT(msg.size() >= 0);
 
     return true;
 }
 
 bool SvrAgt::handleResponseNoOperation(const QByteArray &msg)
 {
-    qDebug() << msg;
+    Q_ASSERT(msg.size() >= 0);
 
     return true;
 }
 
 bool SvrAgt::handleUnknownMessage(const QByteArray &msg)
 {
-    qDebug() << msg;
+    Q_ASSERT(msg.size() >= 0);
 
     return true;
 }

@@ -11,10 +11,10 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
     Q_OBJECT
 
     MediaPlayer m_mediaPlayer;
-    QVector<QString> m_filesInDownloading;
 
-  private:
+private:
     void handleSchemeHhfaudio(QWebEngineUrlRequestJob *request);
+    void downloadFile(QString fileName);
 
     QString getMediaDir() const
     {
@@ -24,7 +24,7 @@ class DictSchemeHandler : public QWebEngineUrlSchemeHandler
 private slots:
     void onFileDownloaded(QString fileName, bool succeeded);
 
-  public:
+public:
     DictSchemeHandler(QObject *parent = Q_NULLPTR);
     virtual ~DictSchemeHandler() override;
 

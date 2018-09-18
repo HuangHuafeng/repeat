@@ -1,6 +1,8 @@
 #ifndef SERVERDATADIALOG_H
 #define SERVERDATADIALOG_H
 
+#include "serverdatadownloader.h"
+
 #include <QDialog>
 #include <QProgressDialog>
 #include <QDateTime>
@@ -38,6 +40,7 @@ private:
     int m_pdMaximum;
 
     QDateTime m_downloadStartTime;
+    ServerDataDownloader *m_sdd;
 
     void updateBookStatus(QString bookName);
 

@@ -744,6 +744,23 @@ int MySettings::tokenLifeInSeconds()
     return valueInSetting;
 }
 
+int MySettings::audioDownloadTimeoutInSeconds()
+{
+    QString stringValue = MySettings::getSettingString("audioDownloadTimeoutInSeconds");
+    int valueInSetting;
+    if (stringValue.isEmpty() == false)
+    {
+        valueInSetting = stringValue.toInt();
+    }
+    else
+    {
+        // default to 5 seconds, I cannot wait for the sound longer than 5 seconds
+        valueInSetting = 5;
+    }
+
+    return valueInSetting;
+}
+
 QRegularExpression MySettings::namePattern()
 {
     QString pattern = MySettings::getSettingString("namePattern");

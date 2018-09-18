@@ -339,7 +339,9 @@ bool ClientHandler::validateMessage(const QByteArray &msg)
     MessageHeader receivedMsgHeader(msg);
     if (receivedMsgHeader.code() != ServerClientProtocol::RequestLogin
             && receivedMsgHeader.code() != ServerClientProtocol::RequestRegister
-            && receivedMsgHeader.code() != ServerClientProtocol::RequestNoOperation)
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestNoOperation
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetAllBooks
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetABook)
     {
         QString msgTokenId = receivedMsgHeader.tokenId();
         if (msgTokenId.isEmpty() == true)

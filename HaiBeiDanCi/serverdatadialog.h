@@ -33,6 +33,9 @@ private slots:
 
     void on_pbDownloadPronounceFiles_clicked();
 
+signals:
+    void bookDownloaded(QString bookName);
+
 private:
     Ui::ServerDataDialog *ui;
 
@@ -52,6 +55,7 @@ private:
     void downloadBookExampleAudioFiles(QString bookName);
     bool fileExistsLocally(QString fileName);
 
+    bool userAlreadyLogin();
 };
 
 #endif // SERVERDATADIALOG_H

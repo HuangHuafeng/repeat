@@ -49,9 +49,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     reloadBooks();
     updateAllBooksData();
 
-    //ServerDataDownloader *sdd = ServerDataDownloader::instance();
-    //connect(sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
-
     // call MediaFileManager::instance() so it starts to initialize the existing file list
     MediaFileManager::instance();
 }
@@ -471,6 +468,7 @@ void MainWindow::on_actionPreferences_triggered()
 void MainWindow::on_actionBooks_triggered()
 {
     ServerDataDialog sdd(this);
+    connect(&sdd, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
     sdd.exec();
 }
 

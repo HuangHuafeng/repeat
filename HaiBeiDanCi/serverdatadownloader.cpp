@@ -114,20 +114,12 @@ QList<QString> ServerDataDownloader::getBookList()
 {
     if (m_mapBooks.isEmpty() == true)
     {
-        auto ct = ClientToken::instance();
-        if (ct->hasValidUser() == false || ct->hasAliveToken() == false)
-        {
-            // do nothing
-        }
-        else
-        {
             // if the book list is empty, there are several possible reasons
             // 1. ServerDataDownloader has not talked to the server yet
             // 2. ServerDataDownloader connected to the server, but there're no book in the server
             // for case 1, call m_svrAgt.connectToServer() and book list will be requested once connected to the server
             // for case 2, nothing to do. m_svrAgt.connectToServer() also does nothing in this case
             m_svrAgt.sendRequestGetAllBooks();
-        }
     }
 
     return m_mapBooks.keys();

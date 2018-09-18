@@ -68,7 +68,6 @@ void DictSchemeHandler::downloadFile(QString fileName)
     ServerDataDownloader *sdd = new ServerDataDownloader(this);
     // create a timer, we consider the downloading failed if it times out
     QTimer *t = new QTimer(this);
-    //connect(sdd, SIGNAL(fileDownloaded(QString, bool)), this, SLOT(onFileDownloaded(QString, bool)));
 
     connect(sdd, &ServerDataDownloader::fileDownloaded, [sdd, t, this] (QString fileName, bool succeeded) {
         this->onFileDownloaded(fileName, succeeded);

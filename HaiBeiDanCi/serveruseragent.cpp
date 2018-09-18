@@ -75,7 +75,7 @@ void ServerUserAgent::onLoginResult(qint32 result, const ApplicationUser &user, 
             break;
         }
 
-        emit(registerFailed(why));
+        emit(loginFailed(why));
     }
 }
 

@@ -3,6 +3,7 @@
 #include "wordbook.h"
 #include "mysettings.h"
 #include "mediafilemanager.h"
+#include "clienttoken.h"
 
 #include <QMessageBox>
 
@@ -94,6 +95,11 @@ void ServerDataDialog::onBookListReady(const QList<QString> books)
 
 void ServerDataDialog::on_pbDownloadBook_clicked()
 {
+    if (userAlreadyLogin() == false)
+    {
+        return;
+    }
+
     auto ci = ui->twBooks->currentItem();
     if (ci == nullptr)
     {
@@ -126,6 +132,7 @@ void ServerDataDialog::onBookDownloaded(QString bookName)
 {
     updateBookStatus(bookName);
     onItemSelectionChanged();
+    emit(bookDownloaded(bookName));
 }
 
 void ServerDataDialog::updateBookStatus(QString bookName)
@@ -153,6 +160,11 @@ void ServerDataDialog::on_pbClose_clicked()
 
 void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
 {
+    if (userAlreadyLogin() == false)
+    {
+        return;
+    }
+
     auto ci = ui->twBooks->currentItem();
     if (ci == nullptr)
     {
@@ -165,6 +177,11 @@ void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
 
 void ServerDataDialog::on_pbDownloadPronounceFiles_clicked()
 {
+    if (userAlreadyLogin() == false)
+    {
+        return;
+    }
+
     auto ci = ui->twBooks->currentItem();
     if (ci == nullptr)
     {
@@ -234,4 +251,21 @@ bool ServerDataDialog::fileExistsLocally(QString fileName)
 {
     QString dd = MySettings::dataDirectory() + "/";
     return QFile::exists(dd + fileName);
+}
+
+bool ServerDataDialog::userAlreadyLogin()
+{
+    auto ct = ClientToken::instance();
+    if (ct->hasAliveToken() == true
+            && ct->hasValidUser() == true)
+    {
+        return true;
+    }
+    else
+    {
+        QMessageBox::warning(this,
+                             MySettings::appName(),
+                             QObject::tr("Please login with a user first!"));
+        return false;
+    }
 }

@@ -254,9 +254,10 @@ bool ClientHandler::loginUser(const QByteArray &msg, ApplicationUser &user)
     bool retVal = false;
     qint32 result = ApplicationUser::ResultLoginFailedUnknown;
     Token token = Token::invalidToken;
-    if (user.id() == 0 || validateUser(user) == false)
-    {
+    if (validateUser(user) == false)
+    {        
         // we expect the id is 0 when the client tries to register a user!
+        // [THIS IS NOT ALWAYS TRUE, as it's possilbe the client don't have full info of the user!!]
         // and name/email must meet the required rules!
         result = ApplicationUser::ResultLoginFailedUnknown;
         retVal = false;
@@ -278,17 +279,24 @@ bool ClientHandler::loginUser(const QByteArray &msg, ApplicationUser &user)
             }
             else
             {
-                if (existingUser->email() != user.email())
+                // we cannot expect the client to send us the email
+                // [THIS IS NOT ALWAYS TRUE, as it's possilbe the client don't have full info of the user!!]
+                //if (existingUser->email() != user.email())
+                //{
+                //    result = ApplicationUser::ResultLoginFailedUnknown;
+                //    retVal = false;
+                //}
+                //else
                 {
-                    result = ApplicationUser::ResultLoginFailedUnknown;
-                    retVal = false;
-                }
-                else
-                {
+                    // create token for this user
                     auto nt = TokenManager::instance()->createToken();
                     nt->setPeerAddress(peerAddress());
                     token = *nt;
                     m_tokenId = token.id();
+
+                    // send back all the user information as the client may need this
+                    user = *existingUser;
+
                     result = ApplicationUser::ResultLoginOK;
                     retVal = true;
                 }

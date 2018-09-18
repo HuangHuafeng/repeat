@@ -89,7 +89,12 @@ SOURCES += \
     preferencesdialog.cpp \
     HaiBeiDanCi/serverdatadownloader.cpp \
     HaiBeiDanCi/helpfunc.cpp \
-    HaiBeiDanCi/mediafilemanager.cpp
+    HaiBeiDanCi/mediafilemanager.cpp \
+    HaiBeiDanCi/applicationuser.cpp \
+    HaiBeiDanCi/clienttoken.cpp \
+    HaiBeiDanCi/token.cpp \
+    HaiBeiDanCi/logindialog.cpp \
+    HaiBeiDanCi/serveruseragent.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -149,12 +154,18 @@ HEADERS += \
     preferencesdialog.h \
     HaiBeiDanCi/serverdatadownloader.h \
     HaiBeiDanCi/helpfunc.h \
-    HaiBeiDanCi/mediafilemanager.h
+    HaiBeiDanCi/mediafilemanager.h \
+    HaiBeiDanCi/applicationuser.h \
+    HaiBeiDanCi/clienttoken.h \
+    HaiBeiDanCi/token.h \
+    HaiBeiDanCi/logindialog.h \
+    HaiBeiDanCi/serveruseragent.h
 
 FORMS += \
         mainwindow.ui \
     newbook.ui \
-    preferencesdialog.ui
+    preferencesdialog.ui \
+    HaiBeiDanCi/logindialog.ui
 
 RESOURCES += \
     res.qrc

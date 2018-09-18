@@ -94,22 +94,22 @@ void ServerUserAgent::registerUser(QString name, QString password, QString email
 
 void ServerUserAgent::loginUser(QString name, QString password)
 {
+    ApplicationUser tempUser(name, password, "a@b.com");
     auto user = ApplicationUser::getUser(name);
     if (user.get() == nullptr)
     {
-        emit(loginFailed(QObject::tr("user does not exist")));
-        return;
+        // we should allow this as this is possible!!!
+        qDebug() << "user does not exist locally!";
     }
-
-    ApplicationUser tempUser(name, password, "__INVALID__");
-
-    if (user->password() != tempUser.password())
+    else
     {
-        emit(loginFailed(QObject::tr("incorrect password")));
-        return;
+        if (user->password() != tempUser.password())
+        {
+            qDebug() << "password does not match locally!";
+        }
     }
 
-    m_svrAgt.sendRequestLogin(*user);
+    m_svrAgt.sendRequestLogin(tempUser);
 }
 
 void ServerUserAgent::logoutUser(QString name)

@@ -259,6 +259,8 @@
     <addaction name="actionReload_data"/>
     <addaction name="actionDownload_Book"/>
     <addaction name="actionDeleteServerBook"/>
+    <addaction name="actionLogin"/>
+    <addaction name="actionLogout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuLocal"/>
@@ -329,6 +331,16 @@
   <action name="actionUpload_Book_Missing_Media_Files">
    <property name="text">
     <string>Upload Book Missing Media Files</string>
+   </property>
+  </action>
+  <action name="actionLogin">
+   <property name="text">
+    <string>Login</string>
+   </property>
+  </action>
+  <action name="actionLogout">
+   <property name="text">
+    <string>Logout</string>
    </property>
   </action>
  </widget>

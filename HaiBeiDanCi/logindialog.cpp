@@ -127,7 +127,14 @@ void LoginDialog::on_pbLogin_clicked()
 void LoginDialog::onLoginSucceeded(const ApplicationUser &user, const Token &token)
 {
     QMessageBox::information(this, MySettings::appName(), "\"" + user.name() +"\"" + QObject::tr(" logged in successfully!"));
-    Q_ASSERT(ApplicationUser::userExist(user.name()) != false);
+    //[THIS IS NOT ALWAYS TRUE, as it's possilbe the client don't have full info of the user!!]
+    //Q_ASSERT(ApplicationUser::userExist(user.name()) != false);
+    if (ApplicationUser::userExist(user.name()) == false)
+    {
+        // save the user if needed (when it does not exist locally)
+        user.saveRegisteredUser(user);
+    }
+
     ClientToken::instance()->setToken(token);
     ClientToken::instance()->setUser(user);
     accept();

@@ -133,7 +133,13 @@ void ServerDataDownloader::downloadBook(QString bookName)
         return;
     }
 
-    Q_ASSERT(m_mapBooks.contains(bookName) == true);
+    // this cannot be guranteed
+    // Q_ASSERT(m_mapBooks.contains(bookName) == true);
+    if (m_mapBooks.isEmpty() == true)
+    {
+        // get all the books, the data is needed when saving the book after downloading
+        m_svrAgt.sendRequestGetAllBooks();
+    }
 
     // only download a book when it does NOT exist locally
     if (WordBook::getBook(bookName).get() == nullptr)

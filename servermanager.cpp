@@ -1,6 +1,7 @@
 #include "servermanager.h"
 #include "HaiBeiDanCi/mysettings.h"
 #include "HaiBeiDanCi/serverdatadownloader.h"
+#include "HaiBeiDanCi/clienttoken.h"
 
 ServerManager * ServerManager::m_sm = nullptr;
 
@@ -25,7 +26,7 @@ ServerManager::ServerManager(QObject *parent) : QObject(parent),
     connect(&m_mgrAgt, SIGNAL(fileUploaded(QString)), this, SLOT(onFileUploaded(QString)));
     connect(&m_mgrAgt, SIGNAL(wordUploaded(QString)), this, SLOT(onWordUploaded(QString)));
 
-    m_mgrAgt.connectToServer();
+    //m_mgrAgt.connectToServer();
 }
 
 ServerManager * ServerManager::instance()
@@ -202,14 +203,19 @@ void ServerManager::onGotMissingMediaFilesOfBook(QString bookName, const QList<Q
  */
 void ServerManager::reloadServerData()
 {
-    clearData();
+    auto ct = ClientToken::instance();
+    if (ct->hasAliveToken() == true
+            && ct->hasValidUser() == true)
+    {
+        clearData();
 
-    // RELOAD SERVER DATA
-    // STEP 1: at this moment, we can get
-    // * all the words without definition (as definition is big)
-    // * the list of books
-    m_mgrAgt.sendRequestGetAllWordsWithoutDefinition();
-    m_mgrAgt.sendRequestGetAllBooks();
+        // RELOAD SERVER DATA
+        // STEP 1: at this moment, we can get
+        // * all the words without definition (as definition is big)
+        // * the list of books
+        m_mgrAgt.sendRequestGetAllWordsWithoutDefinition();
+        m_mgrAgt.sendRequestGetAllBooks();
+    }
 }
 
 
@@ -222,6 +228,17 @@ void ServerManager::clearData()
 
 bool ServerManager::okToSync(QString *errorString)
 {
+    auto ct = ClientToken::instance();
+    if (ct->hasAliveToken() == false
+            || ct->hasValidUser() == false)
+    {
+        if (errorString != nullptr)
+        {
+            *errorString = QString("no user has logged in.");
+        }
+        return false;
+    }
+
     if (okToSyncBooks(errorString) == false)
     {
         return false;
@@ -450,7 +467,8 @@ void ServerManager::downloadBook(QString bookName)
         return;
     }
 
-    auto sdd = ServerDataDownloader::instance();
+    auto sdd = new ServerDataDownloader(this);
+    connect(sdd, SIGNAL(bookStored(QString)), sdd, SLOT(deleteLater()));
     sdd->downloadBook(bookName);
 }
 

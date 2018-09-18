@@ -67,6 +67,10 @@ private slots:
 
     void on_actionUpload_Book_Missing_Media_Files_triggered();
 
+    void on_actionLogin_triggered();
+
+    void on_actionLogout_triggered();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;

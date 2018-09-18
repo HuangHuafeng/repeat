@@ -26,7 +26,6 @@ public:
 
     void reloadServerData();
     bool okToSync(QString *errorString = nullptr);
-    void syncToLocal();
     bool bookExistsInServer(QString bookName);
     void uploadBook(QString bookName);
     void uploadfile(QString fileName);
@@ -39,6 +38,7 @@ public:
 signals:
     void serverDataReloaded();
     void uploadProgress(float percentage);
+    void bookDownloaded(QString bookName);
 
 public slots:
     void OnBookListReady(const QList<QString> &books);

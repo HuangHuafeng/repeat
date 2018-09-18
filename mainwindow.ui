@@ -308,11 +308,6 @@
     <string>Reload Data</string>
    </property>
   </action>
-  <action name="actionSync_To_Local">
-   <property name="text">
-    <string>Sync to Local</string>
-   </property>
-  </action>
   <action name="actionUpload_Book">
    <property name="text">
     <string>Upload Book</string>

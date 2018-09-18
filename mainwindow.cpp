@@ -56,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ServerManager *serverManager = ServerManager::instance();
     connect(serverManager, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
     connect(serverManager, SIGNAL(uploadProgress(float)), this, SLOT(onUploadProgress(float)));
+    connect(serverManager, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
 
     // call MediaFileManager::instance() to get the existing file list ready
     MediaFileManager::instance();
@@ -212,9 +213,10 @@ void MainWindow::addBookToTheView(QTreeWidget * tw, WordBook &book)
 
 void MainWindow::onBookDownloaded(QString bookName)
 {
-    qDebug() << bookName;
-
+    auto mfm = MediaFileManager::instance();
+    mfm->bookDownloaded(bookName);
     reloadLocalData();
+    m_refreshTimer.start();
 }
 
 void MainWindow::onServerDataReloaded()
@@ -300,7 +302,7 @@ void MainWindow::on_pbDeleteBook_clicked()
 
 void MainWindow::on_actionUpload_Book_triggered()
 {
-    if (localServerDataConflicts() == true)
+    if (okToPerformServerRelatedOperation() == false)
     {
         return;
     }
@@ -319,11 +321,6 @@ void MainWindow::on_actionUpload_Book_triggered()
         return;
     }
 
-    if (localServerDataConflicts() == true)
-    {
-        return;
-    }
-
     createProgressDialog("uploading book \"" + bookName + "\" ...", QString());
     serverManager->uploadBook(bookName);
 }
@@ -333,39 +330,29 @@ void MainWindow::on_pbUploadBook_clicked()
     ui->actionUpload_Book->trigger();
 }
 
-void MainWindow::on_actionSync_To_Local_triggered()
-{
-    ServerManager *serverManager = ServerManager::instance();
-    QString errorString;
-    if (serverManager->okToSync(&errorString) == false)
-    {
-        QMessageBox::critical(this, MySettings::appName(), errorString);
-    }
-    else
-    {
-        serverManager->syncToLocal();
-    }
-}
-
 void MainWindow::on_actionDownload_Book_triggered()
 {
-    ServerManager *serverManager = ServerManager::instance();
-    QString errorString;
-    if (serverManager->okToSync(&errorString) == false)
+    auto ci = ui->twServerData->currentItem();
+    if (ci == nullptr)
     {
-        QMessageBox::critical(this, MySettings::appName(), errorString);
+        return;
     }
-    else
-    {
-        auto ci = ui->twServerData->currentItem();
-        if (ci == nullptr)
-        {
-            return;
-        }
+    auto bookName = ci->text(0);
 
-        auto bookName = ci->text(0);
-        serverManager->downloadBook(bookName);
+    auto localBook = WordBook::getBook(bookName);
+    if (localBook.get() != nullptr)
+    {
+        QMessageBox::information(this, MySettings::appName(), "Book \"" + bookName + "\" already exists locally.");
+        return;
     }
+
+    if (okToPerformServerRelatedOperation() == false)
+    {
+        return;
+    }
+
+    ServerManager *serverManager = ServerManager::instance();
+    serverManager->downloadBook(bookName);
 }
 
 void MainWindow::on_pbDownloadServerBook_clicked()
@@ -375,7 +362,11 @@ void MainWindow::on_pbDownloadServerBook_clicked()
 
 void MainWindow::on_actionDeleteServerBook_triggered()
 {
-    ServerManager *serverManager = ServerManager::instance();
+    if (okToPerformServerRelatedOperation() == false)
+    {
+        return;
+    }
+
     auto ci = ui->twServerData->currentItem();
     if (ci == nullptr)
     {
@@ -383,6 +374,8 @@ void MainWindow::on_actionDeleteServerBook_triggered()
     }
 
     auto bookName = ci->text(0);
+
+    ServerManager *serverManager = ServerManager::instance();
     serverManager->deleteBook(bookName);
 }
 
@@ -448,23 +441,22 @@ void MainWindow::on_actionFetch_Missing_Media_Files_triggered()
     reloadLocalData();
 }
 
-bool MainWindow::localServerDataConflicts()
+bool MainWindow::okToPerformServerRelatedOperation()
 {
     ServerManager *serverManager = ServerManager::instance();
-    bool retValue = false;
     QString errorString;
     if (serverManager->okToSync(&errorString) == false)
     {
         QMessageBox::critical(this, MySettings::appName(), errorString);
-        retValue = true;
+        return false;
     }
 
-    return retValue;
+    return true;
 }
 
 void MainWindow::on_actionUpload_Book_Missing_Media_Files_triggered()
 {
-    if (localServerDataConflicts() == true)
+    if (okToPerformServerRelatedOperation() == false)
     {
         return;
     }

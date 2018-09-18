@@ -444,18 +444,6 @@ bool ServerManager::okToSyncWords(QString *errorString)
     return ok;
 }
 
-void ServerManager::syncToLocal()
-{
-    Q_ASSERT(okToSync() == true);
-
-    // download all the books
-    auto books = m_mapBooks.keys();
-    for (int i = 0;i < books.size();i ++)
-    {
-        downloadBook(books.at(i));
-    }
-}
-
 void ServerManager::downloadBook(QString bookName)
 {
     Q_ASSERT(okToSync() == true);
@@ -468,7 +456,10 @@ void ServerManager::downloadBook(QString bookName)
     }
 
     auto sdd = new ServerDataDownloader(this);
-    connect(sdd, SIGNAL(bookStored(QString)), sdd, SLOT(deleteLater()));
+    connect(sdd, &ServerDataDownloader::bookStored, [sdd, this] (QString bookName) {
+        emit(bookDownloaded(bookName));
+        sdd->deleteLater();
+    });
     sdd->downloadBook(bookName);
 }
 

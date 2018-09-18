@@ -34,14 +34,12 @@ private slots:
     void on_actionNewBook_triggered();
 
     void onServerDataReloaded();
-    void onBookDownloaded(QString bookName);
     void onUploadProgress(float percentage);
+    void onBookDownloaded(QString bookName);
 
     void on_actionPreferences_triggered();
 
     void on_pbReloadServerData_clicked();
-
-    void on_actionSync_To_Local_triggered();
 
     void on_actionReload_data_triggered();
 
@@ -88,7 +86,7 @@ private:
     void addBookToTheView(QTreeWidget *tw, WordBook &book);
     void selectFirstItem(QTreeWidget *tw);
     void listServerBooks(const QList<QString> books);
-    bool localServerDataConflicts();
+    bool okToPerformServerRelatedOperation();
 };
 
 #endif // MAINWINDOW_H

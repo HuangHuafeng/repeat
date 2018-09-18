@@ -18,7 +18,7 @@ public:
     ~LoginDialog();
 
 private slots:
-    void onLoginSucceed(const ApplicationUser &user, const Token &token);
+    void onLoginSucceeded(const ApplicationUser &user, const Token &token);
     void onLoginFailed(QString why);
 
     void on_actionCheckInput_triggered();

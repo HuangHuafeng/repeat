@@ -61,6 +61,10 @@ int ClientHandler::handleMessage(const QByteArray &msg)
         handleResult = handleRequestLogin(msg);
         break;
 
+    case ServerClientProtocol::RequestLogout:
+        handleResult = handleRequestLogout(msg);
+        break;
+
     default:
         // don't call handleUnknownMessage() here
         // as it's possible that ClientWaiter knows the message: RequestPromoteToManager
@@ -218,6 +222,33 @@ bool ClientHandler::handleRequestLogin(const QByteArray &msg)
     return loginUser(msg, user);
 }
 
+bool ClientHandler::handleRequestLogout(const QByteArray &msg)
+{
+    funcTracker ft("handleRequestLogout()");
+
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString name;
+    in.startTransaction();
+    in >> receivedMsgHeader >> name;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to get file name in handleRequestLogout()";
+        return false;
+    }
+
+    return logoutUser(msg, name);
+}
+
+bool ClientHandler::logoutUser(const QByteArray &msg, QString name)
+{
+    MessageHeader receivedMsgHeader(msg);
+    TokenManager::instance()->destroyToken(receivedMsgHeader.tokenId());
+    sendResponseLogout(msg, ApplicationUser::ResultLogoutOK, name);
+
+    return true;
+}
+
 bool ClientHandler::loginUser(const QByteArray &msg, ApplicationUser &user)
 {
     bool retVal = false;
@@ -289,6 +320,17 @@ void ClientHandler::sendResponseLogin(const QByteArray &msg, qint32 result, cons
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << result << user << token;
+    sendMessage(block, true);
+}
+
+void ClientHandler::sendResponseLogout(const QByteArray &msg, qint32 result, QString name)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseLogout, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << result << name;
     sendMessage(block, true);
 }
 

@@ -16,9 +16,11 @@ class Token
     QHostAddress m_peerAddress;
 
 public:
-    static Token invalidToken;
+    static const Token invalidToken;
     Token(QString id, int lifeInSeconds = MySettings::tokenLifeInSeconds(), QDateTime createTime = QDateTime::currentDateTime());
 
+    bool isValid() const;
+    bool isAlive() const;
     QString id() const;
     const QDateTime & createTime() const;
     int lifeInSeconds() const;

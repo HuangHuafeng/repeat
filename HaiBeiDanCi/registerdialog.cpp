@@ -12,7 +12,7 @@ RegisterDialog::RegisterDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(&m_sua, SIGNAL(registerSucceed(const ApplicationUser &)), this, SLOT(onRegisterSucceed(const ApplicationUser &)));
+    connect(&m_sua, SIGNAL(registerSucceeded(const ApplicationUser &)), this, SLOT(onRegisterSucceeded(const ApplicationUser &)));
     connect(&m_sua, SIGNAL(registerFailed(QString)), this, SLOT(onRegisterFailed(QString)));
 }
 
@@ -35,7 +35,7 @@ void RegisterDialog::on_pbRegister_clicked()
     m_sua.registerUser(name, password, email);
 }
 
-void RegisterDialog::onRegisterSucceed(const ApplicationUser &user)
+void RegisterDialog::onRegisterSucceeded(const ApplicationUser &user)
 {
     QMessageBox::information(this, MySettings::appName(), "\"" + user.name() +"\"" + QObject::tr(" registered successfully!"));
     Q_ASSERT(ApplicationUser::userExist(user.name()) == false);

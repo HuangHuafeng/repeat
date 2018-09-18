@@ -56,7 +56,8 @@ SOURCES += \
     registerdialog.cpp \
     serveruseragent.cpp \
     logindialog.cpp \
-    token.cpp
+    token.cpp \
+    clienttoken.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -87,7 +88,8 @@ HEADERS += \
     registerdialog.h \
     serveruseragent.h \
     logindialog.h \
-    token.h
+    token.h \
+    clienttoken.h
 
 FORMS += \
     mainwindow.ui \

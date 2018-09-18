@@ -20,7 +20,7 @@ public:
     ~RegisterDialog();
 
 private slots:
-    void onRegisterSucceed(const ApplicationUser &user);
+    void onRegisterSucceeded(const ApplicationUser &user);
     void onRegisterFailed(QString why);
     void on_pbCancel_clicked();
 

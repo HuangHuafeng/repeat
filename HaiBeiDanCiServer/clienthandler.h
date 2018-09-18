@@ -18,14 +18,17 @@ private:
     bool handleRequestNoOperation(const QByteArray &msg);
     bool handleRequestRegister(const QByteArray &msg);
     bool handleRequestLogin(const QByteArray &msg);
+    bool handleRequestLogout(const QByteArray &msg);
     void sendResponseUnknownRequest(const QByteArray &msg);
     void sendResponseNoOperation(const QByteArray &msg);
     void sendResponseRegister(const QByteArray &msg, qint32 result, const ApplicationUser &user);
     void sendResponseLogin(const QByteArray &msg, qint32 result, const ApplicationUser &user, const Token &token);
     void sendResponseInvalidTokenId(const QByteArray &msg);
+    void sendResponseLogout(const QByteArray &msg, qint32 result, QString name);
 
     bool registerUser(const QByteArray &msg, ApplicationUser &user);
     bool loginUser(const QByteArray &msg, ApplicationUser &user);
+    bool logoutUser(const QByteArray &msg, QString name);
     bool validateUser(const ApplicationUser &user);
 
     bool validateMessage(const QByteArray &msg);

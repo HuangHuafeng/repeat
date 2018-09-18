@@ -6,12 +6,13 @@ ServerUserAgent::ServerUserAgent(QObject *parent) : QObject(parent),
 {
     connect(&m_svrAgt, SIGNAL(registerResult(qint32, const ApplicationUser &)), this, SLOT(onRegisterResult(qint32, const ApplicationUser &)));
     connect(&m_svrAgt, SIGNAL(loginResult(qint32, const ApplicationUser &, const Token &)), this, SLOT(onLoginResult(qint32, const ApplicationUser &, const Token &)));
+    connect(&m_svrAgt, SIGNAL(logoutResult(qint32, QString)), this, SLOT(onLogoutResult(qint32, QString)));
 }
 
 void ServerUserAgent::onRegisterResult(qint32 result, const ApplicationUser &user)
 {
     // emit signal here may cause problem?!
-    // as there might be message box displayed in the slot connect to signal registerSucceed/registerFailed
+    // as there might be message box displayed in the slot connect to signal registerSucceeded/registerFailed
     // and it's possible that the user don't close the message box for 1 miutes or longer
     // in such case, it's possilbe to stop the svrAgt to send heartbeat?!
     // NO! IT DOES NOT STOP sending the heartbeat
@@ -20,7 +21,7 @@ void ServerUserAgent::onRegisterResult(qint32 result, const ApplicationUser &use
 
     if (result == ApplicationUser::ResultRegisterOK)
     {
-        emit(registerSucceed(user));
+        emit(registerSucceeded(user));
     }
     else
     {
@@ -52,7 +53,7 @@ void ServerUserAgent::onLoginResult(qint32 result, const ApplicationUser &user, 
 {
     if (result == ApplicationUser::ResultLoginOK)
     {
-        emit(loginSucceed(user, token));
+        emit(loginSucceeded(user, token));
     }
     else
     {
@@ -109,4 +110,15 @@ void ServerUserAgent::loginUser(QString name, QString password)
     }
 
     m_svrAgt.sendRequestLogin(*user);
+}
+
+void ServerUserAgent::logoutUser(QString name)
+{
+    m_svrAgt.sendRequestLogout(name);
+}
+
+void ServerUserAgent::onLogoutResult(qint32 result, QString name)
+{
+    qDebug() << "logout result" << result;
+    emit(logoutSucceeded(name));
 }

@@ -1,6 +1,7 @@
 #include "logindialog.h"
 #include "ui_logindialog.h"
 #include "mysettings.h"
+#include "clienttoken.h"
 
 #include <QSettings>
 #include <QMessageBox>
@@ -11,7 +12,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(&m_sua, SIGNAL(loginSucceed(const ApplicationUser &, const Token &)), this, SLOT(onLoginSucceed(const ApplicationUser &, const Token &)));
+    connect(&m_sua, SIGNAL(loginSucceeded(const ApplicationUser &, const Token &)), this, SLOT(onLoginSucceeded(const ApplicationUser &, const Token &)));
     connect(&m_sua, SIGNAL(loginFailed(QString)), this, SLOT(onLoginFailed(QString)));
 
     loadNameAndPassword();
@@ -123,12 +124,12 @@ void LoginDialog::on_pbLogin_clicked()
     m_sua.loginUser(ui->leName->text(), ui->lePassword->text());
 }
 
-void LoginDialog::onLoginSucceed(const ApplicationUser &user, const Token &token)
+void LoginDialog::onLoginSucceeded(const ApplicationUser &user, const Token &token)
 {
     QMessageBox::information(this, MySettings::appName(), "\"" + user.name() +"\"" + QObject::tr(" logged in successfully!"));
     Q_ASSERT(ApplicationUser::userExist(user.name()) != false);
-    MessageHeader::setStoredTokenId(token.id());
-    //qDebug() << token.id() << token.createTime() << token.lifeInSeconds() << token.peerAddress();
+    ClientToken::instance()->setToken(token);
+    ClientToken::instance()->setUser(user);
     accept();
 }
 

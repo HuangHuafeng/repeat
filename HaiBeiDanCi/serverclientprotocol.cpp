@@ -1,7 +1,8 @@
 #include "serverclientprotocol.h"
+#include "clienttoken.h"
 
 qint32 MessageHeader::m_currentSequenceNumber = 1;
-QString MessageHeader::m_storedTokenId;
+const MessageHeader MessageHeader::invalidMessageHeader(-1, -1, -1, "__INVALID__");
 
 MessageHeader::MessageHeader(qint32 code, qint32 respondsTo, qint32 sequenceNumber, QString tokenId)
 {
@@ -14,11 +15,12 @@ MessageHeader::MessageHeader(qint32 code, qint32 respondsTo, qint32 sequenceNumb
     {
         m_sequenceNumber = m_currentSequenceNumber ++;
     }
-
-    if (m_tokenId.isEmpty() == true && m_storedTokenId.isEmpty() == false)
+#ifndef HAIBEIDANCI_SERVER
+    if (m_tokenId.isEmpty() == true)
     {
-        m_tokenId = m_storedTokenId;
+        m_tokenId = ClientToken::instance()->token().id();
     }
+#endif
 }
 
 MessageHeader::MessageHeader(const QByteArray &msg)
@@ -29,10 +31,7 @@ MessageHeader::MessageHeader(const QByteArray &msg)
     if (in.commitTransaction() == false)
     {
         qCritical("failed to construct a MessageHeader from %s", msg.constData());
-        m_code = -1;
-        m_respondsTo = -1;
-        m_sequenceNumber = -1;
-        m_tokenId = QString();
+        *this = invalidMessageHeader;
     }
 }
 
@@ -76,12 +75,6 @@ void MessageHeader::setTokenId(QString tokenId)
     m_tokenId = tokenId;
 }
 
-// static
-void MessageHeader::setStoredTokenId(QString tokenId)
-{
-    m_storedTokenId = tokenId;
-}
-
 QString MessageHeader::toString() const
 {
     return "{ \"code\": \"" + QString::number(m_code)
@@ -109,7 +102,6 @@ QDataStream &operator>>(QDataStream &ds, MessageHeader &msgHead)
     msgHead.setTokenId(tokenId);
     return ds;
 }
-
 
 ApplicationVersion::ApplicationVersion(quint8 major, quint8 minor, quint8 patch)
 {

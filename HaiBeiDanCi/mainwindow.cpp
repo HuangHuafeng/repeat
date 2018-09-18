@@ -12,6 +12,7 @@
 #include "mediafilemanager.h"
 #include "registerdialog.h"
 #include "logindialog.h"
+#include "clienttoken.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -496,6 +497,25 @@ void MainWindow::on_actionRegister_User_triggered()
 
 void MainWindow::on_actionLogin_triggered()
 {
+    auto ct = ClientToken::instance();
+    if (ct->hasAliveToken() == true
+            && ct->hasValidUser() == true)
+    {
+        auto answer = QMessageBox::warning(this,
+                                           MySettings::appName(),
+                                           "\"" + ct->user().name() + "\" " + QObject::tr("already logged in. Would you like to logout?"),
+                                           QMessageBox::Yes,
+                                           QMessageBox::No);
+        if (answer == QMessageBox::Yes)
+        {
+            ui->actionLogout->trigger();
+        }
+        else
+        {
+            return;
+        }
+    }
+
     LoginDialog ld(this);
     auto result = ld.exec();
     if (result == QDialog::Accepted)
@@ -505,5 +525,19 @@ void MainWindow::on_actionLogin_triggered()
     else
     {
         // no user is registered and the dialog is cancelled
+    }
+}
+
+void MainWindow::on_actionLogout_triggered()
+{
+    auto ct = ClientToken::instance();
+    if (ct->hasAliveToken() == true
+            && ct->hasValidUser() == true)
+    {
+        ServerUserAgent *sua = new ServerUserAgent(this);
+        connect(sua, &ServerUserAgent::logoutSucceeded, [sua] (QString name) { sua->deleteLater(); qDebug() << "sua->deleteLater() called for" << name; });
+        sua->logoutUser(ct->user().name());
+        ct->setToken(Token::invalidToken);
+        ct->setUser(ApplicationUser::invalidUser);
     }
 }

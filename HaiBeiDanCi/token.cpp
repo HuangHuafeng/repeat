@@ -1,12 +1,22 @@
 #include "token.h"
 
-Token Token::invalidToken("__INVALID__", 0);
+const Token Token::invalidToken("__INVALID__", 0);
 
 Token::Token(QString id, int lifeInSeconds, QDateTime createTime) :
     m_id(id),
     m_createTime(createTime),
     m_lifeInSeconds(lifeInSeconds)
 {
+}
+
+bool Token::isValid() const
+{
+    return m_id != invalidToken.id();
+}
+
+bool Token::isAlive() const
+{
+    return isValid() && QDateTime::currentDateTime() < m_createTime.addSecs(m_lifeInSeconds);
 }
 
 QString Token::id() const

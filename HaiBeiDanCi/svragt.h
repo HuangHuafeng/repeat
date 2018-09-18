@@ -54,6 +54,7 @@ public:
 
     void sendRequestRegister(const ApplicationUser &user);
     void sendRequestLogin(const ApplicationUser &user);
+    void sendRequestLogout(QString name);
 
 signals:
     void bookListReady(const QList<QString> &books);
@@ -75,6 +76,7 @@ signals:
 
     void registerResult(qint32 result, const ApplicationUser &user);
     void loginResult(qint32 result, const ApplicationUser &user, const Token &token);
+    void logoutResult(qint32 result, QString name);
 
 private slots:
     void onConnected();
@@ -125,6 +127,7 @@ protected:
     bool handleResponseRegister(const QByteArray &msg);
     bool handleResponseLogin(const QByteArray &msg);
     bool handleResponseInvalidTokenId(const QByteArray &msg);
+    bool handleResponseLogout(const QByteArray &msg);
 
     void sendMessage(const QByteArray &msg, bool needCompress = false, bool now = false);
     void updateAndEmitProgress();

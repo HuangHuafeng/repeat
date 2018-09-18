@@ -34,10 +34,20 @@ public:
         ResultLoginFailedIncorrectPassword = 5,
     } LoginResult;
 
+    typedef enum
+    {
+        ResultLogoutOK = 0,
+    } LogoutResult;
+
     static const ApplicationUser invalidUser;
 
     ApplicationUser(QString name, QString password, QString email, qint32 id = 0);
     ApplicationUser(QString name, const QByteArray &password, QString email, qint32 id);
+
+    bool isValid() const
+    {
+        return m_name != invalidUser.name() && m_id != invalidUser.id();
+    }
 
     qint32 id() const
     {

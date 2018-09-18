@@ -191,6 +191,10 @@ int SvrAgt::handleMessage(const QByteArray &msg)
         handleResult = handleResponseInvalidTokenId(msg);
         break;
 
+    case ServerClientProtocol::ResponseLogout:
+        handleResult = handleResponseLogout(msg);
+        break;
+
     default:
         handleUnknownMessage(msg);
         unknowMessage = true;
@@ -249,7 +253,7 @@ bool SvrAgt::handleUnknownMessage(const QByteArray &msg)
 bool SvrAgt::handleResponseGetAllBooks(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     QList<QString> books;
     in.startTransaction();
     in >> receivedMsgHeader >> books;
@@ -267,7 +271,7 @@ bool SvrAgt::handleResponseGetAllBooks(const QByteArray &msg)
 bool SvrAgt::handleResponseGetBookWordList(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     QString bookName;
     QVector<QString> wordList;
     bool listComplete;
@@ -296,7 +300,7 @@ bool SvrAgt::handleResponseGetBookWordList(const QByteArray &msg)
 bool SvrAgt::handleResponseGetAWord(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     Word word;
     in.startTransaction();
     in >> receivedMsgHeader >> word;
@@ -324,7 +328,7 @@ bool SvrAgt::handleResponseGetAWord(const QByteArray &msg)
 bool SvrAgt::handleResponseGetWordsOfBookFinished(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     QString bookName;
     in.startTransaction();
     in >> receivedMsgHeader >> bookName;
@@ -349,7 +353,7 @@ bool SvrAgt::handleResponseGetWordsOfBookFinished(const QByteArray &msg)
 bool SvrAgt::handleResponseRegister(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     qint32 result;
     ApplicationUser user = ApplicationUser::invalidUser;
     in.startTransaction();
@@ -368,7 +372,7 @@ bool SvrAgt::handleResponseRegister(const QByteArray &msg)
 bool SvrAgt::handleResponseLogin(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     qint32 result;
     ApplicationUser user = ApplicationUser::invalidUser;
     Token token = Token::invalidToken;
@@ -385,10 +389,29 @@ bool SvrAgt::handleResponseLogin(const QByteArray &msg)
     return true;
 }
 
+bool SvrAgt::handleResponseLogout(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
+    qint32 result;
+    QString name;
+    in.startTransaction();
+    in >> receivedMsgHeader >> result >> name;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read info in handleResponseLogout()";
+        return false;
+    }
+
+    emit(logoutResult(result, name));
+
+    return true;
+}
+
 bool SvrAgt::handleResponseGetABook(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     WordBook book;
     in.startTransaction();
     in >> receivedMsgHeader >> book;
@@ -407,7 +430,7 @@ bool SvrAgt::handleResponseGetABook(const QByteArray &msg)
 bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     QString fileName;
     char *data;
     uint len;
@@ -431,7 +454,7 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
 bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     QString fileName;
     bool succeeded;
     in.startTransaction();
@@ -476,7 +499,7 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
 bool SvrAgt::handleResponseUnknownRequest(const QByteArray &msg)
 {
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     int requestCode;
     in.startTransaction();
     in >> receivedMsgHeader >> requestCode;
@@ -541,6 +564,16 @@ void SvrAgt::sendRequestLogin(const ApplicationUser &user)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << msgHeader << user;
+    sendMessage(block);
+}
+
+void SvrAgt::sendRequestLogout(QString name)
+{
+    MessageHeader msgHeader(ServerClientProtocol::RequestLogout);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader << name;
     sendMessage(block);
 }
 

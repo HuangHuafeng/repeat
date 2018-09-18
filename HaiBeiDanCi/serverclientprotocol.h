@@ -38,6 +38,7 @@ public:
 
         RequestLogin = RequestNoOperation + 9,
         RequestRegister = RequestNoOperation + 10,
+        RequestLogout = RequestNoOperation + 11,
     } ClientToServerMessageCode;
 
     typedef enum {
@@ -56,6 +57,7 @@ public:
 
         ResponseLogin = ResponseNoOperation + 9,
         ResponseRegister = ResponseNoOperation + 10,
+        ResponseLogout = ResponseNoOperation + 11,
 
         // ResponseOK is useful when there's no data need to be sent, just to let the client know that the server got your message
         ResponseOK = ResponseNoOperation + 8888,
@@ -116,9 +118,9 @@ class MessageHeader
     QString m_tokenId;
 
     static qint32 m_currentSequenceNumber;
-    static QString m_storedTokenId;
 
 public:
+    static const MessageHeader invalidMessageHeader;
     MessageHeader(qint32 code = 0, qint32 respondsTo = 0, qint32 sequenceNumber = 0, QString tokenId = QString());
     MessageHeader(const QByteArray &msg);
 
@@ -131,7 +133,6 @@ public:
     void setSequenceNumber(qint32 sequenceNumber);
     void setRespondsTo(qint32 respondsTo);
     void setTokenId(QString tokenId);
-    static void setStoredTokenId(QString tokenId);
 
     QString toString() const;
 };

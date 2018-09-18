@@ -10,6 +10,7 @@ SvrAgt::SvrAgt(const QString &hostName, quint16 port, QObject *parent) : QObject
     m_timerServerHeartBeat(this)
 {
     connect(&m_timerServerHeartBeat, SIGNAL(timeout()), this, SLOT(onServerHeartBeat()));
+    //connect(&m_timerServerHeartBeat, &QTimer::timeout, [] () {qDebug() << "lambda called";});
     connect(&m_messageTimer, SIGNAL(timeout()), this, SLOT(onSendMessageSmart()));
 }
 
@@ -186,6 +187,10 @@ int SvrAgt::handleMessage(const QByteArray &msg)
         handleResult = handleResponseLogin(msg);
         break;
 
+    case ServerClientProtocol::ResponseInvalidTokenId:
+        handleResult = handleResponseInvalidTokenId(msg);
+        break;
+
     default:
         handleUnknownMessage(msg);
         unknowMessage = true;
@@ -214,6 +219,13 @@ int SvrAgt::handleMessage(const QByteArray &msg)
 }
 
 bool SvrAgt::handleResponseOK(const QByteArray &msg)
+{
+    qDebug() << msg;
+
+    return true;
+}
+
+bool SvrAgt::handleResponseInvalidTokenId(const QByteArray &msg)
 {
     qDebug() << msg;
 
@@ -359,15 +371,16 @@ bool SvrAgt::handleResponseLogin(const QByteArray &msg)
     MessageHeader receivedMsgHeader(-1, -1, -1);
     qint32 result;
     ApplicationUser user = ApplicationUser::invalidUser;
+    Token token = Token::invalidToken;
     in.startTransaction();
-    in >> receivedMsgHeader >> result >> user;
+    in >> receivedMsgHeader >> result >> user >> token;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read info in handleResponseLogin()";
         return false;
     }
 
-    emit(loginResult(result, user));
+    emit(loginResult(result, user, token));
 
     return true;
 }

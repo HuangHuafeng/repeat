@@ -2,7 +2,6 @@
 #define HBDCAPPHANDLER_H
 
 #include "clienthandler.h"
-#include "../HaiBeiDanCi/applicationuser.h"
 
 class HBDCAppHandler : public ClientHandler
 {
@@ -18,12 +17,6 @@ private:
     bool handleRequestGetAWord(const QByteArray &msg);
     bool handleRequestGetABook(const QByteArray &msg);
     bool handleRequestGetFile(const QByteArray &msg);
-    bool handleRequestRegister(const QByteArray &msg);
-    bool handleRequestLogin(const QByteArray &msg);
-
-    bool registerUser(const QByteArray &msg, ApplicationUser &user);
-    bool loginUser(const QByteArray &msg, ApplicationUser &user);
-    bool validateUser(const ApplicationUser &user);
 
     void sendBookWordList(const QByteArray &msg, QString bookName);
     bool sendFile(const QByteArray &msg, QString fileName);
@@ -36,9 +29,6 @@ private:
     void sendResponseGetFileFinished(const QByteArray &msg, QString fileName, bool succeeded);
     void sendResponseGetFile(const QByteArray &msg, QString fileName, const char *s, uint len);
     void sendResponseGetWordsOfBookFinished(const QByteArray &msg, QString bookName);
-
-    void sendResponseRegister(const QByteArray &msg, qint32 result, const ApplicationUser &user);
-    void sendResponseLogin(const QByteArray &msg, qint32 result, const ApplicationUser &user);
 };
 
 #endif // HBDCAPPHANDLER_H

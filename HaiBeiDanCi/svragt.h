@@ -5,6 +5,7 @@
 #include "../golddict/sptr.hh"
 #include "serverclientprotocol.h"
 #include "applicationuser.h"
+#include "token.h"
 
 #include <QObject>
 #include <QtNetwork>
@@ -73,7 +74,7 @@ signals:
     void serverConnected();
 
     void registerResult(qint32 result, const ApplicationUser &user);
-    void loginResult(qint32 result, const ApplicationUser &user);
+    void loginResult(qint32 result, const ApplicationUser &user, const Token &token);
 
 private slots:
     void onConnected();
@@ -123,6 +124,7 @@ protected:
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
     bool handleResponseRegister(const QByteArray &msg);
     bool handleResponseLogin(const QByteArray &msg);
+    bool handleResponseInvalidTokenId(const QByteArray &msg);
 
     void sendMessage(const QByteArray &msg, bool needCompress = false, bool now = false);
     void updateAndEmitProgress();

@@ -26,6 +26,7 @@ void ClientWaiter::run()
     qDebug("%s:%d connected", m_tcpSocket->peerAddress().toString().toLatin1().constData(), m_tcpSocket->peerPort());
 
     sptr<ClientHandler> ptrClientHandler = new HBDCAppHandler(*this);
+    ptrClientHandler->setPeerAddress(m_tcpSocket->peerAddress());
     int consecutiveHeartbeat = 0;
     while (1)
     {
@@ -53,7 +54,8 @@ void ClientWaiter::run()
 
         // we have a message here, process it        
         MessageHeader receivedMsgHeader(msg);
-        int handleResult = ptrClientHandler->handleMessage(msg);
+        //int handleResult = ptrClientHandler->handleMessage(msg);
+        int handleResult = ptrClientHandler->processMessage(msg);
         if (handleResult == 0)
         {
             if (receivedMsgHeader.code() == ServerClientProtocol::RequestNoOperation)
@@ -74,6 +76,7 @@ void ClientWaiter::run()
             if (receivedMsgHeader.code() == ServerClientProtocol::RequestPromoteToManager)
             {
                 ptrClientHandler = new HBDCManagerHandler(*this);
+                ptrClientHandler->setPeerAddress(m_tcpSocket->peerAddress());
                 sendResponsePromoteToManager(msg);
                 qDebug() << "promoted the handler to manager\n";
                 handleResult = 0;
@@ -89,7 +92,12 @@ void ClientWaiter::run()
         }
         else if (handleResult == -2)
         {
+            // client said good bye!
             break;
+        }
+        else if (handleResult == -3)
+        {
+            // message does have the expected token id
         }
         else
         {

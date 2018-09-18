@@ -59,6 +59,7 @@ public:
 
         // ResponseOK is useful when there's no data need to be sent, just to let the client know that the server got your message
         ResponseOK = ResponseNoOperation + 8888,
+        ResponseInvalidTokenId = ResponseNoOperation + 8889,
 
         ResponseFailedToRequest = ResponseNoOperation + 9000,   // Yes
         ResponseUnknownRequest = ResponseNoOperation + 9001,    // Yes
@@ -112,26 +113,31 @@ class MessageHeader
     qint32 m_sequenceNumber;  // sequence number of this message
     qint32 m_respondsTo;  // this message responds to the message with sequence number "respondsTo" from the peer
     //qint32 m_version;     // version of the message, not needed yet
+    QString m_tokenId;
 
     static qint32 m_currentSequenceNumber;
+    static QString m_storedTokenId;
 
 public:
-    MessageHeader(qint32 code = 0, qint32 respondsTo = 0, qint32 sequenceNumber = 0);
+    MessageHeader(qint32 code = 0, qint32 respondsTo = 0, qint32 sequenceNumber = 0, QString tokenId = QString());
     MessageHeader(const QByteArray &msg);
 
     qint32 code() const;
     qint32 sequenceNumber() const;
     qint32 respondsTo() const;
+    QString tokenId() const;
 
     void setCode(qint32 code);
     void setSequenceNumber(qint32 sequenceNumber);
     void setRespondsTo(qint32 respondsTo);
+    void setTokenId(QString tokenId);
+    static void setStoredTokenId(QString tokenId);
 
     QString toString() const;
 };
 
-QDataStream &operator<<(QDataStream &ds, const MessageHeader &word);
-QDataStream &operator>>(QDataStream &ds, MessageHeader &word);
+QDataStream &operator<<(QDataStream &ds, const MessageHeader &msgHead);
+QDataStream &operator>>(QDataStream &ds, MessageHeader &msgHead);
 
 class ApplicationVersion
 {

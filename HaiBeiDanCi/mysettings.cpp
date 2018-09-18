@@ -727,6 +727,23 @@ QString MySettings::getSettingString(QString key)
     return value;
 }
 
+int MySettings::tokenLifeInSeconds()
+{
+    QString stringValue = MySettings::getSettingString("tokenLifeInSeconds");
+    int valueInSetting;
+    if (stringValue.isEmpty() == false)
+    {
+        valueInSetting = stringValue.toInt();
+    }
+    else
+    {
+        // default to 1800 seconds
+        valueInSetting = 1800;
+    }
+
+    return valueInSetting;
+}
+
 QRegularExpression MySettings::namePattern()
 {
     QString pattern = MySettings::getSettingString("namePattern");

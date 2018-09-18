@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    MySettings::setAppName("HaiBeiDanCiServer");
+    //MySettings::setAppName("HaiBeiDanCiServer");
 
     // use the setting from HaiBeiDanCi if it's in the same computer
     QCoreApplication::setOrganizationName(MySettings::orgName());

@@ -5,7 +5,7 @@ ServerUserAgent::ServerUserAgent(QObject *parent) : QObject(parent),
     m_svrAgt(MySettings::serverHostName(), MySettings::serverPort(), this)
 {
     connect(&m_svrAgt, SIGNAL(registerResult(qint32, const ApplicationUser &)), this, SLOT(onRegisterResult(qint32, const ApplicationUser &)));
-    connect(&m_svrAgt, SIGNAL(loginResult(qint32, const ApplicationUser &)), this, SLOT(onLoginResult(qint32, const ApplicationUser &)));
+    connect(&m_svrAgt, SIGNAL(loginResult(qint32, const ApplicationUser &, const Token &)), this, SLOT(onLoginResult(qint32, const ApplicationUser &, const Token &)));
 }
 
 void ServerUserAgent::onRegisterResult(qint32 result, const ApplicationUser &user)
@@ -48,11 +48,11 @@ void ServerUserAgent::onRegisterResult(qint32 result, const ApplicationUser &use
     }
 }
 
-void ServerUserAgent::onLoginResult(qint32 result, const ApplicationUser &user)
+void ServerUserAgent::onLoginResult(qint32 result, const ApplicationUser &user, const Token &token)
 {
     if (result == ApplicationUser::ResultLoginOK)
     {
-        emit(loginSucceed(user));
+        emit(loginSucceed(user, token));
     }
     else
     {

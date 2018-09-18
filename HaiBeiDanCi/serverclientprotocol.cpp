@@ -1,16 +1,23 @@
 #include "serverclientprotocol.h"
 
 qint32 MessageHeader::m_currentSequenceNumber = 1;
+QString MessageHeader::m_storedTokenId;
 
-MessageHeader::MessageHeader(qint32 code, qint32 respondsTo, qint32 sequenceNumber)
+MessageHeader::MessageHeader(qint32 code, qint32 respondsTo, qint32 sequenceNumber, QString tokenId)
 {
     m_code = code;
     m_respondsTo = respondsTo;
     m_sequenceNumber = sequenceNumber;
+    m_tokenId = tokenId;
 
     if (m_sequenceNumber == 0)
     {
         m_sequenceNumber = m_currentSequenceNumber ++;
+    }
+
+    if (m_tokenId.isEmpty() == true && m_storedTokenId.isEmpty() == false)
+    {
+        m_tokenId = m_storedTokenId;
     }
 }
 
@@ -25,6 +32,7 @@ MessageHeader::MessageHeader(const QByteArray &msg)
         m_code = -1;
         m_respondsTo = -1;
         m_sequenceNumber = -1;
+        m_tokenId = QString();
     }
 }
 
@@ -43,6 +51,10 @@ qint32 MessageHeader::respondsTo() const
     return m_respondsTo;
 }
 
+QString MessageHeader::tokenId() const
+{
+    return m_tokenId;
+}
 
 void MessageHeader::setCode(qint32 code)
 {
@@ -59,14 +71,28 @@ void MessageHeader::setRespondsTo(qint32 respondsTo)
     m_respondsTo = respondsTo;
 }
 
+void MessageHeader::setTokenId(QString tokenId)
+{
+    m_tokenId = tokenId;
+}
+
+// static
+void MessageHeader::setStoredTokenId(QString tokenId)
+{
+    m_storedTokenId = tokenId;
+}
+
 QString MessageHeader::toString() const
 {
-    return "{ \"code\": \"" + QString::number(m_code) + "\", \"sequenceNumber\": \"" + QString::number(m_sequenceNumber) + "\", \"respondsTo\": \"" + QString::number(m_respondsTo) + "\" }";
+    return "{ \"code\": \"" + QString::number(m_code)
+            + "\", \"sequenceNumber\": \"" + QString::number(m_sequenceNumber)
+            + "\", \"respondsTo\": \"" + QString::number(m_respondsTo)
+            + "\", \"tokenId\": \"" + m_tokenId + "\"}";
 }
 
 QDataStream &operator<<(QDataStream &ds, const MessageHeader &msgHead)
 {
-    ds << msgHead.code() << msgHead.sequenceNumber() << msgHead.respondsTo();
+    ds << msgHead.code() << msgHead.sequenceNumber() << msgHead.respondsTo() << msgHead.tokenId();
     return ds;
 }
 
@@ -75,10 +101,12 @@ QDataStream &operator>>(QDataStream &ds, MessageHeader &msgHead)
     qint32 code;
     qint32 sequenceNumber;
     qint32 respondsTo;
-    ds >> code >> sequenceNumber >> respondsTo;
+    QString tokenId;
+    ds >> code >> sequenceNumber >> respondsTo >> tokenId;
     msgHead.setCode(code);
     msgHead.setSequenceNumber(sequenceNumber);
     msgHead.setRespondsTo(respondsTo);
+    msgHead.setTokenId(tokenId);
     return ds;
 }
 

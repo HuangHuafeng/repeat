@@ -102,6 +102,8 @@ class MySettings : public QObject
     static QRegularExpression passwordPattern();
     static QRegularExpression emailPattern();
 
+    static int tokenLifeInSeconds();
+
 #ifndef HAIBEIDANCI_SERVER
 
     static QString applicationFont();

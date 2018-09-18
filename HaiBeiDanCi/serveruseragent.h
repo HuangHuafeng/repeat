@@ -20,12 +20,12 @@ signals:
     void registerSucceed(const ApplicationUser &user);
     void registerFailed(QString why);
 
-    void loginSucceed(const ApplicationUser &user);
+    void loginSucceed(const ApplicationUser &user, const Token &token);
     void loginFailed(QString why);
 
 private slots:
     void onRegisterResult(qint32 result, const ApplicationUser &user);
-    void onLoginResult(qint32 result, const ApplicationUser &user);
+    void onLoginResult(qint32 result, const ApplicationUser &user, const Token &token);
 
 public slots:
 };

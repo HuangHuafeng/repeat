@@ -1,5 +1,6 @@
 #include "hbdcapphandler.h"
 #include "../HaiBeiDanCi/mysettings.h"
+#include "tokenmanager.h"
 
 #include <QFile>
 
@@ -35,14 +36,6 @@ int HBDCAppHandler::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::RequestGetWordsOfBookFinished:
         handleResult = handleRequestGetWordsOfBookFinished(msg);
-        break;
-
-    case ServerClientProtocol::RequestRegister:
-        handleResult = handleRequestRegister(msg);
-        break;
-
-    case ServerClientProtocol::RequestLogin:
-        handleResult = handleRequestLogin(msg);
         break;
 
     default:
@@ -187,156 +180,6 @@ bool HBDCAppHandler::handleRequestGetFile(const QByteArray &msg)
 
     // the message has been processed, so return true regardless if succeeded or not
     return true;
-}
-
-bool HBDCAppHandler::handleRequestRegister(const QByteArray &msg)
-{
-    funcTracker ft("handleRequestRegister()");
-
-    QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
-    ApplicationUser user = ApplicationUser::invalidUser;
-    in.startTransaction();
-    in >> receivedMsgHeader >> user;
-    if (in.commitTransaction() == false)
-    {
-        qCritical() << "failed to get file name in handleRequestRegister()";
-        return false;
-    }
-
-    return registerUser(msg, user);
-}
-
-bool HBDCAppHandler::handleRequestLogin(const QByteArray &msg)
-{
-    funcTracker ft("handleRequestLogin()");
-
-    QDataStream in(msg);
-    MessageHeader receivedMsgHeader(-1, -1, -1);
-    ApplicationUser user = ApplicationUser::invalidUser;
-    in.startTransaction();
-    in >> receivedMsgHeader >> user;
-    if (in.commitTransaction() == false)
-    {
-        qCritical() << "failed to get file name in handleRequestLogin()";
-        return false;
-    }
-
-    return loginUser(msg, user);
-}
-
-bool HBDCAppHandler::validateUser(const ApplicationUser &user)
-{
-    // we are not able to validate password as it's already md5 (by default)
-    auto nameRE = MySettings::namePattern();
-    auto emailRE = MySettings::emailPattern();
-
-    return nameRE.match(user.name()).hasMatch()
-            && emailRE.match(user.email()).hasMatch();
-}
-
-bool HBDCAppHandler::registerUser(const QByteArray &msg, ApplicationUser &user)
-{
-    bool retVal = false;
-    qint32 result = ApplicationUser::ResultRegisterFailedUnknown;
-    if (user.id() != 0 || validateUser(user) == false)
-    {
-        // we expect the id is 0 when the client tries to register a user!
-        // and name/email must meet the required rules!
-        result = ApplicationUser::ResultRegisterFailedUnknown;
-        retVal = false;
-    }
-    else if (ApplicationUser::userExist(user.name()) == true)
-    {
-        result = ApplicationUser::ResultRegisterFailedNameAlreadyUsed;
-        retVal = false;
-    }
-    else
-    {
-        // add more check here later, now we just create the user
-        retVal = ApplicationUser::createUser(user);
-        if (retVal == true)
-        {
-            result = ApplicationUser::ResultRegisterOK;
-        }
-        else
-        {
-            result = ApplicationUser::ResultRegisterFailedServerError;
-        }
-    }
-
-    sendResponseRegister(msg, result, user);
-
-    return retVal;
-}
-
-bool HBDCAppHandler::loginUser(const QByteArray &msg, ApplicationUser &user)
-{
-    bool retVal = false;
-    qint32 result = ApplicationUser::ResultLoginFailedUnknown;
-    if (user.id() == 0 || validateUser(user) == false)
-    {
-        // we expect the id is 0 when the client tries to register a user!
-        // and name/email must meet the required rules!
-        result = ApplicationUser::ResultLoginFailedUnknown;
-        retVal = false;
-    }
-    else
-    {
-        auto existingUser = ApplicationUser::getUser(user.name());
-        if (existingUser.get() == nullptr)
-        {
-            result = ApplicationUser::ResultLoginFailedNameDoesNotExist;
-            retVal = false;
-        }
-        else
-        {
-            if (existingUser->password() != user.password())
-            {
-                result = ApplicationUser::ResultLoginFailedIncorrectPassword;
-                retVal = false;
-            }
-            else
-            {
-                if (existingUser->email() != user.email())
-                {
-                    result = ApplicationUser::ResultLoginFailedUnknown;
-                    retVal = false;
-                }
-                else
-                {
-                    result = ApplicationUser::ResultLoginOK;
-                    retVal = true;
-                }
-            }
-        }
-    }
-
-    sendResponseLogin(msg, result, user);
-
-    return retVal;
-}
-
-void HBDCAppHandler::sendResponseRegister(const QByteArray &msg, qint32 result, const ApplicationUser &user)
-{
-    MessageHeader receivedMsgHeader(msg);
-    MessageHeader responseHeader(ServerClientProtocol::ResponseRegister, receivedMsgHeader.sequenceNumber());
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << result << user;
-    sendMessage(block, true);
-}
-
-void HBDCAppHandler::sendResponseLogin(const QByteArray &msg, qint32 result, const ApplicationUser &user)
-{
-    MessageHeader receivedMsgHeader(msg);
-    MessageHeader responseHeader(ServerClientProtocol::ResponseLogin, receivedMsgHeader.sequenceNumber());
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << result << user;
-    sendMessage(block, true);
 }
 
 void HBDCAppHandler::sendResponseGetABook(const QByteArray &msg, const WordBook &book)

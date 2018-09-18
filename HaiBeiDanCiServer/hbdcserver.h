@@ -3,6 +3,7 @@
 
 #include <QStringList>
 #include <QTcpServer>
+#include <QTimer>
 
 //! [0]
 class HBDCServer : public QTcpServer
@@ -16,7 +17,11 @@ public:
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
 
+private slots:
+    void onScheduleDelete();
+
 private:
+    QTimer m_deleteScheduler;
 };
 
 #endif // HBDCSERVER_H

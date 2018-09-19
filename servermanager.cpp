@@ -359,8 +359,8 @@ bool ServerManager::okToSyncWords(QString *errorString)
     for (int i = 0;i < allLocalWords.size();i ++)
     {
         auto spelling = allLocalWords.at(i);
-        auto localWord = Word::getWord(spelling);
-        Q_ASSERT(localWord.get() != nullptr);
+        const Word *localWord = Word::getWordToRead(spelling);
+        Q_ASSERT(localWord != nullptr);
         Q_ASSERT(idsUsedLoally.contains(localWord->getId()) == false);
         idsUsedLoally.insert(localWord->getId());
     }

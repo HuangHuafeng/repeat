@@ -433,6 +433,16 @@ sptr<Word> Word::getWord(const QString &spelling, bool create)
     return word;
 }
 
+// static
+const Word * Word::getWordToRead(QString spelling)
+{
+    m_allWordsMutex.lock();
+    Word *ptrWord = m_allWords.value(spelling).get();
+    m_allWordsMutex.unlock();
+
+    return ptrWord;
+}
+
 QDataStream &operator<<(QDataStream &ds, const Word &word)
 {
     ds << word.getId() << word.getSpelling() << word.getDefinition();

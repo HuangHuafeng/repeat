@@ -87,6 +87,8 @@ private:
     void selectFirstItem(QTreeWidget *tw);
     void listServerBooks(const QList<QString> books);
     bool okToPerformServerRelatedOperation();
+
+    void test();
 };
 
 #endif // MAINWINDOW_H

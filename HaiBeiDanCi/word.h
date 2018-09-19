@@ -39,6 +39,7 @@ class Word
 
     static QList<QString> getAllWords();
     static sptr<Word> getWord(const QString &spelling, bool create = false);
+    static const Word * getWordToRead(QString spelling);
     static int getWordId(const QString &spelling);
     static bool isInDatabase(const QString &spelling);
     static void storeWordFromServer(sptr<Word> word);

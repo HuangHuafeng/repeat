@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     if (WordDB::initialize() == false) {
         QMessageBox::critical(this, "MySettings::appName()", MainWindow::tr("database error"));
     }
+    test();
 
     // load LDOCE6 by default for covenience
     m_gdhelper.loadDict("/Users/huafeng/Documents/Nexus7/Dictionary/LDOCE6/LDOCE6.mdx");
@@ -48,10 +49,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->horizontalLayout_2->addWidget(&m_definitionView);
     m_gdhelper.loadBlankPage(m_definitionView);
     this->resize(800, 600);
-
-    Word::readAllWordsFromDatabase();
-    WordCard::readAllCardsFromDatabase();
-    WordBook::readAllBooksFromDatabase();
 
     ServerManager *serverManager = ServerManager::instance();
     connect(serverManager, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
@@ -213,6 +210,7 @@ void MainWindow::addBookToTheView(QTreeWidget * tw, WordBook &book)
 
 void MainWindow::onBookDownloaded(QString bookName)
 {
+    test();
     auto mfm = MediaFileManager::instance();
     mfm->bookDownloaded(bookName);
     reloadLocalData();
@@ -547,4 +545,23 @@ void MainWindow::on_actionLogout_triggered()
         ct->setToken(Token::invalidToken);
         ct->setUser(ApplicationUser::invalidUser);
     }
+}
+
+void MainWindow::test()
+{
+    static int counter = 1;
+    qDebug() << "==== TEST" << counter << "START ====";
+
+    auto allLocalWords = Word::getAllWords();
+
+    for (int i = 0;i < allLocalWords.size();i ++)
+    {
+        auto spelling = allLocalWords.at(i);
+        const Word *localWord = Word::getWordToRead(spelling);
+        Q_ASSERT(localWord != nullptr);
+        qDebug() << localWord->getId() << localWord->getSpelling() << localWord->getDefinition().size();
+    }
+
+    qDebug() << "==== TEST" << counter << "END ====";
+    counter ++;
 }

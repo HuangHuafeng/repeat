@@ -3,7 +3,8 @@
 * add server setting in info.json
 * application icon (DONE on Windows)
 * auto update
-* log in / register / etc
+* token->user
+[DONE]* log in / register / etc
 
 
 PARTLY DONE * add security to the server, currently it exposes anything to the client!!!

@@ -63,6 +63,14 @@ void WordDB::rememberDatabase(sptr<QSqlDatabase> database)
     addConn(ptrThread, database);
 }
 
+void WordDB::forgetMyDatabae()
+{
+    auto ptrThread = QThread::currentThread();
+    m_mapConnMutex.lock();
+    m_mapConns.remove(ptrThread);
+    m_mapConnMutex.unlock();
+}
+
 void WordDB::addConn(QThread *ptrThread, sptr<QSqlDatabase> database)
 {
     m_mapConnMutex.lock();
@@ -173,4 +181,23 @@ sptr<QSqlDatabase> WordDB::connectedDatabase()
     auto database = getConn(ptrThread);
 
     return database;
+}
+
+// static
+void WordDB::removeMyConnection()
+{
+    QString connName;
+    {//http://doc.qt.io/qt-5/qsqldatabase.html#removeDatabase
+        auto db = WordDB::connectedDatabase();
+        connName = db->connectionName();
+    }
+    forgetMyDatabae();
+    QSqlDatabase::removeDatabase(connName);
+}
+
+// static
+QString WordDB::status()
+{
+    qDebug() << m_mapConns.size();
+    return  "";
 }

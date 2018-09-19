@@ -24,6 +24,8 @@ class WordDB
     static sptr<QSqlQuery> createSqlQuery();
     static void databaseError(QSqlQuery &query, QString what);
     static sptr<QSqlDatabase> connectedDatabase();
+    static void removeMyConnection();
+    static QString status();
 
   private:
     WordDB();
@@ -32,6 +34,7 @@ class WordDB
     static void addConn(QThread *ptrThread, sptr<QSqlDatabase> database);
     static sptr<QSqlDatabase> getConn(QThread *ptrThread);
     static void rememberDatabase(sptr<QSqlDatabase> database);
+    static void forgetMyDatabae();
 
   private:
     static QMutex m_mapConnMutex;

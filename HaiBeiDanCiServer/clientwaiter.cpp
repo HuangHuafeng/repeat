@@ -10,13 +10,20 @@ ClientWaiter::ClientWaiter(qintptr socketDescriptor, QObject *parent)
 {
 }
 
+ClientWaiter::~ClientWaiter()
+{
+}
+
 void ClientWaiter::run()
 {
-    m_tcpSocket = new QTcpSocket(nullptr);
-
     // it's required to create the database connection
     // as we need to query database to like WordBook::getAllWords()
     WordDB::prepareDatabaseForThisThread();
+    // WordDB::prepareDatabaseForThisThread(); should be called here
+    // instead of the ClientWaiter constructor as ClientWaiter is
+    // constructed in another thread!!!
+
+    m_tcpSocket = new QTcpSocket(nullptr);
 
     if (!m_tcpSocket->setSocketDescriptor(m_socketDescriptor)) {
         emit error(m_tcpSocket->error());
@@ -109,6 +116,9 @@ void ClientWaiter::run()
     }
 
     disconnectPeer();
+
+    // remove the database connection
+    WordDB::removeMyConnection();
 }
 
 /**

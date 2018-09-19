@@ -28,6 +28,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // in this server main thread, no more database query will happen!!!
+    // we don't remove it as we get a warning, it's OK to leave the connection.
+    WordDB::removeMyConnection();
+
     // call MediaFileManager::instance() to get the existing file list ready
     MediaFileManager::instance();
 

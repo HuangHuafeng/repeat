@@ -121,13 +121,14 @@ QStringList MediaFileManager::bookExampleMediaFileList(QString bookName)
 
 void MediaFileManager::initialize()
 {
-    m_dataRedayMutex.lock();
-    m_dataReady = false;
-    m_dataRedayMutex.unlock();
     // it's required to create the database connection
     // as we need to query database to like WordBook::getAllWords()
     // And this is in a different thread!
     WordDB::prepareDatabaseForThisThread();
+
+    m_dataRedayMutex.lock();
+    m_dataReady = false;
+    m_dataRedayMutex.unlock();
 
     QStringList existingFileList = HelpFunc::filesInDir(MySettings::dataDirectory() + "/media");
     auto existingFiles = QSet<QString>::fromList(existingFileList);
@@ -141,6 +142,9 @@ void MediaFileManager::initialize()
     m_dataRedayMutex.lock();
     m_dataReady = true;
     m_dataRedayMutex.unlock();
+
+    // done, remove the database connection
+    WordDB::removeMyConnection();
 }
 
 void MediaFileManager::initializeBookMissingFileList(QString bookName, const QSet<QString> &existingFiles)

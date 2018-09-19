@@ -16,6 +16,7 @@ class ClientWaiter : public QThread
 
 public:
     ClientWaiter(qintptr socketDescriptor, QObject *parent);
+    ~ClientWaiter() override;
 
     void run() override;
 

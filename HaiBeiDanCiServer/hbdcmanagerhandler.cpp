@@ -120,8 +120,8 @@ void HBDCManagerHandler::sendAListOfWordsWithoutDefinition(const QByteArray &msg
 
     for (int i = 0;i < wordList.size();i ++)
     {
-        auto word = Word::getWord(wordList.at(i));
-        Q_ASSERT(word.get() != nullptr);
+        auto word = Word::getWordToRead(wordList.at(i));
+        Q_ASSERT(word != nullptr);
         spellingList.append(word->getSpelling());
         idList.append(word->getId());
         definitionLengthList.append(word->getDefinition().size());

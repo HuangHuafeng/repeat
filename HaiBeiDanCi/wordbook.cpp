@@ -362,8 +362,8 @@ void WordBook::v2DbsaveAddWords(const QVector<QString> &words)
     QVariantList bookIds;
     for (int i = 0; i < words.size(); i++)
     {
-        auto word = Word::getWord(words.at(i));
-        if (word.get() != nullptr)
+        auto word = Word::getWordToRead(words.at(i));
+        if (word != nullptr)
         {
             wordIds << word->getId();
             bookIds << getId();

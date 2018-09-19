@@ -88,8 +88,8 @@ bool HBDCAppHandler::handleRequestGetAWord(const QByteArray &msg)
         return false;
     }
 
-    auto word = Word::getWord(spelling);
-    if (word.get() == nullptr)
+    auto word = Word::getWordToRead(spelling);
+    if (word == nullptr)
     {
         return false;
     }

@@ -359,7 +359,7 @@ bool ServerManager::okToSyncWords(QString *errorString)
     for (int i = 0;i < allLocalWords.size();i ++)
     {
         auto spelling = allLocalWords.at(i);
-        const Word *localWord = Word::getWordToRead(spelling);
+        auto localWord = Word::getWordToRead(spelling);
         Q_ASSERT(localWord != nullptr);
         Q_ASSERT(idsUsedLoally.contains(localWord->getId()) == false);
         idsUsedLoally.insert(localWord->getId());
@@ -379,8 +379,8 @@ bool ServerManager::okToSyncWords(QString *errorString)
     for (int i = 0;i < allLocalWords.size();i ++)
     {
         auto spelling = allLocalWords.at(i);
-        auto localWord = Word::getWord(spelling);
-        Q_ASSERT(localWord.get() != nullptr);
+        auto localWord = Word::getWordToRead(spelling);
+        Q_ASSERT(localWord != nullptr);
         if (m_mapWords.contains(spelling) == true)
         {
             auto serverWord = m_mapWords.value(spelling);
@@ -523,8 +523,8 @@ void ServerManager::sendWordsOfBook(QString bookName)
         if (m_mapWords.contains(spelling) == false)
         {
             // send the word only if it does not exit in the server
-            auto word = Word::getWord(spelling);
-            Q_ASSERT(word.get() != nullptr);
+            auto word = Word::getWordToRead(spelling);
+            Q_ASSERT(word != nullptr);
             m_mgrAgt.sendResponseGetAWord(*word);
             QCoreApplication::processEvents();
         }

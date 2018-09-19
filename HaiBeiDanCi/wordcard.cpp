@@ -322,8 +322,8 @@ QVector<StudyRecord> WordCard::getStudyHistory()
 
 bool WordCard::dbsaveStudyRecord(const StudyRecord &sr)
 {
-    auto word = Word::getWord(m_wordSpelling);
-    if (word.get() == nullptr)
+    auto word = Word::getWordToRead(m_wordSpelling);
+    if (word == nullptr)
     {
         return false;
     }

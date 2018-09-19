@@ -106,8 +106,8 @@ void MainWindow::QueryWord()
             QObject::tr("Cannot find the word ") + "\"" + spelling + "\"");
     }
 
-    auto word = Word::getWord(spelling);
-    if (word.get()) {
+    auto word = Word::getWordToRead(spelling);
+    if (word != nullptr) {
         //QString html = word->getDefinition();
         QString html = word->getDefinitionDIV();
         QUrl baseUrl("file:///" + MySettings::dataDirectory() + "/");
@@ -557,7 +557,7 @@ void MainWindow::test()
     for (int i = 0;i < allLocalWords.size();i ++)
     {
         auto spelling = allLocalWords.at(i);
-        const Word *localWord = Word::getWordToRead(spelling);
+        auto localWord = Word::getWordToRead(spelling);
         Q_ASSERT(localWord != nullptr);
         qDebug() << localWord->getId() << localWord->getSpelling() << localWord->getDefinition().size();
     }

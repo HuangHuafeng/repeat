@@ -203,7 +203,7 @@ void ServerDataDownloader::downloadWordsOfBook(QString bookName)
     {
         auto spelling = wordList.at(i);
 
-        if (Word::getWord(spelling).get() == nullptr && m_mapWords.contains(spelling) == false)
+        if (Word::getWordToRead(spelling) == nullptr && m_mapWords.contains(spelling) == false)
         {
             wordsToDownload.append(spelling);
         }

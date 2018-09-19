@@ -92,8 +92,8 @@ QStringList MediaFileManager::bookPronounceMediaFileList(QString bookName)
     for (int i = 0;i < wordList.size();i ++)
     {
         QString spelling = wordList.at(i);
-        sptr<Word> word = Word::getWord(spelling);
-        Q_ASSERT(word.get() != nullptr);
+        auto word = Word::getWordToRead(spelling);
+        Q_ASSERT(word != nullptr);
         interestedFiles += word->pronounceFiles() + word->otherFiles();
     }
 
@@ -111,8 +111,8 @@ QStringList MediaFileManager::bookExampleMediaFileList(QString bookName)
     for (int i = 0;i < wordList.size();i ++)
     {
         QString spelling = wordList.at(i);
-        sptr<Word> word = Word::getWord(spelling);
-        Q_ASSERT(word.get() != nullptr);
+        auto word = Word::getWordToRead(spelling);
+        Q_ASSERT(word != nullptr);
         interestedFiles += word->exampleAudioFiles() + word->otherFiles();
     }
 

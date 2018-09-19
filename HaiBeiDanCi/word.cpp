@@ -196,8 +196,8 @@ QList<QString> Word::getAllWords()
 // static
 int Word::getWordId(const QString &spelling)
 {
-    auto word = Word::getWord(spelling);
-    if (word.get() != nullptr)
+    auto word = Word::getWordToRead(spelling);
+    if (word != nullptr)
     {
         return word->m_id;
     }
@@ -235,14 +235,14 @@ void Word::storeWordFromServer(sptr<Word> word)
         return;
     }
 
-    if (Word::getWord(word->getSpelling()).get() != nullptr)
+    if (Word::getWordToRead(word->getSpelling()) != nullptr)
     {
         return;
     }
 
     if (Word::isInDatabase(word->getSpelling()) == true)
     {
-        // WON'T reach here as "Word::getWord(word->getSpelling()).get() != nullptr" already resturns
+        // WON'T reach here as "Word::getWordToRead(word->getSpelling()) != nullptr" already resturns
         return;
     }
 

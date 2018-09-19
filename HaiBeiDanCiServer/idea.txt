@@ -4,6 +4,7 @@
 * application icon (DONE on Windows)
 * auto update
 * token->user
+* reduce using sptr
 [DONE]* log in / register / etc
 
 

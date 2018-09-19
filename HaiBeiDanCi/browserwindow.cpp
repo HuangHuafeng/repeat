@@ -76,8 +76,8 @@ void BrowserWindow::onItemSelectionChanged()
     }
 
     auto spelling = ci->text(0);
-    auto word = Word::getWord(spelling);
-    Q_ASSERT(word.get() != nullptr);
+    auto word = Word::getWordToRead(spelling);
+    Q_ASSERT(word != nullptr);
     m_wordView.setWord(word);
 
     auto showDefinitionDirectly = ui->checkShowDefinitionDirectly->isChecked();

@@ -19,7 +19,7 @@ WordView::WordView(QWidget *parent) : QWebEngineView(parent),
     connect(this, SIGNAL(loadFinished(bool)), this, SLOT(onLoadFinished(bool)));
 
     reloadHtml();
-    setWord();
+    setWord(nullptr);
 
     //auto action = page()->action(QWebEnginePage::ViewSource);
     auto action = pageAction(QWebEnginePage::ViewSource);
@@ -86,7 +86,7 @@ void WordView::reloadHtml()
     }
 }
 
-void WordView::setWord(sptr<Word> word)
+void WordView::setWord(const Word *word)
 {
     m_word = word;
     emit wordChanged();
@@ -111,7 +111,7 @@ QString WordView::getSpelling()
 {
     QString spelling = "";
 
-    if (m_word.get())
+    if (m_word != nullptr)
     {
         spelling = m_word->getSpelling();
     }
@@ -128,7 +128,7 @@ QString WordView::getDefinition()
 {
     QString definition = "";
 
-    if (m_word.get())
+    if (m_word != nullptr)
     {
         definition = m_word->getDefinitionDIV();
     }
@@ -167,7 +167,7 @@ void WordView::toHtmlCallback(QString html)
     qDebug("html.toStdString().length(): %d", html.toStdString().length());
     */
 
-    QString word(m_word.get() ? m_word->getSpelling() : "nullptr");
+    QString word(m_word != nullptr ? m_word->getSpelling() : "nullptr");
     QTemporaryFile tmp(QDir::temp().filePath("XXXXXX-" + word + ".html"));
     qint64 len = static_cast<qint64>(html.toStdString().length());
 

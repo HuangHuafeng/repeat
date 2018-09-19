@@ -110,14 +110,14 @@ void StudyWindow::allCardsFinished()
 
 void StudyWindow::cleanTheWidgets()
 {
-    m_wordView.setWord();
+    m_wordView.setWord(nullptr);
 }
 
 void StudyWindow::showCard(WordCard &card)
 {
     updateButtons();
 
-    showWord(card.getWord());
+    showWord(card.getWord().get());
 }
 
 QString StudyWindow::minuteToString(int minute)
@@ -148,9 +148,9 @@ QString StudyWindow::minuteToString(int minute)
     return QObject::tr("long time later");
 }
 
-void StudyWindow::showWord(sptr<Word> word)
+void StudyWindow::showWord(const Word *word)
 {
-    if (word.get() == nullptr)
+    if (word == nullptr)
     {
         return;
     }

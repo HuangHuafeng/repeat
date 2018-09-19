@@ -30,7 +30,7 @@ class WordView : public QWebEngineView
     } ShowOptions;
     Q_ENUM(ShowOptions)
 
-    void setWord(sptr<Word> word = sptr<Word>());
+    void setWord(const Word *word);
     void reloadHtml();
 
     void setShowSetting(ShowOptions showSetting);
@@ -61,7 +61,7 @@ class WordView : public QWebEngineView
 
   private:
     QWebChannel m_channel;
-    sptr<Word> m_word;
+    const Word *m_word;
     QSize m_sizeHint;
     TemporaryFileManager m_tfm;
     ShowOptions m_showSetting;

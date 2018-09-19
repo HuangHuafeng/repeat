@@ -57,7 +57,7 @@ class StudyWindow : public QDialog
 
     void showCurrentCard();
     void showCard(WordCard &card);
-    void showWord(sptr<Word> word);
+    void showWord(const Word *word);
     QString minuteToString(int minute);
     void nextWord(MemoryItem::ResponseQuality responseQulity = MemoryItem::Perfect);
     void allCardsFinished();

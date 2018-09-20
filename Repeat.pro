@@ -94,7 +94,8 @@ SOURCES += \
     HaiBeiDanCi/clienttoken.cpp \
     HaiBeiDanCi/token.cpp \
     HaiBeiDanCi/logindialog.cpp \
-    HaiBeiDanCi/serveruseragent.cpp
+    HaiBeiDanCi/serveruseragent.cpp \
+    releaseappdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -159,13 +160,15 @@ HEADERS += \
     HaiBeiDanCi/clienttoken.h \
     HaiBeiDanCi/token.h \
     HaiBeiDanCi/logindialog.h \
-    HaiBeiDanCi/serveruseragent.h
+    HaiBeiDanCi/serveruseragent.h \
+    releaseappdialog.h
 
 FORMS += \
         mainwindow.ui \
     newbook.ui \
     preferencesdialog.ui \
-    HaiBeiDanCi/logindialog.ui
+    HaiBeiDanCi/logindialog.ui \
+    releaseappdialog.ui
 
 RESOURCES += \
     res.qrc

@@ -1,22 +1,23 @@
-* add "leave a message to the author"
 * deploy HaiBeiDanCi server
-* add server setting in info.json
-* application icon (DONE on Windows)
 * auto update
+* release app
 * token->user
-* reduce using sptr
-[DONE]* log in / register / etc
+[ALMOST DONE]* reduce using sptr
 
 
 PARTLY DONE * add security to the server, currently it exposes anything to the client!!!
+* add server setting in info.json
+* application icon (DONE on Windows)
 
 
 LOW PRIORITY
+* add "leave a message to the author"
 * MediaFileManager should inherit QObject and emit signals
 * saving files to disk is slow, maybe good to use a separate thread.(This should have low priority!)
 
 
 // DONE
+[DONE]* log in / register / etc
 DONE * improve the server agent, it should not have any specific logic. Add new class to handle logic (like saving file/word/book)
 DONE * add server manager.
 DONE * add server management

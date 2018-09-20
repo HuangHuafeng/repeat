@@ -69,6 +69,10 @@ private slots:
 
     void on_actionLogout_triggered();
 
+    void on_actionUsers_triggered();
+
+    void on_actionRelease_App_triggered();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;
@@ -88,7 +92,9 @@ private:
     void listServerBooks(const QList<QString> books);
     bool okToPerformServerRelatedOperation();
 
+#ifndef QT_NO_DEBUG
     void test();
+#endif
 };
 
 #endif // MAINWINDOW_H

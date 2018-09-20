@@ -265,7 +265,7 @@ bool ServerDataDialog::userAlreadyLogin()
     {
         QMessageBox::warning(this,
                              MySettings::appName(),
-                             QObject::tr("Please login with a user first!"));
+                             QObject::tr("Please login first!"));
         return false;
     }
 }

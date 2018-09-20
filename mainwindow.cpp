@@ -39,7 +39,6 @@ MainWindow::MainWindow(QWidget *parent) :
     if (WordDB::initialize() == false) {
         QMessageBox::critical(this, "MySettings::appName()", MainWindow::tr("database error"));
     }
-    test();
 
     // load LDOCE6 by default for covenience
     m_gdhelper.loadDict("/Users/huafeng/Documents/Nexus7/Dictionary/LDOCE6/LDOCE6.mdx");
@@ -210,7 +209,6 @@ void MainWindow::addBookToTheView(QTreeWidget * tw, WordBook &book)
 
 void MainWindow::onBookDownloaded(QString bookName)
 {
-    test();
     auto mfm = MediaFileManager::instance();
     mfm->bookDownloaded(bookName);
     reloadLocalData();
@@ -300,13 +298,13 @@ void MainWindow::on_pbDeleteBook_clicked()
 
 void MainWindow::on_actionUpload_Book_triggered()
 {
-    if (okToPerformServerRelatedOperation() == false)
+    auto ci = ui->twLocalData->currentItem();
+    if (ci == nullptr)
     {
         return;
     }
 
-    auto ci = ui->twLocalData->currentItem();
-    if (ci == nullptr)
+    if (okToPerformServerRelatedOperation() == false)
     {
         return;
     }
@@ -335,8 +333,8 @@ void MainWindow::on_actionDownload_Book_triggered()
     {
         return;
     }
-    auto bookName = ci->text(0);
 
+    auto bookName = ci->text(0);
     auto localBook = WordBook::getBook(bookName);
     if (localBook.get() != nullptr)
     {
@@ -360,19 +358,18 @@ void MainWindow::on_pbDownloadServerBook_clicked()
 
 void MainWindow::on_actionDeleteServerBook_triggered()
 {
-    if (okToPerformServerRelatedOperation() == false)
-    {
-        return;
-    }
-
     auto ci = ui->twServerData->currentItem();
     if (ci == nullptr)
     {
         return;
     }
 
-    auto bookName = ci->text(0);
+    if (okToPerformServerRelatedOperation() == false)
+    {
+        return;
+    }
 
+    auto bookName = ci->text(0);
     ServerManager *serverManager = ServerManager::instance();
     serverManager->deleteBook(bookName);
 }
@@ -388,12 +385,13 @@ void MainWindow::onRefreshTimerTimeout()
     if (mfm->isDataReady() == true)
     {
         // data of all the books is ready
+        qDebug() << "MediaFileManager data is ready!";
         reloadLocalData();
         m_refreshTimer.stop();
     }
     else
     {
-        qDebug() << "MediaFileManager data is not ready!";
+        qDebug() << "Waiting for MediaFileManager!";
     }
 }
 
@@ -454,16 +452,17 @@ bool MainWindow::okToPerformServerRelatedOperation()
 
 void MainWindow::on_actionUpload_Book_Missing_Media_Files_triggered()
 {
-    if (okToPerformServerRelatedOperation() == false)
-    {
-        return;
-    }
-
     auto ci = ui->twLocalData->currentItem();
     if (ci == nullptr)
     {
         return;
     }
+
+    if (okToPerformServerRelatedOperation() == false)
+    {
+        return;
+    }
+
     auto bookName = ci->text(0);
     ServerManager *serverManager = ServerManager::instance();
     if (serverManager->bookExistsInServer(bookName) == false)
@@ -547,6 +546,7 @@ void MainWindow::on_actionLogout_triggered()
     }
 }
 
+#ifndef QT_NO_DEBUG
 void MainWindow::test()
 {
     static int counter = 1;
@@ -564,4 +564,15 @@ void MainWindow::test()
 
     qDebug() << "==== TEST" << counter << "END ====";
     counter ++;
+}
+#endif
+
+void MainWindow::on_actionUsers_triggered()
+{
+
+}
+
+void MainWindow::on_actionRelease_App_triggered()
+{
+
 }

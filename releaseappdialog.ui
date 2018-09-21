@@ -64,7 +64,7 @@
       <widget class="QLineEdit" name="leVersion"/>
      </item>
      <item row="2" column="1" colspan="2">
-      <widget class="QTextEdit" name="textEdit"/>
+      <widget class="QTextEdit" name="teInfo"/>
      </item>
     </layout>
    </item>

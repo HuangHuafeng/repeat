@@ -125,10 +125,18 @@ void ServerManager::onGetAllWordsWithoutDefinitionFinished(const QVector<QString
 
 void ServerManager::onBookDeleted(QString bookName)
 {
-    Q_ASSERT(m_mapBooks.contains(bookName) == true);
-    m_mapBooks.remove(bookName);
-    Q_ASSERT(m_mapBooksWordList.contains(bookName) == true);
-    m_mapBooksWordList.remove(bookName);
+    // don't assert here as it's possible when delete requests are sent to server multiple times
+    //Q_ASSERT(m_mapBooks.contains(bookName) == true);
+    if (bookExistsInServer(bookName) == true)
+    {
+        m_mapBooks.remove(bookName);
+        Q_ASSERT(m_mapBooksWordList.contains(bookName) == true);
+        m_mapBooksWordList.remove(bookName);
+    }
+    else
+    {
+        // do nothing if the book is already deleted
+    }
 
     emit(serverDataReloaded());
 }
@@ -254,6 +262,11 @@ bool ServerManager::okToSync(QString *errorString)
 
 bool ServerManager::okToSyncBooks(QString *errorString)
 {
+    if (m_serverDataLoaded == false)
+    {
+        return false;
+    }
+
     bool ok = true;
     auto allServerBooks = m_mapBooks.keys();
     auto allLocalBooks = WordBook::getAllBooks();
@@ -465,9 +478,11 @@ void ServerManager::downloadBook(QString bookName)
 
 void ServerManager::deleteBook(QString bookName)
 {
-    Q_ASSERT(m_mapBooks.value(bookName).get() != nullptr);
-
-    m_mgrAgt.sendRequestDeleteABook(bookName);
+    if (bookExistsInServer(bookName) == true)
+    {
+        // only delete the book if it exists in the server
+        m_mgrAgt.sendRequestDeleteABook(bookName);
+    }
 }
 
 QVector<QString> ServerManager::getWordListOfBook(QString bookName)
@@ -575,6 +590,7 @@ bool ServerManager::sendFile(QString fileName)
         m_mgrAgt.sendResponseGetFile(fileName, buf, static_cast<uint>(readBytes));
         sentBytes += readBytes;
         qDebug() << "send" << readBytes << "bytes of total" << fileSize;
+        // emit file progress here?!
     }
 
     return succeeded;

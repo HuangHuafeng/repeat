@@ -11,7 +11,8 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ServerDataDialog),
     m_progressDialog(this),
-    m_pdMaximum(100000)
+    m_pdMaximum(100000),
+    m_sdd(this)
 {
     ui->setupUi(this);
 
@@ -24,11 +25,10 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
     header.append(QObject::tr("Status"));
     ui->twBooks->setHeaderLabels(header);
 
-    m_sdd = new ServerDataDownloader(this);
-    connect(m_sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
-    connect(m_sdd, SIGNAL(downloadProgress(float)), this, SLOT(onDownloadProgress(float)));
-    connect(m_sdd, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
-    m_sdd->getBookList();
+    connect(&m_sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
+    connect(&m_sdd, SIGNAL(downloadProgress(float)), this, SLOT(onDownloadProgress(float)));
+    connect(&m_sdd, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
+    m_sdd.getBookList();
 }
 
 ServerDataDialog::~ServerDataDialog()
@@ -110,7 +110,7 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
 
     createProgressDialog(QObject::tr("Downloading ") + "\"" + bookName + "\"", QObject::tr("Cancel"));
 
-    m_sdd->downloadBook(bookName);
+    m_sdd.downloadBook(bookName);
 }
 
 void ServerDataDialog::onDownloadProgress(float percentage)
@@ -118,7 +118,7 @@ void ServerDataDialog::onDownloadProgress(float percentage)
     if (m_progressDialog.wasCanceled() == true)
     {
         destroyProgressDialog();
-        m_sdd->cancelDownloading();
+        m_sdd.cancelDownloading();
     }
     else
     {
@@ -221,7 +221,7 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
     {
         // show the progress dialog
         createProgressDialog(QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
-        m_sdd->downloadMultipleFiles(*filesToDownload);
+        m_sdd.downloadMultipleFiles(*filesToDownload);
     }
     else
     {
@@ -239,7 +239,7 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
     {
         // show the progress dialog
         createProgressDialog(QObject::tr("Downloading meida files ..."), QObject::tr("Cancel"));
-        m_sdd->downloadMultipleFiles(*filesToDownload);
+        m_sdd.downloadMultipleFiles(*filesToDownload);
     }
     else
     {

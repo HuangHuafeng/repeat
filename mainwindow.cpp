@@ -12,6 +12,7 @@
 #include "preferencesdialog.h"
 #include "HaiBeiDanCi/logindialog.h"
 #include "HaiBeiDanCi/clienttoken.h"
+#include "releaseappdialog.h"
 
 #include <QString>
 #include <QFileDialog>
@@ -574,5 +575,20 @@ void MainWindow::on_actionUsers_triggered()
 
 void MainWindow::on_actionRelease_App_triggered()
 {
+    if (okToPerformServerRelatedOperation() == false)
+    {
+        return;
+    }
 
+    ReleaseAppDialog rad(this);
+    auto result = rad.exec();
+    if (result == QDialog::Accepted)
+    {
+        // a user logged in
+        ui->actionReload_data->trigger();
+    }
+    else
+    {
+        // no user is registered and the dialog is cancelled
+    }
 }

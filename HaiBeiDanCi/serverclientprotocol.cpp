@@ -1,6 +1,8 @@
 #include "serverclientprotocol.h"
 #include "clienttoken.h"
 
+#include <QRegularExpression>
+
 qint32 MessageHeader::m_currentSequenceNumber = 1;
 const MessageHeader MessageHeader::invalidMessageHeader(-1, -1, -1, "__INVALID__");
 
@@ -126,18 +128,24 @@ ApplicationVersion ApplicationVersion::fromInt(qint32 version)
 
 ApplicationVersion ApplicationVersion::fromString(QString versionInString)
 {
-    auto versionInStringList = versionInString.split(".");
-    ApplicationVersion version(0, 0, 0);
-    if (versionInStringList.size() == 3)
+    if (ApplicationVersion::isValidVersion(versionInString) == false)
     {
-        quint8 major = static_cast<quint8>(versionInStringList.at(0).toInt());
-        quint8 minor = static_cast<quint8>(versionInStringList.at(1).toInt());
-        quint8 patch = static_cast<quint8>(versionInStringList.at(2).toInt());
-
-        version = ApplicationVersion(major, minor, patch);
+        return ApplicationVersion(0, 0, 0);
     }
 
-    return version;
+    auto versionInStringList = versionInString.split(".");
+    quint8 major = static_cast<quint8>(versionInStringList.at(0).toInt());
+    quint8 minor = static_cast<quint8>(versionInStringList.at(1).toInt());
+    quint8 patch = static_cast<quint8>(versionInStringList.at(2).toInt());
+
+    return ApplicationVersion(major, minor, patch);
+}
+
+// static
+bool ApplicationVersion::isValidVersion(QString versionInString)
+{
+    QRegularExpression re("^\\d+\\.\\d+\\.\\d+$");
+    return re.match(versionInString).hasMatch();
 }
 
 QDataStream &operator<<(QDataStream &ds, const ApplicationVersion &appVer)

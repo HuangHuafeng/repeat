@@ -77,6 +77,7 @@ public:
         RequestMissingMediaFiles = ManagerToServerMessageCodeBase + 6,    // 1:n
         RequestUploadAFile = ManagerToServerMessageCodeBase + 7,    // not used, uploading a file uses Response* messages
         RequestUploadAWord = ManagerToServerMessageCodeBase + 8,    // not used, uploading a word uses Response* messages
+        RequestReleaseApp = ManagerToServerMessageCodeBase + 9,
     } ManagerToServerMessageCode;
 
     typedef enum {
@@ -89,6 +90,7 @@ public:
         ResponseMissingMediaFiles = ServerToManagerMessageCodeBase + 6,   // n:1
         ResponseUploadAFile = ServerToManagerMessageCodeBase + 7,
         ResponseUploadAWord = ServerToManagerMessageCodeBase + 8,
+        ResponseRelease = ServerToManagerMessageCodeBase + 9,
     } ServerToManagerMessageCode;
 };
 
@@ -159,6 +161,7 @@ public:
     qint32 toInt() const;
     static ApplicationVersion fromInt(qint32 version);
     static ApplicationVersion fromString(QString versionInString);
+    static bool isValidVersion(QString versionInString);
 };
 
 QDataStream &operator<<(QDataStream &ds, const ApplicationVersion &appVer);

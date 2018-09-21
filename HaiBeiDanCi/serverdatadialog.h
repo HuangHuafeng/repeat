@@ -43,7 +43,7 @@ private:
     int m_pdMaximum;
 
     QDateTime m_downloadStartTime;
-    ServerDataDownloader *m_sdd;
+    ServerDataDownloader m_sdd;
 
     void updateBookStatus(QString bookName);
 

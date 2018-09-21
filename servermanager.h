@@ -11,7 +11,7 @@ class ServerManager : public QObject
     Q_OBJECT
 
 public:
-    static ServerManager * instance();
+    ServerManager(QObject *parent = nullptr);
 
     QList<QString> getBookList();
     const QMap<QString, sptr<Word>> & getAllWords()
@@ -55,10 +55,6 @@ public slots:
     void onWordUploaded(QString spelling);
 
 private:
-    ServerManager(QObject *parent = nullptr);
-
-    static ServerManager *m_sm;
-
     ManagerAgent m_mgrAgt;
     bool m_serverDataLoaded;
 

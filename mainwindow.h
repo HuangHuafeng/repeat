@@ -4,6 +4,7 @@
 #include "gdhelper.h"
 #include "HaiBeiDanCi/worddb.h"
 #include "HaiBeiDanCi/wordbook.h"
+#include "servermanager.h"
 
 #include <QMainWindow>
 #include <QWebEngineView>
@@ -78,6 +79,7 @@ private:
     GDHelper m_gdhelper;
     QWebEngineView m_definitionView;
     QTimer m_refreshTimer;
+    ServerManager m_sm;
 
     QProgressDialog m_progressDialog;
     void initializeProgressDialog();

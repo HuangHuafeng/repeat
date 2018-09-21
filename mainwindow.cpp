@@ -7,7 +7,6 @@
 #include "HaiBeiDanCi/svragt.h"
 #include "HaiBeiDanCi/mediafilemanager.h"
 #include "newbook.h"
-#include "servermanager.h"
 #include "HaiBeiDanCi/serverdatadownloader.h"
 #include "preferencesdialog.h"
 #include "HaiBeiDanCi/logindialog.h"
@@ -24,7 +23,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     m_gdhelper(nullptr),
     m_definitionView(this),
-    m_refreshTimer(this)
+    m_refreshTimer(this),
+    m_sm(this)
 {
     ui->setupUi(this);
 
@@ -50,10 +50,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_gdhelper.loadBlankPage(m_definitionView);
     this->resize(800, 600);
 
-    ServerManager *serverManager = ServerManager::instance();
-    connect(serverManager, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
-    connect(serverManager, SIGNAL(uploadProgress(float)), this, SLOT(onUploadProgress(float)));
-    connect(serverManager, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
+    connect(&m_sm, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
+    connect(&m_sm, SIGNAL(uploadProgress(float)), this, SLOT(onUploadProgress(float)));
+    connect(&m_sm, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
 
     // call MediaFileManager::instance() to get the existing file list ready
     MediaFileManager::instance();
@@ -218,15 +217,14 @@ void MainWindow::onBookDownloaded(QString bookName)
 
 void MainWindow::onServerDataReloaded()
 {
-    ServerManager *serverManager = ServerManager::instance();
-    auto books = serverManager->getBookList();
+    auto books = m_sm.getBookList();
     listServerBooks(books);
 
     // number of books
     ui->labelServerBooks->setText(QString::number(books.size()));
 
     // number of words
-    auto allWords = serverManager->getAllWords();
+    auto allWords = m_sm.getAllWords();
     QString serverWords = QString::number(allWords.size());
     ui->labelServerWords->setText(serverWords);
 }
@@ -240,15 +238,14 @@ void MainWindow::listServerBooks(const QList<QString> books)
 {
     ui->twServerData->clear();
 
-    ServerManager *serverManager = ServerManager::instance();
     for (int i = 0;i < books.size();i ++)
     {
         QString bookName = books.at(i);
 
-        auto wordList = serverManager->getWordListOfBook(bookName);
+        auto wordList = m_sm.getWordListOfBook(bookName);
         QString numberOfWords = QString::number(wordList.size());
 
-        auto missingMediaFiles = serverManager->getMissingMediaFilesOfBook(bookName);
+        auto missingMediaFiles = m_sm.getMissingMediaFilesOfBook(bookName);
         QString numberOfMissingMediaFiles = QString::number(missingMediaFiles.size());
 
         QStringList infoList;
@@ -275,8 +272,7 @@ void MainWindow::on_pbReloadServerData_clicked()
 
 void MainWindow::on_actionReload_data_triggered()
 {
-    ServerManager *serverManager = ServerManager::instance();
-    serverManager->reloadServerData();
+    m_sm.reloadServerData();
 }
 
 void MainWindow::on_actionDeleteLocalBook_triggered()
@@ -311,15 +307,14 @@ void MainWindow::on_actionUpload_Book_triggered()
     }
 
     auto bookName = ci->text(0);
-    ServerManager *serverManager = ServerManager::instance();
-    if (serverManager->bookExistsInServer(bookName) == true)
+    if (m_sm.bookExistsInServer(bookName) == true)
     {
         QMessageBox::information(this, MySettings::appName(), "Book \"" + bookName + "\" already exists in server.");
         return;
     }
 
     createProgressDialog("uploading book \"" + bookName + "\" ...", QString());
-    serverManager->uploadBook(bookName);
+    m_sm.uploadBook(bookName);
 }
 
 void MainWindow::on_pbUploadBook_clicked()
@@ -348,8 +343,7 @@ void MainWindow::on_actionDownload_Book_triggered()
         return;
     }
 
-    ServerManager *serverManager = ServerManager::instance();
-    serverManager->downloadBook(bookName);
+    m_sm.downloadBook(bookName);
 }
 
 void MainWindow::on_pbDownloadServerBook_clicked()
@@ -371,8 +365,7 @@ void MainWindow::on_actionDeleteServerBook_triggered()
     }
 
     auto bookName = ci->text(0);
-    ServerManager *serverManager = ServerManager::instance();
-    serverManager->deleteBook(bookName);
+    m_sm.deleteBook(bookName);
 }
 
 void MainWindow::on_pbDeleteServerBook_clicked()
@@ -440,9 +433,8 @@ void MainWindow::on_actionFetch_Missing_Media_Files_triggered()
 
 bool MainWindow::okToPerformServerRelatedOperation()
 {
-    ServerManager *serverManager = ServerManager::instance();
     QString errorString;
-    if (serverManager->okToSync(&errorString) == false)
+    if (m_sm.okToSync(&errorString) == false)
     {
         QMessageBox::critical(this, MySettings::appName(), errorString);
         return false;
@@ -465,14 +457,13 @@ void MainWindow::on_actionUpload_Book_Missing_Media_Files_triggered()
     }
 
     auto bookName = ci->text(0);
-    ServerManager *serverManager = ServerManager::instance();
-    if (serverManager->bookExistsInServer(bookName) == false)
+    if (m_sm.bookExistsInServer(bookName) == false)
     {
         QMessageBox::information(this, MySettings::appName(), "Book \"" + bookName + "\" does not exist in server.");
         return;
     }
 
-    auto missingMediaFiles = serverManager->getMissingMediaFilesOfBook(bookName);
+    auto missingMediaFiles = m_sm.getMissingMediaFilesOfBook(bookName);
     if (missingMediaFiles.isEmpty() == true)
     {
         // no file missing
@@ -481,7 +472,7 @@ void MainWindow::on_actionUpload_Book_Missing_Media_Files_triggered()
     }
 
     createProgressDialog("uploading media files of book \"" + bookName + "\" ...", QString());
-    serverManager->uploadBookMissingMediaFiles(bookName);
+    m_sm.uploadBookMissingMediaFiles(bookName);
 }
 
 

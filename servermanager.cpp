@@ -3,8 +3,6 @@
 #include "HaiBeiDanCi/serverdatadownloader.h"
 #include "HaiBeiDanCi/clienttoken.h"
 
-ServerManager * ServerManager::m_sm = nullptr;
-
 ServerManager::ServerManager(QObject *parent) : QObject(parent),
     m_mgrAgt(MySettings::serverHostName(), MySettings::serverPort(), this),
     m_serverDataLoaded(false)
@@ -27,16 +25,6 @@ ServerManager::ServerManager(QObject *parent) : QObject(parent),
     connect(&m_mgrAgt, SIGNAL(wordUploaded(QString)), this, SLOT(onWordUploaded(QString)));
 
     //m_mgrAgt.connectToServer();
-}
-
-ServerManager * ServerManager::instance()
-{
-    if (m_sm == nullptr)
-    {
-        m_sm = new ServerManager();
-    }
-
-    return m_sm;
 }
 
 void ServerManager::OnBookListReady(const QList<QString> &books)

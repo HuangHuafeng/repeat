@@ -561,7 +561,10 @@ void MainWindow::test()
 
 void MainWindow::on_actionUsers_triggered()
 {
-
+    if (okToPerformServerRelatedOperation() == false)
+    {
+        return;
+    }
 }
 
 void MainWindow::on_actionRelease_App_triggered()
@@ -571,8 +574,8 @@ void MainWindow::on_actionRelease_App_triggered()
         return;
     }
 
-    ReleaseAppDialog rad(this);
-    auto result = rad.exec();
+    auto rad = new ReleaseAppDialog(this);
+    auto result = rad->exec();
     if (result == QDialog::Accepted)
     {
         // a user logged in
@@ -582,4 +585,5 @@ void MainWindow::on_actionRelease_App_triggered()
     {
         // no user is registered and the dialog is cancelled
     }
+    rad->deleteLater();
 }

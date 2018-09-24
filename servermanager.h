@@ -12,6 +12,7 @@ class ServerManager : public QObject
 
 public:
     ServerManager(QObject *parent = nullptr);
+    ~ServerManager() override;
 
     QList<QString> getBookList();
     const QMap<QString, sptr<Word>> & getAllWords()
@@ -52,6 +53,7 @@ public slots:
     void onBookUploaded(QString bookName);
     void onGotMissingMediaFilesOfBook(QString bookName, const QList<QString> &missingFiles);
     void onFileUploaded(QString fileName);
+    void onFileUploadingProgress(QString fileName, uint uploadedBytes, uint totalBytes);
     void onWordUploaded(QString spelling);
 
 private:

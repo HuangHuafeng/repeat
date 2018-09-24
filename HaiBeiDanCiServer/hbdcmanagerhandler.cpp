@@ -46,12 +46,12 @@ int HBDCManagerHandler::handleMessage(const QByteArray &msg)
         handleResult = handleRequestMissingMediaFiles(msg);
         break;
 
-    case ServerClientProtocol::ResponseGetFile:
-        handleResult = handleResponseGetFile(msg);
+    case ServerClientProtocol::RequestUploadAFile:
+        handleResult = handleRequestUploadAFile(msg);
         break;
 
-    case ServerClientProtocol::ResponseGetFileFinished:
-        handleResult = handleResponseGetFileFinished(msg);
+    case ServerClientProtocol::RequestUploadAFileFinished:
+        handleResult = handleRequestUploadAFileFinished(msg);
         break;
 
     default:
@@ -308,16 +308,6 @@ void HBDCManagerHandler::sendResponseUploadABook(const QByteArray &msg, QString 
     sendMessage(block);
 }
 
-void HBDCManagerHandler::sendResponseUploadAFile(const QByteArray &msg, QString fileName)
-{
-    MessageHeader receivedMsgHeader(msg);
-    MessageHeader responseHeader(ServerClientProtocol::ResponseUploadAFile, receivedMsgHeader.sequenceNumber());
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << fileName;
-    sendMessage(block);
-}
 
 void HBDCManagerHandler::sendResponseDeleteABook(const QByteArray &msg, QString bookName)
 {
@@ -360,32 +350,47 @@ void HBDCManagerHandler::sendResponseMissingMediaFiles(const QByteArray &msg, QS
 }
 
 
-bool HBDCManagerHandler::handleResponseGetFile(const QByteArray &msg)
+bool HBDCManagerHandler::handleRequestUploadAFile(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString fileName;
     char *data;
-    uint len;
+    uint len, sentBytes, totalBytes;
     in.startTransaction();
     in >> receivedMsgHeader >> fileName;
     in.readBytes(data, len);
+    in >> sentBytes >> totalBytes;
     if (in.commitTransaction() == false)
     {
-        qCritical() << "failed to read words of the book in handleResponseGetFile()";
+        qCritical() << "failed to read words of the book in handleRequestUploadAFile()";
         return false;
     }
 
-    auto currentContent = m_mapFileContent.value(fileName);
-    auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
-    m_mapFileContent.insert(fileName, newContent);
+    auto content = m_mapFileContent.value(fileName);
+    content.append(data, static_cast<int>(len));
+    m_mapFileContent.insert(fileName, content);
 
-    sendResponseOK(msg);
+    // release data
+    delete [] data;
+
+    sendResponseUploadAFile(msg, fileName, sentBytes, totalBytes);
 
     return true;
 }
 
-bool HBDCManagerHandler::handleResponseGetFileFinished(const QByteArray &msg)
+void HBDCManagerHandler::sendResponseUploadAFile(const QByteArray &msg, QString fileName, uint receivedBytes, uint totalBytes)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseUploadAFile, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << fileName << receivedBytes << totalBytes;
+    sendMessage(block, true);
+}
+
+bool HBDCManagerHandler::handleRequestUploadAFileFinished(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
@@ -414,9 +419,20 @@ bool HBDCManagerHandler::handleResponseGetFileFinished(const QByteArray &msg)
     // remove the file content to release the memory, helpful?
     m_mapFileContent.remove(fileName);
 
-    sendResponseUploadAFile(msg, fileName);
+    sendResponseUploadAFileFinished(msg, fileName);
 
     return true;
+}
+
+void HBDCManagerHandler::sendResponseUploadAFileFinished(const QByteArray &msg, QString fileName)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseUploadAFileFinished, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << fileName;
+    sendMessage(block);
 }
 
 void HBDCManagerHandler::saveFileFromServer(QString fileName, const QByteArray &fileContent)

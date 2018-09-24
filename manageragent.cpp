@@ -42,6 +42,10 @@ int ManagerAgent::handleMessage(const QByteArray &msg)
         handleResult = handleResponseUploadAFile(msg);
         break;
 
+    case ServerClientProtocol::ResponseUploadAFileFinished:
+        handleResult = handleResponseUploadAFileFinished(msg);
+        break;
+
     case ServerClientProtocol::ResponseUploadAWord:
         handleResult = handleResponseUploadAWord(msg);
         break;
@@ -166,11 +170,30 @@ bool ManagerAgent::handleResponseUploadAFile(const QByteArray &msg)
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString fileName;
+    uint receivedBytes, totalBytes;
+    in.startTransaction();
+    in >> receivedMsgHeader >> fileName >> receivedBytes >> totalBytes;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read the book name in handleResponseUploadABook()";
+        return false;
+    }
+
+    emit(fileUploadingProgress(fileName, receivedBytes, totalBytes));
+
+    return true;
+}
+
+bool ManagerAgent::handleResponseUploadAFileFinished(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString fileName;
     in.startTransaction();
     in >> receivedMsgHeader >> fileName;
     if (in.commitTransaction() == false)
     {
-        qCritical() << "failed to read the book name in handleResponseUploadABook()";
+        qCritical() << "failed to read the book name in handleResponseUploadAFileFinished()";
         return false;
     }
 
@@ -285,20 +308,21 @@ void ManagerAgent::sendRequestMissingMediaFiles(QString bookName)
 }
 
 
-void ManagerAgent::sendResponseGetFile(QString fileName, const char *s, uint len)
+void ManagerAgent::sendRequestUploadAFile(QString fileName, const char *s, uint len, int sentBytes, int totalBytes)
 {
-    MessageHeader responseHeader(ServerClientProtocol::ResponseGetFile);
+    MessageHeader responseHeader(ServerClientProtocol::RequestUploadAFile);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << fileName;
     out.writeBytes(s, len);
+    out << sentBytes << totalBytes;
     sendMessage(block);
 }
 
-void ManagerAgent::sendResponseGetFileFinished(QString fileName, bool succeeded)
+void ManagerAgent::sendRequestUploadAFileFinished(QString fileName, bool succeeded)
 {
-    MessageHeader responseHeader(ServerClientProtocol::ResponseGetFileFinished);
+    MessageHeader responseHeader(ServerClientProtocol::RequestUploadAFileFinished);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);

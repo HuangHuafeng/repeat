@@ -28,9 +28,11 @@ private:
     bool handleResponseGetWordsOfBookFinished(const QByteArray &msg);
 
     // for uploading a file from the manager
-    bool handleResponseGetFile(const QByteArray &msg);
-    bool handleResponseGetFileFinished(const QByteArray &msg);
+    bool handleRequestUploadAFile(const QByteArray &msg);
+    bool handleRequestUploadAFileFinished(const QByteArray &msg);
     void saveFileFromServer(QString fileName, const QByteArray &fileContent);
+    void sendResponseUploadAFile(const QByteArray &msg, QString fileName, uint receivedBytes, uint totalBytes);
+    void sendResponseUploadAFileFinished(const QByteArray &msg, QString fileName);
 
     void sendResponseGetServerDataFinished(const QByteArray &msg);
 
@@ -40,7 +42,6 @@ private:
 
     void sendResponseUploadABook(const QByteArray &msg, QString bookName);
     void sendResponseDeleteABook(const QByteArray &msg, QString bookName);
-    void sendResponseUploadAFile(const QByteArray &msg, QString fileName);
     void sendResponseUploadAWord(const QByteArray &msg, QString spelling);
 
     void sendBookMissingMediaFiles(const QByteArray &msg, QString bookName);

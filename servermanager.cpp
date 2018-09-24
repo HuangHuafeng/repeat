@@ -22,9 +22,15 @@ ServerManager::ServerManager(QObject *parent) : QObject(parent),
     connect(&m_mgrAgt, SIGNAL(bookUploaded(QString)), this, SLOT(onBookUploaded(QString)));
     connect(&m_mgrAgt, SIGNAL(gotMissingMediaFilesOfBook(QString, const QList<QString> &)), this, SLOT(onGotMissingMediaFilesOfBook(QString, const QList<QString> &)));
     connect(&m_mgrAgt, SIGNAL(fileUploaded(QString)), this, SLOT(onFileUploaded(QString)));
+    connect(&m_mgrAgt, SIGNAL(fileUploadingProgress(QString, uint, uint)), this, SLOT(onFileUploadingProgress(QString, uint, uint)));
     connect(&m_mgrAgt, SIGNAL(wordUploaded(QString)), this, SLOT(onWordUploaded(QString)));
 
+
     //m_mgrAgt.connectToServer();
+}
+
+ServerManager::~ServerManager()
+{
 }
 
 void ServerManager::OnBookListReady(const QList<QString> &books)
@@ -134,6 +140,12 @@ void ServerManager::onBookUploaded(QString bookName)
     qDebug() << "successfully uploaded book:" << bookName;
 
     downloadBookDetails(bookName);
+}
+
+void ServerManager::onFileUploadingProgress(QString fileName, uint uploadedBytes, uint totalBytes)
+{
+    qDebug() << "onFileUploadingProgress():" << fileName;
+    emit(uploadProgress(uploadedBytes * 1.0f / totalBytes));
 }
 
 void ServerManager::onFileUploaded(QString fileName)
@@ -559,13 +571,12 @@ bool ServerManager::sendFile(QString fileName)
         return false;
     }
 
-    const int fileSize = static_cast<int>(toSend.size());
+    const int totalBytes = static_cast<int>(toSend.size());
     int sentBytes = 0;
-    int counter = 0;
     bool succeeded = true;
     QDataStream fileDS(&toSend);
     char buf[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
-    while (sentBytes < fileSize)
+    while (sentBytes < totalBytes)
     {
         auto readBytes = fileDS.readRawData(buf, ServerClientProtocol::MaximumBytesForFileTransfer);
         if (readBytes == -1)
@@ -574,11 +585,9 @@ bool ServerManager::sendFile(QString fileName)
             break;
         }
 
-        counter ++;
-        m_mgrAgt.sendResponseGetFile(fileName, buf, static_cast<uint>(readBytes));
         sentBytes += readBytes;
-        qDebug() << "send" << readBytes << "bytes of total" << fileSize;
-        // emit file progress here?!
+        m_mgrAgt.sendRequestUploadAFile(fileName, buf, static_cast<uint>(readBytes), sentBytes, totalBytes);
+        qDebug() << "send" << readBytes << "bytes of total" << totalBytes;
     }
 
     return succeeded;
@@ -587,7 +596,8 @@ bool ServerManager::sendFile(QString fileName)
 bool ServerManager::okToSendFile(QString fileName)
 {
     // only allow files in folder media
-    if (fileName.startsWith("media", Qt::CaseInsensitive) == false)
+    if (fileName.startsWith("media", Qt::CaseInsensitive) == false
+            && fileName.startsWith("releases", Qt::CaseInsensitive) == false)
     {
         return false;
     }
@@ -598,7 +608,9 @@ bool ServerManager::okToSendFile(QString fileName)
             && ext.compare("png", Qt::CaseInsensitive) != 0
             && ext.compare("jpg", Qt::CaseInsensitive) != 0
             && ext.compare("css", Qt::CaseInsensitive) != 0
-            && ext.compare("js", Qt::CaseInsensitive) != 0)
+            && ext.compare("js", Qt::CaseInsensitive) != 0
+            && ext.compare("zip", Qt::CaseInsensitive) != 0
+            && ext.compare("7z", Qt::CaseInsensitive) != 0)
     {
         return false;
     }
@@ -614,9 +626,10 @@ bool ServerManager::okToSendFile(QString fileName)
 
 void ServerManager::uploadfile(QString fileName)
 {
-    qDebug() << "uploading file" << fileName;
+    m_toUpload = 1;
+    m_uploaded = 0;
     bool succeeded = sendFile(fileName);
-    m_mgrAgt.sendResponseGetFileFinished(fileName, succeeded);
+    m_mgrAgt.sendRequestUploadAFileFinished(fileName, succeeded);
 }
 
 void ServerManager::uploadBookMissingMediaFiles(QString bookName)
@@ -626,10 +639,11 @@ void ServerManager::uploadBookMissingMediaFiles(QString bookName)
     m_uploaded = 0;
     for (int i = 0;i < bookMissingMediaFiles.size();i ++)
     {
-        uploadfile(bookMissingMediaFiles.at(i));
+        auto fileName = bookMissingMediaFiles.at(i);
+        bool succeeded = sendFile(fileName);
+        m_mgrAgt.sendRequestUploadAFileFinished(fileName, succeeded);
         QCoreApplication::processEvents();
     }
-
 }
 
 bool ServerManager::bookExistsInServer(QString bookName)

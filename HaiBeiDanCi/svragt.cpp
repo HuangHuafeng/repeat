@@ -443,10 +443,12 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
         return false;
     }
 
-    //fileName = fileName.replace(ServerClientProtocol::partPrefixReplaceRegExp(), "");
-    auto currentContent = m_mapFileContent.value(fileName);
-    auto newContent = currentContent + QByteArray(data, static_cast<int>(len));
-    m_mapFileContent.insert(fileName, newContent);
+    auto content = m_mapFileContent.value(fileName);
+    content.append(data, static_cast<int>(len));
+    m_mapFileContent.insert(fileName, content);
+
+    // release data
+    delete [] data;
 
     return true;
 }

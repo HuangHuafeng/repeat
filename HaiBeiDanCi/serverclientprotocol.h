@@ -75,7 +75,8 @@ public:
         RequestDeleteABook = ManagerToServerMessageCodeBase + 4,
         RequestUploadABook = ManagerToServerMessageCodeBase + 5,    // not used, uploading a book uses Response* messages
         RequestMissingMediaFiles = ManagerToServerMessageCodeBase + 6,    // 1:n
-        RequestUploadAFile = ManagerToServerMessageCodeBase + 7,    // not used, uploading a file uses Response* messages
+        RequestUploadAFile = ManagerToServerMessageCodeBase + 7,
+        RequestUploadAFileFinished = RequestUploadAFile + 1000,
         RequestUploadAWord = ManagerToServerMessageCodeBase + 8,    // not used, uploading a word uses Response* messages
         RequestReleaseApp = ManagerToServerMessageCodeBase + 9,
     } ManagerToServerMessageCode;
@@ -89,6 +90,7 @@ public:
         ResponseUploadABook = ServerToManagerMessageCodeBase + 5,
         ResponseMissingMediaFiles = ServerToManagerMessageCodeBase + 6,   // n:1
         ResponseUploadAFile = ServerToManagerMessageCodeBase + 7,
+        ResponseUploadAFileFinished = ResponseUploadAFile + 1000,
         ResponseUploadAWord = ServerToManagerMessageCodeBase + 8,
         ResponseRelease = ServerToManagerMessageCodeBase + 9,
     } ServerToManagerMessageCode;

@@ -1,7 +1,10 @@
 #ifndef RELEASEAPPDIALOG_H
 #define RELEASEAPPDIALOG_H
 
+#include "servermanager.h"
+
 #include <QDialog>
+#include <QProgressDialog>
 
 namespace Ui {
 class ReleaseAppDialog;
@@ -24,8 +27,16 @@ private slots:
 
     void on_leVersion_textChanged(const QString &arg1);
 
+    void onUploadProgress(float percentage);
+
 private:
     Ui::ReleaseAppDialog *ui;
+
+    ServerManager m_sm;
+    QProgressDialog m_progressDialog;
+
+    void initializeProgressDialog();
+    void createProgressDialog(const QString &labelText, const QString &cancelButtonText);
 
     void validateReleaseParameters();
 };

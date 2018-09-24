@@ -54,6 +54,14 @@ void MediaFileManager::bookDownloaded(QString bookName)
     QtConcurrent::run(std::bind(&MediaFileManager::initialize, this));
 }
 
+void MediaFileManager::bookDeleted(QString bookName)
+{
+    m_efMutex.lock();
+    m_mapBookMissingPronounceAudioFiles.remove(bookName);
+    m_mapBookMissingExampleAudioFiles.remove(bookName);
+    m_efMutex.unlock();
+}
+
 bool MediaFileManager::isDataReady()
 {
     m_dataRedayMutex.lock();

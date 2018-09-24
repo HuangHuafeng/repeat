@@ -17,6 +17,7 @@ public:
 
     void fileDownloaded(QString fileName);
     void bookDownloaded(QString bookName);
+    void bookDeleted(QString bookName);
 
 private:
     MediaFileManager();

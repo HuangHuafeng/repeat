@@ -145,7 +145,7 @@ void ServerManager::onBookUploaded(QString bookName)
 void ServerManager::onFileUploadingProgress(QString fileName, uint uploadedBytes, uint totalBytes)
 {
     qDebug() << "onFileUploadingProgress():" << fileName;
-    emit(uploadProgress(uploadedBytes * 1.0f / totalBytes));
+    emit(uploadProgress((m_uploaded + uploadedBytes * 1.0f / totalBytes) / m_toUpload));
 }
 
 void ServerManager::onFileUploaded(QString fileName)

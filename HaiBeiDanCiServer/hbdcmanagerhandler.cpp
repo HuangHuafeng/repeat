@@ -271,6 +271,7 @@ bool HBDCManagerHandler::handleRequestDeleteABook(const QByteArray &msg)
     }
 
     WordBook::deleteBook(bookName);
+    MediaFileManager::instance()->bookDeleted(bookName);
 
     // how to update the server?! Not needed, it's already updated!
 

@@ -412,7 +412,8 @@ void MainWindow::on_actionFetch_Missing_Media_Files_triggered()
         missingMediaFiles += *missingExampleAudioFiles;
     }
 
-    QProgressDialog pd("fetching media files from dictionary ...", "Cancel", 0, missingMediaFiles.size() - 1, this);
+    createProgressDialog("fetching media files of book \"" + bookName + "\" from dictionary ...", QObject::tr("Cancel"));
+    m_progressDialog.setMaximum(missingMediaFiles.size() - 1);
     int counter = 0;
     QSet<QString>::const_iterator it = missingMediaFiles.constBegin();
     while (it != missingMediaFiles.constEnd()) {
@@ -420,9 +421,9 @@ void MainWindow::on_actionFetch_Missing_Media_Files_triggered()
         mfm->fileDownloaded(*it);
         it ++;
 
-        pd.setValue(counter);
+        m_progressDialog.setValue(counter);
         counter ++;
-        if (pd.wasCanceled() == true)
+        if (m_progressDialog.wasCanceled() == true)
         {
             break;
         }
@@ -487,6 +488,7 @@ void MainWindow::createProgressDialog(const QString &labelText, const QString &c
     m_progressDialog.reset();
     m_progressDialog.setLabelText("    " + labelText + "    ");
     m_progressDialog.setCancelButtonText(cancelButtonText);
+    m_progressDialog.setMaximum(100);
     m_progressDialog.setValue(0);
 }
 

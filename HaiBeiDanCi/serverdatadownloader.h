@@ -30,7 +30,7 @@ public slots:
     void OnBookDownloaded(sptr<WordBook> book);
     void OnWordDownloaded(sptr<Word> word);
     void OnDownloadProgress(float percentage);
-    void OnFileDownloaded(QString fileName, SvrAgt::DownloadStatus result, const QByteArray &fileContent);
+    void OnFileDownloaded(QString fileName, SvrAgt::DownloadStatus result, const QVector<QMap<const char *, uint> > *fileContentBlocks);
     void OnGetWordsOfBookFinished(QString bookName);
     void OnBookWordListReceived(QString bookName, const QVector<QString> &wordList);
 
@@ -43,7 +43,7 @@ private:
 
     void downloadAllBooks();
     void downloadWordsOfBook(QString bookName);
-    void saveFileFromServer(QString fileName, const QByteArray &fileContent);
+    void saveFileFromServer(QString fileName, const QVector<QMap<const char *, uint> > *fileContentBlocks);
 };
 
 #endif // SERVERDATADOWNLOADER_H

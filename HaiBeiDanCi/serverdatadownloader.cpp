@@ -12,7 +12,7 @@ ServerDataDownloader::ServerDataDownloader(QObject *parent) : QObject(parent),
     connect(&m_svrAgt, SIGNAL(bookDownloaded(sptr<WordBook>)), this, SLOT(OnBookDownloaded(sptr<WordBook>)));
     connect(&m_svrAgt, SIGNAL(wordDownloaded(sptr<Word>)), this, SLOT(OnWordDownloaded(sptr<Word>)));
     connect(&m_svrAgt, SIGNAL(downloadProgress(float)), this, SLOT(OnDownloadProgress(float)));
-    connect(&m_svrAgt, SIGNAL(fileDownloaded(QString, SvrAgt::DownloadStatus, const QByteArray &)), this, SLOT(OnFileDownloaded(QString, SvrAgt::DownloadStatus, QByteArray)));
+    connect(&m_svrAgt, SIGNAL(fileDownloaded(QString, SvrAgt::DownloadStatus, const QVector<QMap<const char *, uint>> *)), this, SLOT(OnFileDownloaded(QString, SvrAgt::DownloadStatus, const QVector<QMap<const char *, uint>> *)));
     connect(&m_svrAgt, SIGNAL(getWordsOfBookFinished(QString)), this, SLOT(OnGetWordsOfBookFinished(QString)));
     connect(&m_svrAgt, SIGNAL(bookWordListReceived(QString, const QVector<QString> &)), this, SLOT(OnBookWordListReceived(QString, const QVector<QString> &)));
 }
@@ -53,17 +53,17 @@ void ServerDataDownloader::OnDownloadProgress(float percentage)
     emit(downloadProgress(percentage));
 }
 
-void ServerDataDownloader::OnFileDownloaded(QString fileName, SvrAgt::DownloadStatus result, const QByteArray &fileContent)
+void ServerDataDownloader::OnFileDownloaded(QString fileName, SvrAgt::DownloadStatus result, const QVector<QMap<const char *, uint>> *fileContentBlocks)
 {
     if (result == SvrAgt::DownloadSucceeded)
     {
-        saveFileFromServer(fileName, fileContent);
+        saveFileFromServer(fileName, fileContentBlocks);
         auto mfm = MediaFileManager::instance();
         mfm->fileDownloaded(fileName);
     }
     else
     {
-        qDebug() << "downloading of file" << fileName << "failed!";
+        qCritical() << "downloading of file" << fileName << "failed!";
     }
     emit(fileDownloaded(fileName, result == SvrAgt::DownloadSucceeded));
 }
@@ -213,7 +213,7 @@ void ServerDataDownloader::downloadWordsOfBook(QString bookName)
     m_svrAgt.sendRequestGetWordsOfBookFinished(bookName);
 }
 
-void ServerDataDownloader::saveFileFromServer(QString fileName, const QByteArray &fileContent)
+void ServerDataDownloader::saveFileFromServer(QString fileName, const QVector<QMap<const char *, uint>> *fileContentBlocks)
 {
     QString localFile = MySettings::dataDirectory() + "/" + fileName;
     QString folder = localFile.section('/', 0, -2);
@@ -222,11 +222,24 @@ void ServerDataDownloader::saveFileFromServer(QString fileName, const QByteArray
 
     if (toSave.open(QIODevice::WriteOnly) == false)
     {
-        qInfo() << "Could not open" << localFile << "for writing:" << toSave.errorString();
+        qCritical() << "Could not open" << localFile << "for writing:" << toSave.errorString();
         return;
     }
 
-    qDebug() << "saving" << fileName << "size" << fileContent.size();
-    toSave.write(fileContent.constData(), fileContent.size());
+    qDebug() << "saving" << fileName;
+    if (fileContentBlocks != nullptr)
+    {
+        for (int i = 0;i < fileContentBlocks->size();i ++)
+        {
+            auto currentBlock = fileContentBlocks->at(i);
+            const char *data = currentBlock.firstKey();
+            const uint len = currentBlock.first();
+            toSave.write(data, len);
+        }
+    }
+    else
+    {
+        // it's possible that there's no content for the file, like the file has size 0
+    }
     toSave.close();
 }

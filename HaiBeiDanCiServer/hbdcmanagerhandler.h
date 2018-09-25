@@ -14,7 +14,7 @@ private:
     QMap<QString, sptr<WordBook>> m_mapBooks;
     QMap<QString, QVector<QString>> m_mapBooksWordList;
     QMap<QString, sptr<Word>> m_mapWords;
-    QMap<QString, QByteArray>  m_mapFileContent;
+    QMap<QString, QVector<QMap<const char *, uint>> *> m_mapFileContentBlocks;
 
     bool handleRequestGetAllWordsWithoutDefinition(const QByteArray &msg);
     bool handleRequestGetServerDataFinished(const QByteArray &msg);
@@ -30,7 +30,7 @@ private:
     // for uploading a file from the manager
     bool handleRequestUploadAFile(const QByteArray &msg);
     bool handleRequestUploadAFileFinished(const QByteArray &msg);
-    void saveFileFromServer(QString fileName, const QByteArray &fileContent);
+    void saveFileFromServer(QString fileName);
     void sendResponseUploadAFile(const QByteArray &msg, QString fileName, uint receivedBytes, uint totalBytes);
     void sendResponseUploadAFileFinished(const QByteArray &msg, QString fileName);
 
@@ -47,6 +47,7 @@ private:
     void sendBookMissingMediaFiles(const QByteArray &msg, QString bookName);
     void sendResponseMissingMediaFiles(const QByteArray &msg, QString bookName, const QList<QString> &fileList);
 
+    void discardFileContent(QString fileName);
 };
 
 #endif // HBDCMANAGERHANDLER_H

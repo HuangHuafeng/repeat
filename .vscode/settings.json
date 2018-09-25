@@ -29,7 +29,9 @@
         "hashtable": "cpp",
         "__config": "cpp",
         "__nullptr": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "iterator": "cpp",
+        "string_view": "cpp"
     },
     "C_Cpp.autocomplete": "Disabled",
     "clang.cxxflags": ["-std=c++11"]

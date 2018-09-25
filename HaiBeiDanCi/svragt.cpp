@@ -443,12 +443,15 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
         return false;
     }
 
-    auto content = m_mapFileContent.value(fileName);
-    content.append(data, static_cast<int>(len));
-    m_mapFileContent.insert(fileName, content);
-
-    // release data
-    delete [] data;
+    QMap<const char *, uint> newBlock;
+    newBlock.insert(data, len);
+    auto contentBlocks = m_mapFileContentBlocks.value(fileName);
+    if (contentBlocks == nullptr)
+    {
+        contentBlocks = new QVector<QMap<const char *, uint>>;
+        m_mapFileContentBlocks.insert(fileName, contentBlocks);
+    }
+    contentBlocks->append(newBlock);
 
     return true;
 }
@@ -463,7 +466,7 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
     in >> receivedMsgHeader >> fileName >> succeeded;
     if (in.commitTransaction() == false)
     {
-        qCritical() << "failed to read books in handleResponseAllDataSentForRequestGetFile()";
+        qCritical() << "failed to read info in handleResponseGetFileFinished()";
         return false;
     }
 
@@ -478,15 +481,14 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
         {
             m_filesToDownload.insert(fileName, DownloadFailed);
         }
-        emit(fileDownloaded(fileName, m_filesToDownload.value(fileName), m_mapFileContent.value(fileName)));
+        emit(fileDownloaded(fileName, m_filesToDownload.value(fileName), m_mapFileContentBlocks.value(fileName)));
     }
     else
     {
         // file download is cancelled when (m_filesToDownload.contains(fileName) == false)
     }
 
-    // remove the file content to release the memory, helpful?
-    m_mapFileContent.remove(fileName);
+    discardFileContent(fileName);
 
     // don't remove the file from m_filesToDownload
     // we may need some statistics later
@@ -496,6 +498,26 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
     updateAndEmitProgress();
 
     return true;
+}
+
+void SvrAgt::discardFileContent(QString fileName)
+{
+    QVector<QMap<const char *, uint>> *fileContentBlocks = m_mapFileContentBlocks.value(fileName);
+    if (fileContentBlocks != nullptr)
+    {
+        for (int i = 0;i < fileContentBlocks->size();i ++)
+        {
+            auto currentBlock = fileContentBlocks->at(i);
+            // free the memory allocated in.readBytes() in handleRequestUploadAFile()
+            delete [] currentBlock.firstKey();
+        }
+
+        // free the memory allocated in handleRequestUploadAFile()
+        delete fileContentBlocks;
+    }
+
+    // clear the file in the map
+    m_mapFileContentBlocks.remove(fileName);
 }
 
 bool SvrAgt::handleResponseUnknownRequest(const QByteArray &msg)
@@ -511,7 +533,7 @@ bool SvrAgt::handleResponseUnknownRequest(const QByteArray &msg)
         return false;
     }
 
-    qCritical("server replied that it doesn't know the message with header: %s", receivedMsgHeader.toString().toUtf8().constData());
+    qCritical("server replied that it doesn't know the message with code: %d", requestCode);
 
     return true;
 }
@@ -677,7 +699,7 @@ void SvrAgt::downloadMultipleFiles(QSet<QString> files)
     //m_filesToDownload.clear();
     //m_mapFileContent.clear();
     Q_ASSERT(m_filesToDownload.isEmpty() == true);
-    Q_ASSERT(m_mapFileContent.isEmpty() == true);
+    Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
 
     int counter = 0;
     int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
@@ -751,7 +773,7 @@ void SvrAgt::cancelDownloadingWords()
 void SvrAgt::cancelDownloadingFiles()
 {
     m_filesToDownload.clear();
-    m_mapFileContent.clear();
+    m_mapFileContentBlocks.clear();
 }
 
 void SvrAgt::onSendMessageSmart()

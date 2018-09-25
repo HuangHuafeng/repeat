@@ -317,7 +317,7 @@ void ClientHandler::sendResponseRegister(const QByteArray &msg, qint32 result, c
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << result << user;
-    sendMessage(block, true);
+    sendMessage(block);
 }
 
 void ClientHandler::sendResponseLogin(const QByteArray &msg, qint32 result, const ApplicationUser &user, const Token &token)
@@ -328,7 +328,7 @@ void ClientHandler::sendResponseLogin(const QByteArray &msg, qint32 result, cons
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << result << user << token;
-    sendMessage(block, true);
+    sendMessage(block);
 }
 
 void ClientHandler::sendResponseLogout(const QByteArray &msg, qint32 result, QString name)
@@ -339,7 +339,7 @@ void ClientHandler::sendResponseLogout(const QByteArray &msg, qint32 result, QSt
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << result << name;
-    sendMessage(block, true);
+    sendMessage(block);
 }
 
 bool ClientHandler::validateMessage(const QByteArray &msg)

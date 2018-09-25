@@ -41,7 +41,7 @@ void ReleaseAppDialog::on_pbBrowse_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     "Open File",
-                                                    MySettings::dataDirectory(),
+                                                    MySettings::dataDirectory() + "/releases",
                                                     "Compressed files (*.zip *.7z)");
     ui->leFile->setText(fileName);
     validateReleaseParameters();

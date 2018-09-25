@@ -347,7 +347,7 @@ void HBDCManagerHandler::sendResponseMissingMediaFiles(const QByteArray &msg, QS
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << bookName << fileList;
-    sendMessage(block, true);
+    sendMessage(block);
 }
 
 
@@ -368,12 +368,15 @@ bool HBDCManagerHandler::handleRequestUploadAFile(const QByteArray &msg)
         return false;
     }
 
-    auto content = m_mapFileContent.value(fileName);
-    content.append(data, static_cast<int>(len));
-    m_mapFileContent.insert(fileName, content);
-
-    // release data
-    delete [] data;
+    QMap<const char *, uint> newBlock;
+    newBlock.insert(data, len);
+    auto contentBlocks = m_mapFileContentBlocks.value(fileName);
+    if (contentBlocks == nullptr)
+    {
+        contentBlocks = new QVector<QMap<const char *, uint>>;
+        m_mapFileContentBlocks.insert(fileName, contentBlocks);
+    }
+    contentBlocks->append(newBlock);
 
     sendResponseUploadAFile(msg, fileName, sentBytes, totalBytes);
 
@@ -388,7 +391,7 @@ void HBDCManagerHandler::sendResponseUploadAFile(const QByteArray &msg, QString 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << fileName << receivedBytes << totalBytes;
-    sendMessage(block, true);
+    sendMessage(block);
 }
 
 bool HBDCManagerHandler::handleRequestUploadAFileFinished(const QByteArray &msg)
@@ -408,7 +411,7 @@ bool HBDCManagerHandler::handleRequestUploadAFileFinished(const QByteArray &msg)
 
     if (succeeded == true)
     {
-        saveFileFromServer(fileName, m_mapFileContent.value(fileName));
+        saveFileFromServer(fileName);
         auto mfm = MediaFileManager::instance();
         mfm->fileDownloaded(fileName);
     }
@@ -417,12 +420,31 @@ bool HBDCManagerHandler::handleRequestUploadAFileFinished(const QByteArray &msg)
         qCritical() << fileName << "failed to upload in handleResponseAllDataSentForRequestGetFile()";
     }
 
-    // remove the file content to release the memory, helpful?
-    m_mapFileContent.remove(fileName);
+    discardFileContent(fileName);
 
     sendResponseUploadAFileFinished(msg, fileName);
 
     return true;
+}
+
+void HBDCManagerHandler::discardFileContent(QString fileName)
+{
+    QVector<QMap<const char *, uint>> *fileContentBlocks = m_mapFileContentBlocks.value(fileName);
+    if (fileContentBlocks != nullptr)
+    {
+        for (int i = 0;i < fileContentBlocks->size();i ++)
+        {
+            auto currentBlock = fileContentBlocks->at(i);
+            // free the memory allocated in.readBytes() in handleRequestUploadAFile()
+            delete [] currentBlock.firstKey();
+        }
+
+        // free the memory allocated in handleRequestUploadAFile()
+        delete fileContentBlocks;
+    }
+
+    // clear the file in the map
+    m_mapFileContentBlocks.remove(fileName);
 }
 
 void HBDCManagerHandler::sendResponseUploadAFileFinished(const QByteArray &msg, QString fileName)
@@ -436,8 +458,11 @@ void HBDCManagerHandler::sendResponseUploadAFileFinished(const QByteArray &msg, 
     sendMessage(block);
 }
 
-void HBDCManagerHandler::saveFileFromServer(QString fileName, const QByteArray &fileContent)
+void HBDCManagerHandler::saveFileFromServer(QString fileName)
 {
+    QVector<QMap<const char *, uint>> *fileContentBlocks = m_mapFileContentBlocks.value(fileName);
+    Q_ASSERT(fileContentBlocks != nullptr);
+
     QString localFile = MySettings::dataDirectory() + "/" + fileName;
     QString folder = localFile.section('/', 0, -2);
     QDir::current().mkpath(folder);
@@ -445,11 +470,17 @@ void HBDCManagerHandler::saveFileFromServer(QString fileName, const QByteArray &
 
     if (toSave.open(QIODevice::WriteOnly) == false)
     {
-        qInfo() << "Could not open" << localFile << "for writing:" << toSave.errorString();
+        qCritical() << "Could not open" << localFile << "for writing:" << toSave.errorString();
         return;
     }
 
-    qDebug() << "saving" << fileName << "size" << fileContent.size();
-    toSave.write(fileContent.constData(), fileContent.size());
+    qDebug() << "saving" << fileName;
+    for (int i = 0;i < fileContentBlocks->size();i ++)
+    {
+        auto currentBlock = fileContentBlocks->at(i);
+        const char *data = currentBlock.firstKey();
+        const uint len = currentBlock.first();
+        toSave.write(data, len);
+    }
     toSave.close();
 }

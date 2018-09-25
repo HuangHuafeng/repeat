@@ -58,7 +58,7 @@ signals:
     void bookDownloaded(sptr<WordBook> book);
     void wordDownloaded(sptr<Word> word);
     void downloadProgress(float percentage);
-    void fileDownloaded(QString fileName, SvrAgt::DownloadStatus result, const QByteArray &fileContent);
+    void fileDownloaded(QString fileName, SvrAgt::DownloadStatus result, const QVector<QMap<const char *, uint>> *fileContentBlocks);
 
     // getWordsOfBookFinished() is signalled when the message is echoed from the server
     // it's used like a check point that responses of all previous resquests are received
@@ -96,7 +96,7 @@ private:
     int m_downloaded;
 
     QMap<QString, QVector<QString>> m_mapBooksWordList;
-    QMap<QString, QByteArray>  m_mapFileContent;
+    QMap<QString, QVector<QMap<const char *, uint>> *> m_mapFileContentBlocks;
 
     QTimer m_messageTimer;
     QTimer m_timerServerHeartBeat;
@@ -110,6 +110,7 @@ private:
 
     void connectToServer();
     void disconnectServer();
+    void discardFileContent(QString fileName);
 
 protected:
     virtual int handleMessage(const QByteArray &msg);

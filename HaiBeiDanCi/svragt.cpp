@@ -433,10 +433,11 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
     QString fileName;
     char *data;
-    uint len;
+    uint len, sentBytes, totalBytes;
     in.startTransaction();
     in >> receivedMsgHeader >> fileName;
     in.readBytes(data, len);
+    in >> sentBytes >> totalBytes;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read words of the book in handleResponseGetFile()";
@@ -452,6 +453,11 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
         m_mapFileContentBlocks.insert(fileName, contentBlocks);
     }
     contentBlocks->append(newBlock);
+
+    if (sentBytes < totalBytes)
+    {
+        emit(downloadProgress((m_downloaded + sentBytes * 1.0f / totalBytes) / m_toDownload));
+    }
 
     return true;
 }
@@ -679,25 +685,24 @@ void SvrAgt::sendRequestGetFile(QString fileName)
 /**
  * @brief SvrAgt::downloadFile
  * @param fileName
- * assumes teh file does not exist, overwrite it if it exists!
+ * assumes the file does not exist, overwrite it if it exists!
  */
 void SvrAgt::downloadFile(QString fileName)
 {
+    Q_ASSERT(m_filesToDownload.isEmpty() == true);
+    Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
     if (m_filesToDownload.contains(fileName) == false)
     {
         m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
         sendRequestGetFile(fileName);
     }
-    else
-    {
-        // it's already in the list, so we don't touch it to spoil the state
-    }
+
+    m_toDownload = m_filesToDownload.size();
+    m_downloaded = 0;
 }
 
 void SvrAgt::downloadMultipleFiles(QSet<QString> files)
 {
-    //m_filesToDownload.clear();
-    //m_mapFileContent.clear();
     Q_ASSERT(m_filesToDownload.isEmpty() == true);
     Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
 
@@ -706,13 +711,18 @@ void SvrAgt::downloadMultipleFiles(QSet<QString> files)
     QSet<QString>::const_iterator it = files.constBegin();
     while (it != files.constEnd())
     {
-        downloadFile(*it);
+        QString fileName = *it;
+        if (m_filesToDownload.contains(fileName) == false)
+        {
+            m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
+            sendRequestGetFile(fileName);
+        }
         it ++;
 
         if (counter ++ % requestsForARound == 0)
         {
             // process events so we don't make the app unresponsive
-            QCoreApplication::processEvents();
+            QCoreApplication::processEvents(QEventLoop::ExcludeSocketNotifiers);
         }
     }
 
@@ -761,6 +771,7 @@ void SvrAgt::sendMessage(const QByteArray &msg, bool needCompress, bool now)
 
 void SvrAgt::updateAndEmitProgress()
 {
+    Q_ASSERT(m_toDownload != 0);
     m_downloaded ++;
     emit(downloadProgress(m_downloaded * 1.0f / m_toDownload));
 }

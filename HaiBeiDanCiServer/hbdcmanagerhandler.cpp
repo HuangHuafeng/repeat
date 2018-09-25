@@ -461,7 +461,6 @@ void HBDCManagerHandler::sendResponseUploadAFileFinished(const QByteArray &msg, 
 void HBDCManagerHandler::saveFileFromServer(QString fileName)
 {
     QVector<QMap<const char *, uint>> *fileContentBlocks = m_mapFileContentBlocks.value(fileName);
-    Q_ASSERT(fileContentBlocks != nullptr);
 
     QString localFile = MySettings::dataDirectory() + "/" + fileName;
     QString folder = localFile.section('/', 0, -2);
@@ -475,12 +474,19 @@ void HBDCManagerHandler::saveFileFromServer(QString fileName)
     }
 
     qDebug() << "saving" << fileName;
-    for (int i = 0;i < fileContentBlocks->size();i ++)
+    if (fileContentBlocks != nullptr)
     {
-        auto currentBlock = fileContentBlocks->at(i);
-        const char *data = currentBlock.firstKey();
-        const uint len = currentBlock.first();
-        toSave.write(data, len);
+        for (int i = 0;i < fileContentBlocks->size();i ++)
+        {
+            auto currentBlock = fileContentBlocks->at(i);
+            const char *data = currentBlock.firstKey();
+            const uint len = currentBlock.first();
+            toSave.write(data, len);
+        }
+    }
+    else
+    {
+        // it's possible that there's no content for the file, like the file has size 0
     }
     toSave.close();
 }

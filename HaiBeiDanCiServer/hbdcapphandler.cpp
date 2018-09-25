@@ -303,13 +303,12 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, QString fileName)
         return false;
     }
 
-    const int fileSize = static_cast<int>(toSend.size());
+    const int totalBytes = static_cast<int>(toSend.size());
     int sentBytes = 0;
-    int counter = 0;
     bool succeeded = true;
     QDataStream fileDS(&toSend);
     char buf[ServerClientProtocol::MaximumBytesForFileTransfer + 1];
-    while (sentBytes < fileSize)
+    while (sentBytes < totalBytes)
     {
         auto readBytes = fileDS.readRawData(buf, ServerClientProtocol::MaximumBytesForFileTransfer);
         if (readBytes == -1)
@@ -318,16 +317,15 @@ bool HBDCAppHandler::sendFile(const QByteArray &msg, QString fileName)
             break;
         }
 
-        counter ++;
-        sendResponseGetFile(msg, fileName, buf, static_cast<uint>(readBytes));
         sentBytes += readBytes;
-        qDebug() << "send" << readBytes << "bytes of total" << fileSize;
+        sendResponseGetFile(msg, fileName, buf, static_cast<uint>(readBytes), sentBytes, totalBytes);
+        qDebug() << "send" << readBytes << "bytes of total" << totalBytes;
     }
 
     return succeeded;
 }
 
-void HBDCAppHandler::sendResponseGetFile(const QByteArray &msg, QString fileName, const char *s, uint len)
+void HBDCAppHandler::sendResponseGetFile(const QByteArray &msg, QString fileName, const char *s, uint len, int sentBytes, int totalBytes)
 {
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseGetFile, receivedMsgHeader.sequenceNumber());
@@ -336,6 +334,7 @@ void HBDCAppHandler::sendResponseGetFile(const QByteArray &msg, QString fileName
     QDataStream out(&block, QIODevice::WriteOnly);
     out << responseHeader << fileName;
     out.writeBytes(s, len);
+    out << sentBytes << totalBytes;
     sendMessage(block);
 }
 

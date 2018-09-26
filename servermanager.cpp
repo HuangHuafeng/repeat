@@ -24,6 +24,7 @@ ServerManager::ServerManager(QObject *parent) : QObject(parent),
     connect(&m_mgrAgt, SIGNAL(fileUploaded(QString)), this, SLOT(onFileUploaded(QString)));
     connect(&m_mgrAgt, SIGNAL(fileUploadingProgress(QString, uint, uint)), this, SLOT(onFileUploadingProgress(QString, uint, uint)));
     connect(&m_mgrAgt, SIGNAL(wordUploaded(QString)), this, SLOT(onWordUploaded(QString)));
+    connect(&m_mgrAgt, SIGNAL(appReleased(bool)), this, SLOT(onAppReleased(bool)));
 
 
     //m_mgrAgt.connectToServer();
@@ -160,6 +161,8 @@ void ServerManager::onFileUploaded(QString fileName)
         emit(uploadProgress(m_uploaded * 1.0f / m_toUpload));
     }
 
+    emit(fileUploaded(fileName));
+
     /*
      * this way is to time consuming!!!
     auto books = m_mapBooks.keys();
@@ -197,6 +200,11 @@ void ServerManager::onWordUploaded(QString spelling)
     //{
     //    reloadServerData();
     //}
+}
+
+void ServerManager::onAppReleased(bool succeed)
+{
+    emit(appReleased(succeed));
 }
 
 
@@ -653,4 +661,9 @@ bool ServerManager::bookExistsInServer(QString bookName)
 {
     Q_ASSERT(m_serverDataLoaded == true);
     return m_mapBooks.value(bookName).get() != nullptr;
+}
+
+void ServerManager::releaseApp(ApplicationVersion version, QString fileName, QString info)
+{
+    m_mgrAgt.sendRequestReleaseApp(version, fileName, info);
 }

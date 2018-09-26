@@ -118,10 +118,15 @@ qint32 ApplicationVersion::toInt() const
     return m_major << 16 | m_minor << 8 | m_patch;
 }
 
+QString ApplicationVersion::toString() const
+{
+    return QString("%1.%2.%3").arg(m_major).arg(m_minor).arg(m_patch);
+}
+
 ApplicationVersion ApplicationVersion::fromInt(qint32 version)
 {
-    quint8 major = static_cast<quint8>(version & 0x00FF0000 >> 16);
-    quint8 minor = static_cast<quint8>(version & 0x0000FF00 >> 8);
+    quint8 major = static_cast<quint8>((version & 0x00FF0000) >> 16);
+    quint8 minor = static_cast<quint8>((version & 0x0000FF00) >> 8);
     quint8 patch = static_cast<quint8>(version & 0x000000FF);
     return ApplicationVersion(major, minor, patch);
 }

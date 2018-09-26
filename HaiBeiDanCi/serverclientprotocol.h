@@ -92,7 +92,7 @@ public:
         ResponseUploadAFile = ServerToManagerMessageCodeBase + 7,
         ResponseUploadAFileFinished = ResponseUploadAFile + 1000,
         ResponseUploadAWord = ServerToManagerMessageCodeBase + 8,
-        ResponseRelease = ServerToManagerMessageCodeBase + 9,
+        ResponseReleaseApp = ServerToManagerMessageCodeBase + 9,
     } ServerToManagerMessageCode;
 };
 
@@ -161,6 +161,7 @@ public:
     ApplicationVersion(quint8 major, quint8 minor, quint8 patch);
 
     qint32 toInt() const;
+    QString toString() const;
     static ApplicationVersion fromInt(qint32 version);
     static ApplicationVersion fromString(QString versionInString);
     static bool isValidVersion(QString versionInString);

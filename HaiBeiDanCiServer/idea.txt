@@ -3,6 +3,8 @@
 * release app
 * token->user
 [ALMOST DONE]* reduce using sptr
+* about downloading progress, I don't think there's a perfect way
+to know the progress without sacrifice performance (reading all file info ahead)
 
 
 PARTLY DONE * add security to the server, currently it exposes anything to the client!!!

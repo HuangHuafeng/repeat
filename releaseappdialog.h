@@ -29,6 +29,10 @@ private slots:
 
     void onUploadProgress(float percentage);
 
+    void onFileUploaded(QString fileName);
+    
+    void onAppReleased(bool succeed);
+
 private:
     Ui::ReleaseAppDialog *ui;
 

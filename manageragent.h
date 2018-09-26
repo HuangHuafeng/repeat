@@ -21,6 +21,8 @@ public:
     void sendRequestUploadAFile(QString fileName, const char *s, uint len, int sentBytes, int totalBytes);
     void sendRequestUploadAFileFinished(QString fileName, bool succeeded);
 
+    void sendRequestReleaseApp(ApplicationVersion version, QString fileName, QString info);
+
     void sendBookWordList(QString bookName, const QVector<QString> &wordList);
     // the following messages are used to upload a book
     void sendResponseGetABook(const WordBook &book);
@@ -37,6 +39,7 @@ signals:
     void fileUploadingProgress(QString fileName, uint uploadedBytes, uint totalBytes);
     void wordUploaded(QString spelling);
     void gotMissingMediaFilesOfBook(QString bookName, const QList<QString> &fileList);
+    void appReleased(bool succeed);
 
 protected:
     virtual int handleMessage(const QByteArray &msg) override;    
@@ -55,6 +58,7 @@ private:
     bool handleResponseUploadAFile(const QByteArray &msg);
     bool handleResponseUploadAWord(const QByteArray &msg);
     bool handleResponseUploadAFileFinished(const QByteArray &msg);
+    bool handleResponseReleaseApp(const QByteArray &msg);
 };
 
 #endif // MANAGERAGENT_H

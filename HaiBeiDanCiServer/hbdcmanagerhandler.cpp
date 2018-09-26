@@ -1,6 +1,7 @@
 #include "hbdcmanagerhandler.h"
 #include "../HaiBeiDanCi/mediafilemanager.h"
 #include "../HaiBeiDanCi/mysettings.h"
+#include "appreleaser.h"
 
 #include <QDir>
 #include <QFile>
@@ -52,6 +53,10 @@ int HBDCManagerHandler::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::RequestUploadAFileFinished:
         handleResult = handleRequestUploadAFileFinished(msg);
+        break;
+
+    case ServerClientProtocol::RequestReleaseApp:
+        handleResult = handleRequestReleaseApp(msg);
         break;
 
     default:
@@ -489,4 +494,37 @@ void HBDCManagerHandler::saveFileFromServer(QString fileName)
         // it's possible that there's no content for the file, like the file has size 0
     }
     toSave.close();
+}
+
+bool HBDCManagerHandler::handleRequestReleaseApp(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    ApplicationVersion appVer(0, 0, 0);
+    QString fileName, info;
+    in.startTransaction();
+    in >> receivedMsgHeader >> appVer >> fileName >> info;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read words of the book in handleRequestReleaseApp()";
+        return false;
+    }
+
+    AppReleaser *ar = AppReleaser::instance();
+    bool succeed = ar->releaseNewVersion(appVer, fileName, info);
+
+    sendResponseReleaseApp(msg, succeed);
+
+    return true;
+}
+
+void HBDCManagerHandler::sendResponseReleaseApp(const QByteArray &msg, bool succeed)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseReleaseApp, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << succeed;
+    sendMessage(block);
 }

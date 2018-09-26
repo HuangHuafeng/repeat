@@ -20,6 +20,8 @@ private:
     bool handleRequestGetServerDataFinished(const QByteArray &msg);
     bool handleRequestMissingMediaFiles(const QByteArray &msg);
     bool handleRequestDeleteABook(const QByteArray &msg);
+    bool handleRequestReleaseApp(const QByteArray &msg);
+    void sendResponseReleaseApp(const QByteArray &msg, bool succeed);
 
     // for uploading a book from the manager
     bool handleResponseGetABook(const QByteArray &msg);

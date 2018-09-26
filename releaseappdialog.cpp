@@ -5,6 +5,7 @@
 
 #include <QFileDialog>
 #include <QProgressDialog>
+#include <QMessageBox>
 
 ReleaseAppDialog::ReleaseAppDialog(QWidget *parent) :
     QDialog(parent),
@@ -16,6 +17,8 @@ ReleaseAppDialog::ReleaseAppDialog(QWidget *parent) :
     initializeProgressDialog();
 
     connect(&m_sm, SIGNAL(uploadProgress(float)), this, SLOT(onUploadProgress(float)));
+    connect(&m_sm, SIGNAL(fileUploaded(QString)), this, SLOT(onFileUploaded(QString)));
+    connect(&m_sm, SIGNAL(appReleased(bool)), this, SLOT(onAppReleased(bool)));
 }
 
 ReleaseAppDialog::~ReleaseAppDialog()
@@ -26,15 +29,6 @@ ReleaseAppDialog::~ReleaseAppDialog()
 void ReleaseAppDialog::on_pbCancel_clicked()
 {
     reject();
-}
-
-void ReleaseAppDialog::on_pbRelease_clicked()
-{
-    QString dd = MySettings::dataDirectory() + "/";
-    QString fileName = ui->leFile->text();
-    fileName = fileName.replace(dd, "");
-    createProgressDialog("uploading \"" + fileName + "\" ...", QString());
-    m_sm.uploadfile(fileName);
 }
 
 void ReleaseAppDialog::on_pbBrowse_clicked()
@@ -85,4 +79,44 @@ void ReleaseAppDialog::createProgressDialog(const QString &labelText, const QStr
     m_progressDialog.setLabelText("    " + labelText + "    ");
     m_progressDialog.setCancelButtonText(cancelButtonText);
     m_progressDialog.setValue(0);
+}
+
+void ReleaseAppDialog::on_pbRelease_clicked()
+{
+    // RELEASE APP
+    // step 1: upload the app package
+    QString dd = MySettings::dataDirectory() + "/";
+    QString fileName = ui->leFile->text();
+    fileName = fileName.replace(dd, "");
+    createProgressDialog("uploading \"" + fileName + "\" ...", QString());
+    m_sm.uploadfile(fileName);
+}
+
+void ReleaseAppDialog::onFileUploaded(QString fileName)
+{
+    // RELEASE APP
+    // step 2: update the released app info in server
+    ApplicationVersion appVer = ApplicationVersion::fromString(ui->leVersion->text());
+    QString info = ui->teInfo->toHtml();
+    m_sm.releaseApp(appVer, fileName, info);
+}
+
+void ReleaseAppDialog::onAppReleased(bool succeed)
+{
+    // RELEASE APP
+    // step : inform the result with a message box
+    
+    if (succeed)
+    {
+        QMessageBox::information(this,
+                                 MySettings::appName(),
+                                 QObject::tr("app relese succeeded!"));
+        accept();
+    }
+    else
+    {
+        QMessageBox::critical(this,
+                                 MySettings::appName(),
+                                 QObject::tr("app relese failed!"));
+    }
 }

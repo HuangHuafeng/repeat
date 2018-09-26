@@ -130,27 +130,10 @@ bool WordDB::connectDB(const QString &connectionName)
         return false;
     }
 
-    if (Word::createDatabaseTables() == false)
-    {
-        return false;
-    }
-
-    if (WordCard::createDatabaseTables() == false)
-    {
-        return false;
-    }
-
-    if (WordBook::createDatabaseTables() == false)
-    {
-        return false;
-    }
-
-    if (ApplicationUser::createDatabaseTables() == false)
-    {
-        return false;
-    }
-
-    return true;
+    return Word::createDatabaseTables()
+            && WordCard::createDatabaseTables()
+            && WordBook::createDatabaseTables()
+            && ApplicationUser::createDatabaseTables();
 }
 
 // static

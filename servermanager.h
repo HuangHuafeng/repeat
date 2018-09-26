@@ -35,11 +35,14 @@ public:
     QVector<QString> getWordListOfBook(QString bookName);
     QList<QString> getMissingMediaFilesOfBook(QString bookName);
     void uploadBookMissingMediaFiles(QString bookName);
+    void releaseApp(ApplicationVersion version, QString fileName, QString info);
 
 signals:
     void serverDataReloaded();
     void uploadProgress(float percentage);
     void bookDownloaded(QString bookName);
+    void fileUploaded(QString fileName);
+    void appReleased(bool succeed);
 
 public slots:
     void OnBookListReady(const QList<QString> &books);
@@ -55,6 +58,7 @@ public slots:
     void onFileUploaded(QString fileName);
     void onFileUploadingProgress(QString fileName, uint uploadedBytes, uint totalBytes);
     void onWordUploaded(QString spelling);
+    void onAppReleased(bool succeed);
 
 private:
     ManagerAgent m_mgrAgt;

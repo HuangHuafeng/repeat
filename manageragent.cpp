@@ -49,6 +49,10 @@ int ManagerAgent::handleMessage(const QByteArray &msg)
     case ServerClientProtocol::ResponseUploadAWord:
         handleResult = handleResponseUploadAWord(msg);
         break;
+        
+    case ServerClientProtocol::ResponseReleaseApp:
+        handleResult = handleResponseReleaseApp(msg);
+        break;
 
     default:
         return SvrAgt::handleMessage(msg);
@@ -84,7 +88,7 @@ void ManagerAgent::sendRequestGetServerDataFinished()
 
 bool ManagerAgent::handleResponsePromoteToManager(const QByteArray &msg)
 {
-    qDebug() << msg;
+    Q_ASSERT(msg.size() >= 0);
 
     return true;
 }
@@ -122,7 +126,7 @@ bool ManagerAgent::handleResponseGetAllWordsWithoutDefinition(const QByteArray &
 
 bool ManagerAgent::handleResponseGetServerDataFinished(const QByteArray &msg)
 {
-    qDebug() << msg;
+    Q_ASSERT(msg.size() >= 0);
 
     emit(getServerDataFinished());
 
@@ -254,67 +258,67 @@ void ManagerAgent::sendBookWordList(QString bookName, const QVector<QString> &wo
 // the following messages are used to upload a book
 void ManagerAgent::sendResponseGetABook(const WordBook &book)
 {
-    MessageHeader responseHeader(ServerClientProtocol::ResponseGetABook);
+    MessageHeader msgHeader(ServerClientProtocol::ResponseGetABook);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << book;
+    out << msgHeader << book;
     sendMessage(block);
 }
 
 void ManagerAgent::sendResponseGetBookWordList(QString bookName, const QVector<QString> &wordList, bool listComplete)
 {
     Q_ASSERT(wordList.size() <= ServerClientProtocol::MaximumWordsInAMessage);
-    MessageHeader responseHeader(ServerClientProtocol::ResponseGetBookWordList);
+    MessageHeader msgHeader(ServerClientProtocol::ResponseGetBookWordList);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << bookName << wordList << listComplete;
+    out << msgHeader << bookName << wordList << listComplete;
     sendMessage(block);
 }
 
 void ManagerAgent::sendResponseGetAWord(const Word &word)
 {
-    MessageHeader responseHeader(ServerClientProtocol::ResponseGetAWord);
+    MessageHeader msgHeader(ServerClientProtocol::ResponseGetAWord);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << word;
+    out << msgHeader << word;
     sendMessage(block);
 }
 
 void ManagerAgent::sendResponseGetWordsOfBookFinished(QString bookName)
 {
-    MessageHeader responseHeader(ServerClientProtocol::ResponseGetWordsOfBookFinished);
+    MessageHeader msgHeader(ServerClientProtocol::ResponseGetWordsOfBookFinished);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << bookName;
+    out << msgHeader << bookName;
     sendMessage(block);
 }
 
 void ManagerAgent::sendRequestDeleteABook(QString bookName)
 {
-    MessageHeader responseHeader(ServerClientProtocol::RequestDeleteABook);
+    MessageHeader msgHeader(ServerClientProtocol::RequestDeleteABook);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << bookName;
+    out << msgHeader << bookName;
     sendMessage(block);
 }
 
 void ManagerAgent::sendRequestMissingMediaFiles(QString bookName)
 {
-    MessageHeader responseHeader(ServerClientProtocol::RequestMissingMediaFiles);
+    MessageHeader msgHeader(ServerClientProtocol::RequestMissingMediaFiles);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << bookName;
+    out << msgHeader << bookName;
     sendMessage(block);
 }
 
 
 void ManagerAgent::sendRequestUploadAFile(QString fileName, const char *s, uint len, int sentBytes, int totalBytes)
 {
-    MessageHeader responseHeader(ServerClientProtocol::RequestUploadAFile);
+    MessageHeader msgHeader(ServerClientProtocol::RequestUploadAFile);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << fileName;
+    out << msgHeader << fileName;
     out.writeBytes(s, len);
     out << sentBytes << totalBytes;
     sendMessage(block);
@@ -322,10 +326,38 @@ void ManagerAgent::sendRequestUploadAFile(QString fileName, const char *s, uint 
 
 void ManagerAgent::sendRequestUploadAFileFinished(QString fileName, bool succeeded)
 {
-    MessageHeader responseHeader(ServerClientProtocol::RequestUploadAFileFinished);
+    MessageHeader msgHeader(ServerClientProtocol::RequestUploadAFileFinished);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << fileName << succeeded;
+    out << msgHeader << fileName << succeeded;
     sendMessage(block);
+}
+
+void ManagerAgent::sendRequestReleaseApp(ApplicationVersion version, QString fileName, QString info)
+{
+    MessageHeader msgHeader(ServerClientProtocol::RequestReleaseApp);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader << version << fileName << info;
+    sendMessage(block);
+}
+
+bool ManagerAgent::handleResponseReleaseApp(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    bool succeed;
+    in.startTransaction();
+    in >> receivedMsgHeader >> succeed;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read info in handleResponseReleaseApp()";
+        return false;
+    }
+
+    emit(appReleased(succeed));
+
+    return true;
 }

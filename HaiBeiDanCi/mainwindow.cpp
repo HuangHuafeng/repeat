@@ -590,14 +590,27 @@ void MainWindow::downloadLatestVersion(QString fileName)
     pd->setModal(true);
     pd->setValue(0);
     ServerDataDownloader *sdd = new ServerDataDownloader(this);
+
+    // update the downloading progress
     connect(sdd, &ServerDataDownloader::downloadProgress, [pd] (float percentage) {
         int progress = static_cast<int>(100 * percentage);
         pd->setValue(progress);
     });
+
+    // delete pd and sdd when downloading finishes
     connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd] () {
         sdd->deleteLater();
         pd->deleteLater();
-        qDebug() << "sdd, pd deleted!";
+        qDebug() << "sdd, pd deleted as the downloading finished!";
     });
+
+    // delete pd and sdd when downloading is cancelled
+    connect(pd, &QProgressDialog::canceled, [pd, sdd] () {
+        sdd->cancelDownloading();
+        sdd->deleteLater();
+        pd->deleteLater();
+        qDebug() << "sdd, pd deleted as the downloading is cancelled!";
+    });
+
     sdd->downloadApp(fileName);
 }

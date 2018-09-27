@@ -448,19 +448,29 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
         return false;
     }
 
-    QMap<const char *, uint> newBlock;
-    newBlock.insert(data, len);
-    auto contentBlocks = m_mapFileContentBlocks.value(fileName);
-    if (contentBlocks == nullptr)
+    if (m_filesToDownload.contains(fileName) == true
+            && m_filesToDownload.value(fileName) == WaitingDataFromServer)
     {
-        contentBlocks = new QVector<QMap<const char *, uint>>;
-        m_mapFileContentBlocks.insert(fileName, contentBlocks);
-    }
-    contentBlocks->append(newBlock);
+        // the downloading is not cancelled
+        QMap<const char *, uint> newBlock;
+        newBlock.insert(data, len);
+        auto contentBlocks = m_mapFileContentBlocks.value(fileName);
+        if (contentBlocks == nullptr)
+        {
+            contentBlocks = new QVector<QMap<const char *, uint>>;
+            m_mapFileContentBlocks.insert(fileName, contentBlocks);
+        }
+        contentBlocks->append(newBlock);
 
-    if (sentBytes < totalBytes)
+        if (sentBytes < totalBytes)
+        {
+            emit(downloadProgress((m_downloaded + sentBytes * 1.0f / totalBytes) / m_toDownload));
+        }
+    }
+    else
     {
-        emit(downloadProgress((m_downloaded + sentBytes * 1.0f / totalBytes) / m_toDownload));
+        delete [] data;
+        qDebug() << "downloading is cancelled, disarding the received data!";
     }
 
     return true;
@@ -812,6 +822,11 @@ void SvrAgt::cancelDownloadingWords()
 void SvrAgt::cancelDownloadingFiles()
 {
     m_filesToDownload.clear();
+    auto fileList = m_mapFileContentBlocks.keys();
+    for (int i = 0;i < fileList.size();i ++)
+    {
+        discardFileContent(fileList.at(i));
+    }
     m_mapFileContentBlocks.clear();
 }
 

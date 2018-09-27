@@ -95,7 +95,7 @@ void ServerDataDialog::onBookListReady(const QList<QString> books)
 
 void ServerDataDialog::on_pbDownloadBook_clicked()
 {
-    if (userAlreadyLogin() == false)
+    if (ClientToken::userAlreadyLogin(this) == false)
     {
         return;
     }
@@ -160,7 +160,7 @@ void ServerDataDialog::on_pbClose_clicked()
 
 void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
 {
-    if (userAlreadyLogin() == false)
+    if (ClientToken::userAlreadyLogin(this) == false)
     {
         return;
     }
@@ -177,7 +177,7 @@ void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
 
 void ServerDataDialog::on_pbDownloadPronounceFiles_clicked()
 {
-    if (userAlreadyLogin() == false)
+    if (ClientToken::userAlreadyLogin(this) == false)
     {
         return;
     }
@@ -251,21 +251,4 @@ bool ServerDataDialog::fileExistsLocally(QString fileName)
 {
     QString dd = MySettings::dataDirectory() + "/";
     return QFile::exists(dd + fileName);
-}
-
-bool ServerDataDialog::userAlreadyLogin()
-{
-    auto ct = ClientToken::instance();
-    if (ct->hasAliveToken() == true
-            && ct->hasValidUser() == true)
-    {
-        return true;
-    }
-    else
-    {
-        QMessageBox::warning(this,
-                             MySettings::appName(),
-                             QObject::tr("Please login first!"));
-        return false;
-    }
 }

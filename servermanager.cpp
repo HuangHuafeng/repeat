@@ -606,7 +606,7 @@ bool ServerManager::sendFile(QString fileName)
 
 bool ServerManager::okToSendFile(QString fileName)
 {
-    // only allow files in folder media
+    // only allow files in folder media and releases
     if (fileName.startsWith("media", Qt::CaseInsensitive) == false
             && fileName.startsWith("releases", Qt::CaseInsensitive) == false)
     {

@@ -31,6 +31,7 @@ int HBDCAppHandler::handleMessage(const QByteArray &msg)
         break;
 
     case ServerClientProtocol::RequestGetFile:
+    case ServerClientProtocol::RequestGetApp:   // same as RequestGetFile
         handleResult = handleRequestGetFile(msg);
         break;
 
@@ -258,8 +259,9 @@ void HBDCAppHandler::sendBookWordList(const QByteArray &msg, QString bookName)
 
 bool HBDCAppHandler::okToSendFile(QString fileName)
 {
-    // only allow files in folder media
-    if (fileName.startsWith("media", Qt::CaseInsensitive) == false)
+    // only allow files in folder media and releases
+    if (fileName.startsWith("media", Qt::CaseInsensitive) == false
+            && fileName.startsWith("releases", Qt::CaseInsensitive) == false)
     {
         return false;
     }
@@ -270,7 +272,9 @@ bool HBDCAppHandler::okToSendFile(QString fileName)
             && ext.compare("png", Qt::CaseInsensitive) != 0
             && ext.compare("jpg", Qt::CaseInsensitive) != 0
             && ext.compare("css", Qt::CaseInsensitive) != 0
-            && ext.compare("js", Qt::CaseInsensitive) != 0)
+            && ext.compare("js", Qt::CaseInsensitive) != 0
+            && ext.compare("zip", Qt::CaseInsensitive) != 0
+            && ext.compare("7z", Qt::CaseInsensitive) != 0)
     {
         return false;
     }

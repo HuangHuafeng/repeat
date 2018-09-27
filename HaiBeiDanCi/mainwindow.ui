@@ -531,6 +531,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionCheck_for_Updates"/>
     <addaction name="actionPreferences"/>
     <addaction name="actionexit"/>
    </widget>
@@ -589,6 +590,11 @@
   <action name="actionLogout">
    <property name="text">
     <string>Logout</string>
+   </property>
+  </action>
+  <action name="actionCheck_for_Updates">
+   <property name="text">
+    <string>Check for Updates</string>
    </property>
   </action>
  </widget>

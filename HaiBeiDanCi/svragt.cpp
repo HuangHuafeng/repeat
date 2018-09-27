@@ -195,6 +195,10 @@ int SvrAgt::handleMessage(const QByteArray &msg)
         handleResult = handleResponseLogout(msg);
         break;
 
+    case ServerClientProtocol::ResponseAppVersion:
+        handleResult = handleResponseAppVersion(msg);
+        break;
+
     default:
         handleUnknownMessage(msg);
         unknowMessage = true;
@@ -682,6 +686,16 @@ void SvrAgt::sendRequestGetFile(QString fileName)
     sendMessage(block);
 }
 
+void SvrAgt::sendRequestGetApp(QString fileName)
+{
+    MessageHeader msgHeader(ServerClientProtocol::RequestGetApp);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader << fileName;
+    sendMessage(block);
+}
+
 /**
  * @brief SvrAgt::downloadFile
  * @param fileName
@@ -695,6 +709,20 @@ void SvrAgt::downloadFile(QString fileName)
     {
         m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
         sendRequestGetFile(fileName);
+    }
+
+    m_toDownload = m_filesToDownload.size();
+    m_downloaded = 0;
+}
+
+void SvrAgt::downloadApp(QString fileName)
+{
+    Q_ASSERT(m_filesToDownload.isEmpty() == true);
+    Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
+    if (m_filesToDownload.contains(fileName) == false)
+    {
+        m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
+        sendRequestGetApp(fileName);
     }
 
     m_toDownload = m_filesToDownload.size();
@@ -841,4 +869,30 @@ void SvrAgt::downloadWords(const QVector<QString> &wordList)
 
     m_toDownload = m_wordsToDownload.size();
     m_downloaded = 0;
+}
+
+bool SvrAgt::handleResponseAppVersion(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
+    ApplicationVersion appVer(0, 0, 0);
+    QString fileName;
+    QString info;
+    QDateTime releaseTime;
+    in.startTransaction();
+    in >> receivedMsgHeader >> appVer >> fileName >> info >> releaseTime;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read info in handleResponseAppVersion()";
+        return false;
+    }
+
+    emit(appVersion(appVer, fileName, info, releaseTime));
+
+    return true;
+}
+
+void SvrAgt::sendRequestAppVersion()
+{
+    sendSimpleMessage(ServerClientProtocol::RequestAppVersion);
 }

@@ -26,6 +26,11 @@ public:
         return m_info;
     }
 
+    const QDateTime & releaseTime() const
+    {
+        return m_releaseTime;
+    }
+
     bool releaseNewVersion(ApplicationVersion version, QString fileName, QString info);
 
 private:

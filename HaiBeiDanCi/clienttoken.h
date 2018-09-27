@@ -12,6 +12,7 @@ class ClientToken : public QObject
 
 public:
     static ClientToken * instance();
+    static bool userAlreadyLogin(QWidget *parent = nullptr);
 
     void setToken(const Token &token);
     const Token & token() const;

@@ -54,8 +54,6 @@ private:
     void downloadBookPronounceFiles(QString bookName);
     void downloadBookExampleAudioFiles(QString bookName);
     bool fileExistsLocally(QString fileName);
-
-    bool userAlreadyLogin();
 };
 
 #endif // SERVERDATADIALOG_H

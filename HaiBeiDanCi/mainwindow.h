@@ -6,6 +6,7 @@
 #include "studylist.h"
 #include "browserwindow.h"
 #include "applicationuser.h"
+#include "serverclientprotocol.h"
 
 #include <QMainWindow>
 
@@ -28,6 +29,7 @@ class MainWindow : public QMainWindow
     void onItemSelectionChanged();
     void onWordStudied(QString spelling);
     void onBookDownloaded(QString /*bookName*/);
+    void onAppVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime);
 
     void on_pushBrowseExpiredWords_clicked();
 
@@ -75,6 +77,8 @@ class MainWindow : public QMainWindow
 
     void on_actionLogout_triggered();
 
+    void on_actionCheck_for_Updates_triggered();
+
 private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;
@@ -98,6 +102,7 @@ private:
     sptr<StudyList> newWordsFromCurrentBook();
     sptr<StudyList> allWordsFromCurrentBook();
     void showCurrentBookIntroduction();
+    void downloadLatestVersion(QString fileName);
 };
 
 #endif // MAINWINDOW_H

@@ -39,6 +39,7 @@ public:
     void cancelDownloading();
 
     void downloadFile(QString fileName);
+    void downloadApp(QString fileName);
 
     void sendRequestNoOperation();
     void sendRequestGetAllBooks();
@@ -47,11 +48,14 @@ public:
     void sendRequestGetAWord(QString spelling);
     void sendRequestGetABook(QString bookName);
     void sendRequestGetFile(QString fileName);
+    void sendRequestGetApp(QString fileName);
     void sendRequestBye();
 
     void sendRequestRegister(const ApplicationUser &user);
     void sendRequestLogin(const ApplicationUser &user);
     void sendRequestLogout(QString name);
+
+    void sendRequestAppVersion();
 
 signals:
     void bookListReady(const QList<QString> &books);
@@ -74,6 +78,8 @@ signals:
     void registerResult(qint32 result, const ApplicationUser &user);
     void loginResult(qint32 result, const ApplicationUser &user, const Token &token);
     void logoutResult(qint32 result, QString name);
+
+    void appVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime);
 
 private slots:
     void onConnected();
@@ -129,6 +135,7 @@ protected:
     bool handleResponseLogin(const QByteArray &msg);
     bool handleResponseInvalidTokenId(const QByteArray &msg);
     bool handleResponseLogout(const QByteArray &msg);
+    bool handleResponseAppVersion(const QByteArray &msg);
 
     void sendMessage(const QByteArray &msg, bool needCompress = false, bool now = false);
     void updateAndEmitProgress();

@@ -161,6 +161,11 @@ void ServerDataDownloader::downloadFile(QString fileName)
     m_svrAgt.downloadFile(fileName);
 }
 
+void ServerDataDownloader::downloadApp(QString fileName)
+{
+    m_svrAgt.downloadApp(fileName);
+}
+
 void ServerDataDownloader::downloadMultipleFiles(QSet<QString> files)
 {
     auto ct = ClientToken::instance();

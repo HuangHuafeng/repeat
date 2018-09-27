@@ -538,3 +538,64 @@ void MainWindow::on_actionLogout_triggered()
         ct->setUser(ApplicationUser::invalidUser);
     }
 }
+
+void MainWindow::on_actionCheck_for_Updates_triggered()
+{
+    SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
+    connect(sa, SIGNAL(appVersion(ApplicationVersion, QString, QString, QDateTime)), this, SLOT(onAppVersion(ApplicationVersion, QString, QString, QDateTime)));
+    connect(sa, &SvrAgt::appVersion, [sa] () {
+        sa->deleteLater();
+        qDebug() << "sa->deleteLater() called!";
+    });
+    sa->sendRequestAppVersion();
+}
+
+void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime)
+{
+    ApplicationVersion myVer = ApplicationVersion::fromString(APP_VERSION);
+    if (version.toInt() > myVer.toInt())
+    {
+        QMessageBox msgBox(this);
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(QObject::tr("Version %1 is available!").arg(version.toString()));
+        QString infoText = info.arg(releaseTime.toString())
+                + "<br></br>"
+                + QObject::tr("Would you like to download it now?");
+        msgBox.setInformativeText(infoText);
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::Yes);
+        int ret = msgBox.exec();
+        if (ret == QMessageBox::Yes)
+        {
+            downloadLatestVersion(fileName);
+        }
+    }
+    else
+    {
+        QMessageBox::information(this,
+                                 MySettings::appName(),
+                                 QObject::tr("You are using the latest version!"));
+    }
+}
+
+void MainWindow::downloadLatestVersion(QString fileName)
+{
+    QProgressDialog *pd = new QProgressDialog(QObject::tr("downloading %1 ...").arg(fileName),
+                                              QObject::tr("Cancel"),
+                                              0,
+                                              100,
+                                              this);
+    pd->setModal(true);
+    pd->setValue(0);
+    ServerDataDownloader *sdd = new ServerDataDownloader(this);
+    connect(sdd, &ServerDataDownloader::downloadProgress, [pd] (float percentage) {
+        int progress = static_cast<int>(100 * percentage);
+        pd->setValue(progress);
+    });
+    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd] () {
+        sdd->deleteLater();
+        pd->deleteLater();
+        qDebug() << "sdd, pd deleted!";
+    });
+    sdd->downloadApp(fileName);
+}

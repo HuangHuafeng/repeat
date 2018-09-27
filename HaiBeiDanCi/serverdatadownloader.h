@@ -15,6 +15,7 @@ public:
     QList<QString> getBookList();
     void downloadBook(QString bookName);
     void downloadFile(QString fileName);
+    void downloadApp(QString fileName);
     void downloadMultipleFiles(QSet<QString> files);
     void cancelDownloading();
 

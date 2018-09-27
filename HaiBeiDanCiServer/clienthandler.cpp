@@ -1,5 +1,6 @@
 #include "clienthandler.h"
 #include "tokenmanager.h"
+#include "appreleaser.h"
 
 ClientHandler::ClientHandler(ClientWaiter &clientWaiter) :
     m_clientWaiter(clientWaiter),
@@ -63,6 +64,10 @@ int ClientHandler::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::RequestLogout:
         handleResult = handleRequestLogout(msg);
+        break;
+
+    case ServerClientProtocol::RequestAppVersion:
+        handleResult = handleRequestAppVersion(msg);
         break;
 
     default:
@@ -240,6 +245,18 @@ bool ClientHandler::handleRequestLogout(const QByteArray &msg)
     return logoutUser(msg, name);
 }
 
+bool ClientHandler::handleRequestAppVersion(const QByteArray &msg)
+{
+    funcTracker ft("handleRequestAppVersion()");
+
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(msg);
+
+    sendResponseAppVersion(msg);
+
+    return true;
+}
+
 bool ClientHandler::logoutUser(const QByteArray &msg, QString name)
 {
     MessageHeader receivedMsgHeader(msg);
@@ -342,6 +359,18 @@ void ClientHandler::sendResponseLogout(const QByteArray &msg, qint32 result, QSt
     sendMessage(block);
 }
 
+void ClientHandler::sendResponseAppVersion(const QByteArray &msg)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseAppVersion, receivedMsgHeader.sequenceNumber());
+
+    AppReleaser *ar = AppReleaser::instance();
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << ar->currentVersion() << ar->fileName() << ar->info() << ar->releaseTime();
+    sendMessage(block);
+}
+
 bool ClientHandler::validateMessage(const QByteArray &msg)
 {
     MessageHeader receivedMsgHeader(msg);
@@ -349,7 +378,9 @@ bool ClientHandler::validateMessage(const QByteArray &msg)
             && receivedMsgHeader.code() != ServerClientProtocol::RequestRegister
             && receivedMsgHeader.code() != ServerClientProtocol::RequestNoOperation
             && receivedMsgHeader.code() != ServerClientProtocol::RequestGetAllBooks
-            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetABook)
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetABook
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestAppVersion
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetApp)
     {
         QString msgTokenId = receivedMsgHeader.tokenId();
         if (msgTokenId.isEmpty() == true)

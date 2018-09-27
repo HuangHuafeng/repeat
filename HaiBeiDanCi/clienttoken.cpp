@@ -1,5 +1,7 @@
 #include "clienttoken.h"
 
+#include <QMessageBox>
+
 ClientToken * ClientToken::m_ct = nullptr;
 
 ClientToken::ClientToken(QObject *parent) :
@@ -47,4 +49,29 @@ void ClientToken::setUser(const ApplicationUser &user)
 const ApplicationUser & ClientToken::user() const
 {
     return m_user;
+}
+
+bool ClientToken::userAlreadyLogin(QWidget *parent)
+{
+    auto ct = ClientToken::instance();
+    if (ct->hasAliveToken() == true
+            && ct->hasValidUser() == true)
+    {
+        return true;
+    }
+    else
+    {
+        QMessageBox msgBox(parent);
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setText("This requires a user to login first!");
+        msgBox.setInformativeText("Would you like to login now?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::Yes);
+        int ret = msgBox.exec();
+        if (ret == QMessageBox::Yes)
+        {
+
+        }
+        return false;
+    }
 }

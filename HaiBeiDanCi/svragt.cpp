@@ -462,7 +462,7 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
         }
         contentBlocks->append(newBlock);
 
-        if (sentBytes < totalBytes)
+        if (sentBytes <= totalBytes)
         {
             emit(downloadProgress((m_downloaded + sentBytes * 1.0f / totalBytes) / m_toDownload));
         }

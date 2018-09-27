@@ -57,7 +57,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
 MainWindow::~MainWindow()
 {
-    WordDB::shutdown();
     delete ui;
 }
 
@@ -598,10 +597,11 @@ void MainWindow::downloadLatestVersion(QString fileName)
     });
 
     // delete pd and sdd when downloading finishes
-    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd] () {
-        sdd->deleteLater();
+    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, fileName] () {
         pd->deleteLater();
+        sdd->deleteLater();
         qDebug() << "sdd, pd deleted as the downloading finished!";
+        this->onAppDownloaded(fileName);
     });
 
     // delete pd and sdd when downloading is cancelled
@@ -613,4 +613,20 @@ void MainWindow::downloadLatestVersion(QString fileName)
     });
 
     sdd->downloadApp(fileName);
+}
+
+void MainWindow::onAppDownloaded(QString fileName)
+{
+    qDebug() << fileName;
+    QMessageBox msgBox(this);
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(QObject::tr("New version downloaded!"));
+    msgBox.setInformativeText(QObject::tr("The app will upgrade to the new version next time it starts.\nWould you like to restart now?"));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    int ret = msgBox.exec();
+    if (ret == QMessageBox::Yes)
+    {
+        ui->actionexit->trigger();
+    }
 }

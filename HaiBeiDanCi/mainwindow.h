@@ -103,6 +103,7 @@ private:
     sptr<StudyList> allWordsFromCurrentBook();
     void showCurrentBookIntroduction();
     void downloadLatestVersion(QString fileName);
+    void onAppDownloaded(QString fileName);
 };
 
 #endif // MAINWINDOW_H

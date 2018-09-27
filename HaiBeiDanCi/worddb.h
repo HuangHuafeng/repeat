@@ -19,7 +19,6 @@ class WordDB
     virtual ~WordDB();
 
     static bool initialize();
-    static void shutdown();
     static bool prepareDatabaseForThisThread();
     static sptr<QSqlQuery> createSqlQuery();
     static void databaseError(QSqlQuery &query, QString what);

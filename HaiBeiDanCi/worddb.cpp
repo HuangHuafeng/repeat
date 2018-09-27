@@ -39,13 +39,6 @@ bool WordDB::initialize()
     return true;
 }
 
-void WordDB::shutdown()
-{
-    m_mapConnMutex.lock();
-    m_mapConns.clear();
-    m_mapConnMutex.unlock();
-}
-
 void WordDB::rememberDatabase(sptr<QSqlDatabase> database)
 {
     if (database.get() == nullptr)

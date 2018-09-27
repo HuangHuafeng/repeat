@@ -95,7 +95,7 @@ void ServerDataDialog::onBookListReady(const QList<QString> books)
 
 void ServerDataDialog::on_pbDownloadBook_clicked()
 {
-    if (ClientToken::userAlreadyLogin(this) == false)
+    if (ClientToken::instance()->userAlreadyLogin(this) == false)
     {
         return;
     }
@@ -160,7 +160,7 @@ void ServerDataDialog::on_pbClose_clicked()
 
 void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
 {
-    if (ClientToken::userAlreadyLogin(this) == false)
+    if (ClientToken::instance()->userAlreadyLogin(this) == false)
     {
         return;
     }
@@ -177,7 +177,7 @@ void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
 
 void ServerDataDialog::on_pbDownloadPronounceFiles_clicked()
 {
-    if (ClientToken::userAlreadyLogin(this) == false)
+    if (ClientToken::instance()->userAlreadyLogin(this) == false)
     {
         return;
     }

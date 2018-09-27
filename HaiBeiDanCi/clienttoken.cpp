@@ -7,7 +7,8 @@ ClientToken * ClientToken::m_ct = nullptr;
 ClientToken::ClientToken(QObject *parent) :
     QObject (parent),
     m_token(Token::invalidToken),
-    m_user(ApplicationUser::invalidUser)
+    m_user(ApplicationUser::invalidUser),
+    m_loginAction(nullptr)
 {
 }
 
@@ -51,11 +52,15 @@ const ApplicationUser & ClientToken::user() const
     return m_user;
 }
 
+void ClientToken::setLoginAction(QAction *loginAction)
+{
+    m_loginAction = loginAction;
+}
+
 bool ClientToken::userAlreadyLogin(QWidget *parent)
 {
-    auto ct = ClientToken::instance();
-    if (ct->hasAliveToken() == true
-            && ct->hasValidUser() == true)
+    if (hasAliveToken() == true
+            && hasValidUser() == true)
     {
         return true;
     }
@@ -64,13 +69,20 @@ bool ClientToken::userAlreadyLogin(QWidget *parent)
         QMessageBox msgBox(parent);
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.setText("This requires a user to login first!");
-        msgBox.setInformativeText("Would you like to login now?");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        msgBox.setDefaultButton(QMessageBox::Yes);
-        int ret = msgBox.exec();
-        if (ret == QMessageBox::Yes)
+        if (m_loginAction != nullptr)
         {
-
+            msgBox.setInformativeText("Would you like to login now?");
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            msgBox.setDefaultButton(QMessageBox::Yes);
+            int ret = msgBox.exec();
+            if (ret == QMessageBox::Yes)
+            {
+                m_loginAction->trigger();
+            }
+        }
+        else
+        {
+            msgBox.exec();
         }
         return false;
     }

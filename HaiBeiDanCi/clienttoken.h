@@ -5,6 +5,7 @@
 #include "applicationuser.h"
 
 #include <QObject>
+#include <QAction>
 
 class ClientToken : public QObject
 {
@@ -12,7 +13,9 @@ class ClientToken : public QObject
 
 public:
     static ClientToken * instance();
-    static bool userAlreadyLogin(QWidget *parent = nullptr);
+    bool userAlreadyLogin(QWidget *parent = nullptr);
+
+    void setLoginAction(QAction *loginAction);
 
     void setToken(const Token &token);
     const Token & token() const;
@@ -29,6 +32,7 @@ private:
     static ClientToken * m_ct;
     Token m_token;
     ApplicationUser m_user;
+    QAction *m_loginAction;
 };
 
 #endif // CLIENTTOKEN_H

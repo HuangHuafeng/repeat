@@ -51,6 +51,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     // call MediaFileManager::instance() so it starts to initialize the existing file list
     MediaFileManager::instance();
+
+    ClientToken::instance()->setLoginAction(ui->actionLogin);
 }
 
 MainWindow::~MainWindow()

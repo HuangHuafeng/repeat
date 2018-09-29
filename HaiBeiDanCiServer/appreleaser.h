@@ -5,43 +5,38 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QMap>
 
 class AppReleaser
 {
 public:
+    class ReleaseInfo {
+    public:
+        ApplicationVersion version;
+        QString platform;
+        QString fileName;
+        QString info;
+        QDateTime releaseTime;
+
+        ReleaseInfo() : version(0, 0, 0)
+        {
+        }
+    };
+
     static AppReleaser * instance();
 
-    const ApplicationVersion & currentVersion() const
+    ReleaseInfo currentVersion(QString platform) const
     {
-        return m_currentVersion;
+        return m_currentVersion.value(platform);
     }
 
-    const QString & fileName() const
-    {
-        return m_fileName;
-    }
-
-    const QString & info() const
-    {
-        return m_info;
-    }
-
-    const QDateTime & releaseTime() const
-    {
-        return m_releaseTime;
-    }
-
-    bool releaseNewVersion(ApplicationVersion version, QString fileName, QString info);
+    bool releaseNewVersion(ApplicationVersion version, QString platform, QString fileName, QString info);
 
 private:
     AppReleaser();
 
     static AppReleaser *m_ar;
-
-    ApplicationVersion m_currentVersion;
-    QString m_fileName;
-    QString m_info;
-    QDateTime m_releaseTime;
+    QMap<QString, ReleaseInfo> m_currentVersion;
 
     static bool createDatabaseTables();
     void initialize();

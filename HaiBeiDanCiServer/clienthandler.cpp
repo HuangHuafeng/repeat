@@ -238,7 +238,7 @@ bool ClientHandler::handleRequestLogout(const QByteArray &msg)
     in >> receivedMsgHeader >> name;
     if (in.commitTransaction() == false)
     {
-        qCritical() << "failed to get file name in handleRequestLogout()";
+        qCritical() << "failed to get name in handleRequestLogout()";
         return false;
     }
 
@@ -250,9 +250,17 @@ bool ClientHandler::handleRequestAppVersion(const QByteArray &msg)
     funcTracker ft("handleRequestAppVersion()");
 
     QDataStream in(msg);
-    MessageHeader receivedMsgHeader(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString platform;
+    in.startTransaction();
+    in >> receivedMsgHeader >> platform;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to get platform in handleRequestAppVersion()";
+        return false;
+    }
 
-    sendResponseAppVersion(msg);
+    sendResponseAppVersion(msg, platform);
 
     return true;
 }
@@ -359,7 +367,7 @@ void ClientHandler::sendResponseLogout(const QByteArray &msg, qint32 result, QSt
     sendMessage(block);
 }
 
-void ClientHandler::sendResponseAppVersion(const QByteArray &msg)
+void ClientHandler::sendResponseAppVersion(const QByteArray &msg, QString platform)
 {
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseAppVersion, receivedMsgHeader.sequenceNumber());
@@ -367,7 +375,8 @@ void ClientHandler::sendResponseAppVersion(const QByteArray &msg)
     AppReleaser *ar = AppReleaser::instance();
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << responseHeader << ar->currentVersion() << ar->fileName() << ar->info() << ar->releaseTime();
+    auto cv = ar->currentVersion(platform);
+    out << responseHeader << cv.version << cv.fileName << cv.info << cv.releaseTime;
     sendMessage(block);
 }
 

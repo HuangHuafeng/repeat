@@ -907,7 +907,12 @@ bool SvrAgt::handleResponseAppVersion(const QByteArray &msg)
     return true;
 }
 
-void SvrAgt::sendRequestAppVersion()
+void SvrAgt::sendRequestAppVersion(QString platform)
 {
-    sendSimpleMessage(ServerClientProtocol::RequestAppVersion);
+    MessageHeader msgHeader(ServerClientProtocol::RequestAppVersion);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader << platform;
+    sendMessage(block);
 }

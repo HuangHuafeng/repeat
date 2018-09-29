@@ -26,7 +26,24 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
+     <item row="3" column="1" colspan="2">
+      <widget class="QTextEdit" name="teInfo"/>
+     </item>
+     <item row="2" column="2">
+      <widget class="QPushButton" name="pbBrowse">
+       <property name="text">
+        <string>Browse</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="leFile">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>File</string>
@@ -36,7 +53,7 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
         <string>Information</string>
@@ -46,25 +63,37 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="leFile">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QPushButton" name="pbBrowse">
-       <property name="text">
-        <string>Browse</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="1" colspan="2">
       <widget class="QLineEdit" name="leVersion"/>
      </item>
-     <item row="2" column="1" colspan="2">
-      <widget class="QTextEdit" name="teInfo"/>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Platform</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" colspan="2">
+      <widget class="QComboBox" name="comboBox">
+       <item>
+        <property name="text">
+         <string>Windows</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>MacOS</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Linux</string>
+        </property>
+       </item>
+      </widget>
      </item>
     </layout>
    </item>
@@ -79,6 +108,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pbRelease">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Release</string>
        </property>

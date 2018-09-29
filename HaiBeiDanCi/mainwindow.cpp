@@ -13,6 +13,7 @@
 #include "registerdialog.h"
 #include "logindialog.h"
 #include "clienttoken.h"
+#include "../Upgrader/upgradedata.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -542,13 +543,23 @@ void MainWindow::on_actionLogout_triggered()
 
 void MainWindow::on_actionCheck_for_Updates_triggered()
 {
+    QString platform;
+#ifdef Q_OS_WIN
+    platform = "Windows";
+#elif defined(Q_OS_MACOS)
+    platform = "MacOS";
+#elif defined(Q_OS_LINUX)
+    platform = "Linux";
+#else
+#error "We don't support the platform yet..."
+#endif
     SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
     connect(sa, SIGNAL(appVersion(ApplicationVersion, QString, QString, QDateTime)), this, SLOT(onAppVersion(ApplicationVersion, QString, QString, QDateTime)));
     connect(sa, &SvrAgt::appVersion, [sa] () {
         sa->deleteLater();
         qDebug() << "sa->deleteLater() called!";
     });
-    sa->sendRequestAppVersion();
+    sa->sendRequestAppVersion(platform);
 }
 
 void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime)
@@ -568,7 +579,7 @@ void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QStr
         int ret = msgBox.exec();
         if (ret == QMessageBox::Yes)
         {
-            downloadLatestVersion(fileName);
+            downloadLatestVersion(version, fileName);
         }
     }
     else
@@ -579,7 +590,7 @@ void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QStr
     }
 }
 
-void MainWindow::downloadLatestVersion(QString fileName)
+void MainWindow::downloadLatestVersion(ApplicationVersion version, QString fileName)
 {
     QProgressDialog *pd = new QProgressDialog(QObject::tr("downloading %1 ...").arg(fileName),
                                               QObject::tr("Cancel"),
@@ -597,11 +608,11 @@ void MainWindow::downloadLatestVersion(QString fileName)
     });
 
     // delete pd and sdd when downloading finishes
-    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, fileName] () {
+    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, version, fileName] () {
         pd->deleteLater();
         sdd->deleteLater();
         qDebug() << "sdd, pd deleted as the downloading finished!";
-        this->onAppDownloaded(fileName);
+        this->onAppDownloaded(version, fileName);
     });
 
     // delete pd and sdd when downloading is cancelled
@@ -615,12 +626,26 @@ void MainWindow::downloadLatestVersion(QString fileName)
     sdd->downloadApp(fileName);
 }
 
-void MainWindow::onAppDownloaded(QString fileName)
+void MainWindow::onAppDownloaded(ApplicationVersion version, QString fileName)
 {
-    qDebug() << fileName;
+    QString dd = UpgradeData::dataDirectory();
+    if (dd == "")
+    {
+        UpgradeData::saveDataDirectory(MySettings::dataDirectory());
+        dd = UpgradeData::dataDirectory();
+    }
+    QString zipFile = dd + "/" + fileName;
+    QString extractDir = QCoreApplication::applicationDirPath();
+    if (extractDir.contains("Contents/MacOS") == true)
+    {
+        extractDir = extractDir.section('/', 0, -4);
+    }
+    UpgradeData::saveUpgradeData(version, zipFile, extractDir);
+    qDebug() << version.toString() << zipFile << extractDir;
+
     QMessageBox msgBox(this);
     msgBox.setIcon(QMessageBox::Information);
-    msgBox.setText(QObject::tr("New version downloaded!"));
+    msgBox.setText(QObject::tr("Version %1 downloaded!").arg(version.toString()));
     msgBox.setInformativeText(QObject::tr("The app will upgrade to the new version next time it starts.\nWould you like to restart now?"));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);

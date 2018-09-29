@@ -57,7 +57,9 @@ SOURCES += \
     serveruseragent.cpp \
     logindialog.cpp \
     token.cpp \
-    clienttoken.cpp
+    clienttoken.cpp \
+    applicationversion.cpp \
+    ../Upgrader/upgradedata.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -89,7 +91,9 @@ HEADERS += \
     serveruseragent.h \
     logindialog.h \
     token.h \
-    clienttoken.h
+    clienttoken.h \
+    applicationversion.h \
+    ../Upgrader/upgradedata.h
 
 FORMS += \
     mainwindow.ui \

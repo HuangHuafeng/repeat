@@ -55,7 +55,7 @@ public:
     void sendRequestLogin(const ApplicationUser &user);
     void sendRequestLogout(QString name);
 
-    void sendRequestAppVersion();
+    void sendRequestAppVersion(QString platform);
 
 signals:
     void bookListReady(const QList<QString> &books);

@@ -501,9 +501,9 @@ bool HBDCManagerHandler::handleRequestReleaseApp(const QByteArray &msg)
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     ApplicationVersion appVer(0, 0, 0);
-    QString fileName, info;
+    QString platform, fileName, info;
     in.startTransaction();
-    in >> receivedMsgHeader >> appVer >> fileName >> info;
+    in >> receivedMsgHeader >> appVer >> platform >> fileName >> info;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read words of the book in handleRequestReleaseApp()";
@@ -511,7 +511,7 @@ bool HBDCManagerHandler::handleRequestReleaseApp(const QByteArray &msg)
     }
 
     AppReleaser *ar = AppReleaser::instance();
-    bool succeed = ar->releaseNewVersion(appVer, fileName, info);
+    bool succeed = ar->releaseNewVersion(appVer, platform, fileName, info);
 
     sendResponseReleaseApp(msg, succeed);
 

@@ -95,7 +95,8 @@ SOURCES += \
     HaiBeiDanCi/token.cpp \
     HaiBeiDanCi/logindialog.cpp \
     HaiBeiDanCi/serveruseragent.cpp \
-    releaseappdialog.cpp
+    releaseappdialog.cpp \
+    HaiBeiDanCi/applicationversion.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -161,7 +162,8 @@ HEADERS += \
     HaiBeiDanCi/token.h \
     HaiBeiDanCi/logindialog.h \
     HaiBeiDanCi/serveruseragent.h \
-    releaseappdialog.h
+    releaseappdialog.h \
+    HaiBeiDanCi/applicationversion.h
 
 FORMS += \
         mainwindow.ui \

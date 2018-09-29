@@ -3,12 +3,8 @@
 
 AppReleaser * AppReleaser::m_ar;
 
-AppReleaser::AppReleaser() :
-    m_currentVersion(0, 0, 0),
-    m_fileName(),
-    m_info()
+AppReleaser::AppReleaser()
 {
-
 }
 
 AppReleaser * AppReleaser::instance()
@@ -22,9 +18,9 @@ AppReleaser * AppReleaser::instance()
     return m_ar;
 }
 
-bool AppReleaser::releaseNewVersion(ApplicationVersion version, QString fileName, QString info)
+bool AppReleaser::releaseNewVersion(ApplicationVersion version, QString platform, QString fileName, QString info)
 {
-    if (version.toInt() <= m_currentVersion.toInt())
+    if (version.toInt() <= m_currentVersion.value(platform).version.toInt())
     {
         return false;
     }
@@ -36,9 +32,10 @@ bool AppReleaser::releaseNewVersion(ApplicationVersion version, QString fileName
     }
     auto query = *ptrQuery;
     QDateTime now = QDateTime::currentDateTime();
-    query.prepare("INSERT INTO apps(version, file, info, release_date)"
-                  " VALUES(:version, :file, :info, :release_date)");
+    query.prepare("INSERT INTO apps(version, platform, file, info, release_date)"
+                  " VALUES(:version, :platform, :file, :info, :release_date)");
     query.bindValue(":version", version.toString());
+    query.bindValue(":platform", platform);
     query.bindValue(":file", fileName);
     query.bindValue(":info", info);
     query.bindValue(":release_date", now.toString());
@@ -48,10 +45,13 @@ bool AppReleaser::releaseNewVersion(ApplicationVersion version, QString fileName
         return false;
     }
 
-    m_currentVersion = version;
-    m_fileName = fileName;
-    m_info = info;
-    m_releaseTime = now;
+    ReleaseInfo nri;
+    nri.version = version;
+    nri.platform = platform;
+    nri.fileName = fileName;
+    nri.info = info;
+    nri.releaseTime = now;
+    m_currentVersion.insert(nri.platform, nri);
 
     return true;
 }
@@ -78,15 +78,19 @@ bool AppReleaser::loadLatestVersionFromDatabase()
     }
     auto query = *ptrQuery;
     bool retVal = true;
-    query.prepare("SELECT * FROM apps ORDER BY id DESC LIMIT 1;");
+    query.prepare("SELECT * FROM apps GROUP BY platform;");
     if (query.exec())
     {
-        if (query.first())
+        while (query.next())
         {
-            m_currentVersion = ApplicationVersion::fromString(query.value("version").toString());
-            m_fileName = query.value("file").toString();
-            m_info = query.value("info").toString();
-            m_releaseTime = QDateTime::fromString(query.value("release_date").toString());
+
+            ReleaseInfo nri;
+            nri.version = ApplicationVersion::fromString(query.value("version").toString());
+            nri.platform = query.value("platform").toString();
+            nri.fileName = query.value("file").toString();
+            nri.info = query.value("info").toString();
+            nri.releaseTime = QDateTime::fromString(query.value("release_date").toString());
+            m_currentVersion.insert(nri.platform, nri);
         }
     }
     else
@@ -112,6 +116,7 @@ bool AppReleaser::createDatabaseTables()
         // table "words" does not exist
         if (query.exec("CREATE TABLE apps (id INTEGER primary key, "
                        "version TEXT, "
+                       "platform TEXT, "
                        "file TEXT, "
                        "info TEXT, "
                        "release_date TEXT)") == false)

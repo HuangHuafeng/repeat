@@ -66,7 +66,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    WordDB::shutdown();
     delete ui;
 }
 

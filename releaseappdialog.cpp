@@ -97,8 +97,9 @@ void ReleaseAppDialog::onFileUploaded(QString fileName)
     // RELEASE APP
     // step 2: update the released app info in server
     ApplicationVersion appVer = ApplicationVersion::fromString(ui->leVersion->text());
+    QString platform = ui->comboBox->currentText();
     QString info = ui->teInfo->toHtml();
-    m_sm.releaseApp(appVer, fileName, info);
+    m_sm.releaseApp(appVer, platform, fileName, info);
 }
 
 void ReleaseAppDialog::onAppReleased(bool succeed)

@@ -663,7 +663,7 @@ bool ServerManager::bookExistsInServer(QString bookName)
     return m_mapBooks.value(bookName).get() != nullptr;
 }
 
-void ServerManager::releaseApp(ApplicationVersion version, QString fileName, QString info)
+void ServerManager::releaseApp(ApplicationVersion version, QString platform, QString fileName, QString info)
 {
-    m_mgrAgt.sendRequestReleaseApp(version, fileName, info);
+    m_mgrAgt.sendRequestReleaseApp(version, platform, fileName, info);
 }

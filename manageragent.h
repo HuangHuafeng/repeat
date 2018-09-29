@@ -21,7 +21,7 @@ public:
     void sendRequestUploadAFile(QString fileName, const char *s, uint len, int sentBytes, int totalBytes);
     void sendRequestUploadAFileFinished(QString fileName, bool succeeded);
 
-    void sendRequestReleaseApp(ApplicationVersion version, QString fileName, QString info);
+    void sendRequestReleaseApp(ApplicationVersion version, QString platform, QString fileName, QString info);
 
     void sendBookWordList(QString bookName, const QVector<QString> &wordList);
     // the following messages are used to upload a book

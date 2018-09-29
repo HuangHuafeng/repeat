@@ -26,7 +26,7 @@ private:
     void sendResponseLogin(const QByteArray &msg, qint32 result, const ApplicationUser &user, const Token &token);
     void sendResponseInvalidTokenId(const QByteArray &msg);
     void sendResponseLogout(const QByteArray &msg, qint32 result, QString name);
-    void sendResponseAppVersion(const QByteArray &msg);
+    void sendResponseAppVersion(const QByteArray &msg, QString platform);
 
     bool registerUser(const QByteArray &msg, ApplicationUser &user);
     bool loginUser(const QByteArray &msg, ApplicationUser &user);

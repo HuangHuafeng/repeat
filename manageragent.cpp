@@ -334,13 +334,13 @@ void ManagerAgent::sendRequestUploadAFileFinished(QString fileName, bool succeed
     sendMessage(block);
 }
 
-void ManagerAgent::sendRequestReleaseApp(ApplicationVersion version, QString fileName, QString info)
+void ManagerAgent::sendRequestReleaseApp(ApplicationVersion version, QString platform, QString fileName, QString info)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestReleaseApp);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader << version << fileName << info;
+    out << msgHeader << version << platform << fileName << info;
     sendMessage(block);
 }
 

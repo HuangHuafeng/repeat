@@ -4,16 +4,84 @@
 #include <QFile>
 #include <QtDebug>
 #include <QSettings>
+#include <QProcess>
 
-UpgradeData::UpgradeData()
+#define SETTING(x)  QSettings x("AniujSoft", "Upgrader")
+
+UpgradeData::UpgradeData(QString target)
 {
+    setTarget(target);
+}
 
+bool UpgradeData::startUpgrader(const QStringList &arguments)
+{
+    QString ufp = upgraderFilePath();
+    QString workingDirectory = ufp.section('/', 0, -2);
+    bool result = QProcess::startDetached(ufp,
+                                          arguments,
+                                          workingDirectory);
+    if (result == false)
+    {
+        qCritical() << "failed to start the upgrader:" << ufp;
+    }
+    return result;
+}
+
+bool UpgradeData::startTarget()
+{
+    QString tsc = targetStartCommand();
+    QString workingDirectory = tsc.section('/', 0, -2);
+    bool result = QProcess::startDetached(tsc,
+                                          QStringList(),
+                                          workingDirectory);
+    if (result == false)
+    {
+        qCritical() << "failed to start the target:" << tsc;
+    }
+    return result;
+}
+
+void UpgradeData::setTarget(QString target)
+{
+    if (target.isEmpty() == true)
+    {
+        // don't allow m_target to be empty!
+        target = "UpgraderTarget";
+    }
+
+    if (target != m_target)
+    {
+        m_target = target;
+    }
+}
+
+QString UpgradeData::getTarget()
+{
+    return m_target;
 }
 
 bool UpgradeData::hasUpgradeData()
 {
     QString fileName = dataFile();
     return QFile::exists(fileName);
+}
+
+void UpgradeData::saveUpgraderFilePath()
+{
+    SETTING(settings);
+    settings.beginGroup(m_target);
+    settings.setValue("upgraderFilePath", QCoreApplication::applicationFilePath());
+    settings.endGroup();
+}
+
+QString UpgradeData::upgraderFilePath()
+{
+    SETTING(settings);
+    settings.beginGroup(m_target);
+    QString ufp = settings.value("upgraderFilePath", "").toString();
+    settings.endGroup();
+
+    return ufp;
 }
 
 bool UpgradeData::saveUpgradeData(const ApplicationVersion &version, QString zipFile, QString extractDir)
@@ -56,16 +124,16 @@ bool UpgradeData::getUpgradeData(ApplicationVersion &version, QString &zipFile, 
 
 void UpgradeData::saveDataDirectory(QString newDir)
 {
-    QSettings settings("AniujSoft", "Upgrader");
-    settings.beginGroup("data");
+    SETTING(settings);
+    settings.beginGroup(m_target);
     settings.setValue("dataDirectory", newDir);
     settings.endGroup();
 }
 
 QString UpgradeData::dataDirectory()
 {
-    QSettings settings("AniujSoft", "Upgrader");
-    settings.beginGroup("data");
+    SETTING(settings);
+    settings.beginGroup(m_target);
     QString dd = settings.value("dataDirectory", "").toString();
     settings.endGroup();
 
@@ -76,3 +144,45 @@ const QString UpgradeData::dataFile()
 {
     return UpgradeData::dataDirectory() + "/" + "upgrader.data";
 }
+
+void UpgradeData::saveTargetStartCommand(QString command)
+{
+    SETTING(settings);
+    settings.beginGroup(m_target);
+    settings.setValue("targetStartCommand", command);
+    settings.endGroup();
+}
+
+QString UpgradeData::targetStartCommand()
+{
+    SETTING(settings);
+    settings.beginGroup(m_target);
+    QString tsc = settings.value("targetStartCommand", "").toString();
+    settings.endGroup();
+
+    return tsc;
+}
+
+/**
+ * @brief saveTargetRunningFile
+ * @param fileName
+ * if file "fileName" exists, the target is running
+ */
+void UpgradeData::saveTargetRunningFile(QString fileName)
+{
+    SETTING(settings);
+    settings.beginGroup(m_target);
+    settings.setValue("targetRunningFile", fileName);
+    settings.endGroup();
+}
+
+QString UpgradeData::targetRunningFile()
+{
+    SETTING(settings);
+    settings.beginGroup(m_target);
+    QString tsc = settings.value("targetRunningFile", "").toString();
+    settings.endGroup();
+
+    return tsc;
+}
+

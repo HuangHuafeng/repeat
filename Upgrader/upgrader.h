@@ -17,8 +17,17 @@ public:
     explicit Upgrader(QWidget *parent = nullptr);
     ~Upgrader();
 
+    void setTarget(QString target);
+
+protected:
+    virtual void showEvent(QShowEvent *event);
+
 private:
     Ui::Upgrader *ui;
+    QString m_target;
+
+    void extract();
+    bool targetIsRunning();
 };
 
 #endif // UPGRADER_H

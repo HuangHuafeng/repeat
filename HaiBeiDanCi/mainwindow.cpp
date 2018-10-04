@@ -13,7 +13,6 @@
 #include "registerdialog.h"
 #include "logindialog.h"
 #include "clienttoken.h"
-#include "../Upgrader/upgradedata.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -628,20 +627,8 @@ void MainWindow::downloadLatestVersion(ApplicationVersion version, QString fileN
 
 void MainWindow::onAppDownloaded(ApplicationVersion version, QString fileName)
 {
-    QString dd = UpgradeData::dataDirectory();
-    if (dd == "")
-    {
-        UpgradeData::saveDataDirectory(MySettings::dataDirectory());
-        dd = UpgradeData::dataDirectory();
-    }
-    QString zipFile = dd + "/" + fileName;
-    QString extractDir = QCoreApplication::applicationDirPath();
-    if (extractDir.contains("Contents/MacOS") == true)
-    {
-        extractDir = extractDir.section('/', 0, -4);
-    }
-    UpgradeData::saveUpgradeData(version, zipFile, extractDir);
-    qDebug() << version.toString() << zipFile << extractDir;
+    QString zipFile = MySettings::dataDirectory() + "/" + fileName;
+    m_au.newVersionAvailable(version, zipFile);
 
     QMessageBox msgBox(this);
     msgBox.setIcon(QMessageBox::Information);
@@ -652,6 +639,9 @@ void MainWindow::onAppDownloaded(ApplicationVersion version, QString fileName)
     int ret = msgBox.exec();
     if (ret == QMessageBox::Yes)
     {
-        ui->actionexit->trigger();
+        if (m_au.startUpgrader() == true)
+        {
+            ui->actionexit->trigger();
+        }
     }
 }

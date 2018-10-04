@@ -6,17 +6,33 @@
 class UpgradeData
 {
 public:
-    UpgradeData();
+    UpgradeData(QString target = "UpgraderTarget");
 
-    static bool hasUpgradeData();
-    static bool saveUpgradeData(const ApplicationVersion &version, QString zipFile, QString extractDir);
-    static bool getUpgradeData(ApplicationVersion &version, QString &zipFile, QString &extractDir);
+    bool startUpgrader(const QStringList &arguments = QStringList());
+    bool startTarget();
 
-    static void saveDataDirectory(QString newDir);
-    static QString dataDirectory();
+    void setTarget(QString target);
+    QString getTarget();
+
+    bool hasUpgradeData();
+    void saveUpgraderFilePath();
+    QString upgraderFilePath();
+
+    bool saveUpgradeData(const ApplicationVersion &version, QString zipFile, QString extractDir);
+    bool getUpgradeData(ApplicationVersion &version, QString &zipFile, QString &extractDir);
+
+    void saveTargetStartCommand(QString command);
+    QString targetStartCommand();
+
+    void saveTargetRunningFile(QString fileName);
+    QString targetRunningFile();
+
+    void saveDataDirectory(QString newDir);
+    QString dataDirectory();
 
 private:
-    static const QString dataFile();
+    const QString dataFile();
+    QString m_target;
 };
 
 #endif // UPGRADEDATA_H

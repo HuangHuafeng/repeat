@@ -59,7 +59,9 @@ SOURCES += \
     token.cpp \
     clienttoken.cpp \
     applicationversion.cpp \
-    ../Upgrader/upgradedata.cpp
+    ../Upgrader/upgradedata.cpp \
+    autoupgrader.cpp \
+    autoupgrader.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -93,7 +95,9 @@ HEADERS += \
     token.h \
     clienttoken.h \
     applicationversion.h \
-    ../Upgrader/upgradedata.h
+    ../Upgrader/upgradedata.h \
+    autoupgrader.h \
+    autoupgrader.h
 
 FORMS += \
     mainwindow.ui \

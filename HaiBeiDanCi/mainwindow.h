@@ -7,6 +7,7 @@
 #include "browserwindow.h"
 #include "applicationuser.h"
 #include "serverclientprotocol.h"
+#include "autoupgrader.h"
 
 #include <QMainWindow>
 
@@ -83,6 +84,7 @@ private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;
     BrowserWindow m_browserWindow;
+    AutoUpgrader m_au;
 
     void reloadBooks();
     void addBookToTheView(WordBook &book);
@@ -104,6 +106,7 @@ private:
     void showCurrentBookIntroduction();
     void downloadLatestVersion(ApplicationVersion version, QString fileName);
     void onAppDownloaded(ApplicationVersion version, QString fileName);
+
 };
 
 #endif // MAINWINDOW_H

@@ -359,6 +359,7 @@
     <addaction name="actionLogout"/>
     <addaction name="actionUsers"/>
     <addaction name="actionRelease_App"/>
+    <addaction name="actionRelease_Upgrader"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuLocal"/>
@@ -444,6 +445,11 @@
   <action name="actionRelease_App">
    <property name="text">
     <string>Release App</string>
+   </property>
+  </action>
+  <action name="actionRelease_Upgrader">
+   <property name="text">
+    <string>Release Upgrader</string>
    </property>
   </action>
  </widget>

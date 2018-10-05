@@ -33,12 +33,18 @@ void MediaFileManager::fileDownloaded(QString fileName)
         m_efMutex.lock();
 
         auto missingProunceAudioFiles = m_mapBookMissingPronounceAudioFiles.value(bookName);
-        Q_ASSERT(missingProunceAudioFiles.get() != nullptr);
-        missingProunceAudioFiles->remove(fileName);
+        if (missingProunceAudioFiles.get() != nullptr)
+        {
+            // it's possible that a file (not media file) is downloaded while m_mapBookMissingPronounceAudioFiles is NOT fully initialized
+            missingProunceAudioFiles->remove(fileName);
+        }
 
         auto missingExampleAudioFiles = m_mapBookMissingExampleAudioFiles.value(bookName);
-        Q_ASSERT(missingExampleAudioFiles.get() != nullptr);
-        missingExampleAudioFiles->remove(fileName);
+        if (missingExampleAudioFiles.get() != nullptr)
+        {
+            // it's possible that a file (not media file) is downloaded while m_mapBookMissingPronounceAudioFiles is NOT fully initialized
+            missingExampleAudioFiles->remove(fileName);
+        }
 
         m_efMutex.unlock();
     }

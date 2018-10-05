@@ -2,6 +2,7 @@
 #include "../HaiBeiDanCi/mediafilemanager.h"
 #include "../HaiBeiDanCi/mysettings.h"
 #include "appreleaser.h"
+#include "upgraderreleaser.h"
 
 #include <QDir>
 #include <QFile>
@@ -57,6 +58,10 @@ int HBDCManagerHandler::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::RequestReleaseApp:
         handleResult = handleRequestReleaseApp(msg);
+        break;
+
+    case ServerClientProtocol::RequestReleaseUpgrader:
+        handleResult = handleRequestReleaseUpgrader(msg);
         break;
 
     default:
@@ -522,6 +527,39 @@ void HBDCManagerHandler::sendResponseReleaseApp(const QByteArray &msg, bool succ
 {
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseReleaseApp, receivedMsgHeader.sequenceNumber());
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << responseHeader << succeed;
+    sendMessage(block);
+}
+
+bool HBDCManagerHandler::handleRequestReleaseUpgrader(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    ApplicationVersion appVer(0, 0, 0);
+    QString platform, fileName;
+    in.startTransaction();
+    in >> receivedMsgHeader >> appVer >> platform >> fileName;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read words of the book in handleRequestReleaseApp()";
+        return false;
+    }
+
+    UpgraderReleaser *ur = UpgraderReleaser::instance();
+    bool succeed = ur->releaseNewVersion(appVer, platform, fileName, "NOT USED");
+
+    sendResponseReleaseUpgrader(msg, succeed);
+
+    return true;
+}
+
+void HBDCManagerHandler::sendResponseReleaseUpgrader(const QByteArray &msg, bool succeed)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseReleaseUpgrader, receivedMsgHeader.sequenceNumber());
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);

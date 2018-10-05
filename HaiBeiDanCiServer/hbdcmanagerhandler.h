@@ -23,6 +23,9 @@ private:
     bool handleRequestReleaseApp(const QByteArray &msg);
     void sendResponseReleaseApp(const QByteArray &msg, bool succeed);
 
+    bool handleRequestReleaseUpgrader(const QByteArray &msg);
+    void sendResponseReleaseUpgrader(const QByteArray &msg, bool succeed);
+
     // for uploading a book from the manager
     bool handleResponseGetABook(const QByteArray &msg);
     bool handleResponseGetBookWordList(const QByteArray &msg);

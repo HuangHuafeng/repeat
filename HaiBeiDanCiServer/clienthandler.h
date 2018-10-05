@@ -20,6 +20,7 @@ private:
     bool handleRequestLogin(const QByteArray &msg);
     bool handleRequestLogout(const QByteArray &msg);
     bool handleRequestAppVersion(const QByteArray &msg);
+    bool handleRequestUpgraderVersion(const QByteArray &msg);
     void sendResponseUnknownRequest(const QByteArray &msg);
     void sendResponseNoOperation(const QByteArray &msg);
     void sendResponseRegister(const QByteArray &msg, qint32 result, const ApplicationUser &user);
@@ -27,6 +28,7 @@ private:
     void sendResponseInvalidTokenId(const QByteArray &msg);
     void sendResponseLogout(const QByteArray &msg, qint32 result, QString name);
     void sendResponseAppVersion(const QByteArray &msg, QString platform);
+    void sendResponseUpgraderVersion(const QByteArray &msg, QString platform);
 
     bool registerUser(const QByteArray &msg, ApplicationUser &user);
     bool loginUser(const QByteArray &msg, ApplicationUser &user);

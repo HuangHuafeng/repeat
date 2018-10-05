@@ -540,7 +540,7 @@ void MainWindow::on_actionLogout_triggered()
     }
 }
 
-void MainWindow::on_actionCheck_for_Updates_triggered()
+QString MainWindow::getPlatform()
 {
     QString platform;
 #ifdef Q_OS_WIN
@@ -552,13 +552,15 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
 #else
 #error "We don't support the platform yet..."
 #endif
-    SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
-    connect(sa, SIGNAL(appVersion(ApplicationVersion, QString, QString, QDateTime)), this, SLOT(onAppVersion(ApplicationVersion, QString, QString, QDateTime)));
-    connect(sa, &SvrAgt::appVersion, [sa] () {
-        sa->deleteLater();
-        qDebug() << "sa->deleteLater() called!";
-    });
-    sa->sendRequestAppVersion(platform);
+
+    return platform;
+}
+
+void MainWindow::on_actionCheck_for_Updates_triggered()
+{
+    // start from checking the upgrader
+    // app will be checked after checking the upgrader
+    ui->actionUpdate_Upgrader->trigger();
 }
 
 void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime)
@@ -644,4 +646,80 @@ void MainWindow::onAppDownloaded(ApplicationVersion version, QString fileName)
             ui->actionexit->trigger();
         }
     }
+}
+
+void MainWindow::on_actionUpdate_Upgrader_triggered()
+{
+    QString platform = getPlatform();
+    SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
+    connect(sa, SIGNAL(upgraderVersion(ApplicationVersion, QString, QString, QDateTime)), this, SLOT(onUpgraderVersion(ApplicationVersion, QString, QString, QDateTime)));
+    connect(sa, &SvrAgt::upgraderVersion, [sa] () {
+        sa->deleteLater();
+        qDebug() << "sa->deleteLater() called!";
+    });
+    sa->sendRequestUpgraderVersion(platform);
+}
+
+void MainWindow::onUpgraderVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime)
+{
+    qDebug() << "info" << info << "release time:" << releaseTime;
+
+    ApplicationVersion upgraderVer = m_au.upgraderVersion();
+    qDebug() << "Upgrader: server version" << version.toString() << "vs local version" << upgraderVer.toString();
+    if (version.toInt() > upgraderVer.toInt())
+    {
+        downloadLatestUpgrader(version, fileName);
+    }
+    else
+    {
+        ui->actionUpdate_App->trigger();
+    }
+}
+
+void MainWindow::downloadLatestUpgrader(ApplicationVersion version, QString fileName)
+{
+    QProgressDialog *pd = new QProgressDialog(QObject::tr("downloading upgrader version %1 ...").arg(version.toString()),
+                                              QString(),
+                                              0,
+                                              100,
+                                              this);
+    pd->setModal(true);
+    pd->setValue(0);
+    ServerDataDownloader *sdd = new ServerDataDownloader(this);
+
+    // update the downloading progress
+    connect(sdd, &ServerDataDownloader::downloadProgress, [pd] (float percentage) {
+        int progress = static_cast<int>(100 * percentage);
+        pd->setValue(progress);
+    });
+
+    // delete pd and sdd when downloading finishes
+    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, version, fileName] () {
+        pd->deleteLater();
+        sdd->deleteLater();
+        qDebug() << "sdd, pd deleted as the downloading finished!";
+        this->onUpgraderDownloaded(version, fileName);
+    });
+
+    sdd->downloadApp(fileName);
+}
+
+void MainWindow::onUpgraderDownloaded(ApplicationVersion version, QString fileName)
+{
+    QString zipFile = MySettings::dataDirectory() + "/" + fileName;
+    m_au.newUpgraderDownloaded(version, zipFile);
+    ui->actionUpdate_App->trigger();
+}
+
+void MainWindow::on_actionUpdate_App_triggered()
+{
+    // check the app
+    QString platform = getPlatform();
+    SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
+    connect(sa, SIGNAL(appVersion(ApplicationVersion, QString, QString, QDateTime)), this, SLOT(onAppVersion(ApplicationVersion, QString, QString, QDateTime)));
+    connect(sa, &SvrAgt::appVersion, [sa] () {
+        sa->deleteLater();
+        qDebug() << "sa->deleteLater() called!";
+    });
+    sa->sendRequestAppVersion(platform);
 }

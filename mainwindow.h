@@ -74,6 +74,8 @@ private slots:
 
     void on_actionRelease_App_triggered();
 
+    void on_actionRelease_Upgrader_triggered();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;

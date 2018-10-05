@@ -39,7 +39,8 @@ SOURCES += \
     ../HaiBeiDanCi/token.cpp \
     tokenmanager.cpp \
     appreleaser.cpp \
-    ../HaiBeiDanCi/applicationversion.cpp
+    ../HaiBeiDanCi/applicationversion.cpp \
+    upgraderreleaser.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -66,7 +67,8 @@ HEADERS += \
     ../HaiBeiDanCi/token.h \
     tokenmanager.h \
     appreleaser.h \
-    ../HaiBeiDanCi/applicationversion.h
+    ../HaiBeiDanCi/applicationversion.h \
+    upgraderreleaser.h
 
 DISTFILES += \
     idea.txt

@@ -11,8 +11,11 @@ public:
     AutoUpgrader();
     ~AutoUpgrader();
 
-    bool startUpgrader();
+    bool startUpgrader(QStringList arguments = QStringList());
     void newVersionAvailable(ApplicationVersion version, QString fileName);
+    void newUpgraderDownloaded(ApplicationVersion version, QString fileName);
+    ApplicationVersion upgraderVersion();
+    QString hardcodedUpgraderFilePath();
 
 private:
     QString runningFile();

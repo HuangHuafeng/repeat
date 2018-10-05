@@ -8,14 +8,13 @@ class UpgradeData
 public:
     UpgradeData(QString target = "UpgraderTarget");
 
-    bool startUpgrader(const QStringList &arguments = QStringList());
     bool startTarget();
 
     void setTarget(QString target);
     QString getTarget();
 
     bool hasUpgradeData();
-    void saveUpgraderFilePath();
+    void saveUpgraderFilePath(QString ufp);
     QString upgraderFilePath();
 
     bool saveUpgradeData(const ApplicationVersion &version, QString zipFile, QString extractDir);

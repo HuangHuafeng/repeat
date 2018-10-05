@@ -54,6 +54,10 @@ int ManagerAgent::handleMessage(const QByteArray &msg)
         handleResult = handleResponseReleaseApp(msg);
         break;
 
+    case ServerClientProtocol::ResponseReleaseUpgrader:
+        handleResult = handleResponseReleaseUpgrader(msg);
+        break;
+
     default:
         return SvrAgt::handleMessage(msg);
 
@@ -358,6 +362,34 @@ bool ManagerAgent::handleResponseReleaseApp(const QByteArray &msg)
     }
 
     emit(appReleased(succeed));
+
+    return true;
+}
+
+void ManagerAgent::sendRequestReleaseUpgrader(ApplicationVersion version, QString platform, QString fileName)
+{
+    MessageHeader msgHeader(ServerClientProtocol::RequestReleaseUpgrader);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader << version << platform << fileName;
+    sendMessage(block);
+}
+
+bool ManagerAgent::handleResponseReleaseUpgrader(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    bool succeed;
+    in.startTransaction();
+    in >> receivedMsgHeader >> succeed;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read info in handleResponseReleaseUpgrader()";
+        return false;
+    }
+
+    emit(upgraderReleased(succeed));
 
     return true;
 }

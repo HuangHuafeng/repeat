@@ -15,6 +15,29 @@ TEMPLATE = app
 VERSION = 0.9.1
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
+# quazip
+unix:!macx {
+}
+
+macx {
+    INCLUDEPATH += /Users/huafeng/Qt/zlib-1.2.11
+    LIBS += -L/Users/huafeng/Qt/zlib-1.2.11 -lz
+    INCLUDEPATH += /Users/huafeng/Qt/quazip-0.7.6/quazip
+    LIBS += -L/Users/huafeng/Qt/quazip-0.7.6/quazip/ -lquazip
+}
+
+win32 {
+    CONFIG(release, debug|release): LIBS += -LC:/Qt/quazip-0.7.6/quazip/release/ -lquazip
+    else:win32:CONFIG(debug, debug|release): LIBS += -LC:/Qt/quazip-0.7.6/quazip/debug/ -lquazipd
+
+    INCLUDEPATH += C:/Qt/quazip-0.7.6/quazip
+    DEPENDPATH += C:/Qt/quazip-0.7.6/quazip
+
+    LIBS += -LC:/Qt/zlib-1.2.11/ -lzlib
+    INCLUDEPATH += C:/Qt/zlib-1.2.11
+    DEPENDPATH += C:/Qt/zlib-1.2.11
+}
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -60,7 +83,6 @@ SOURCES += \
     clienttoken.cpp \
     applicationversion.cpp \
     ../Upgrader/upgradedata.cpp \
-    autoupgrader.cpp \
     autoupgrader.cpp
 
 HEADERS += \
@@ -96,7 +118,6 @@ HEADERS += \
     clienttoken.h \
     applicationversion.h \
     ../Upgrader/upgradedata.h \
-    autoupgrader.h \
     autoupgrader.h
 
 FORMS += \

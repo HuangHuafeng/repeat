@@ -12,6 +12,7 @@
 #include "HaiBeiDanCi/logindialog.h"
 #include "HaiBeiDanCi/clienttoken.h"
 #include "releaseappdialog.h"
+#include "releaseupgraderdialog.h"
 
 #include <QString>
 #include <QFileDialog>
@@ -579,12 +580,27 @@ void MainWindow::on_actionRelease_App_triggered()
     auto result = rad->exec();
     if (result == QDialog::Accepted)
     {
-        // a user logged in
-        ui->actionReload_data->trigger();
     }
     else
     {
-        // no user is registered and the dialog is cancelled
     }
     rad->deleteLater();
+}
+
+void MainWindow::on_actionRelease_Upgrader_triggered()
+{
+    if (okToPerformServerRelatedOperation() == false)
+    {
+        return;
+    }
+
+    auto rud = new ReleaseUpgraderDialog(this);
+    auto result = rud->exec();
+    if (result == QDialog::Accepted)
+    {
+    }
+    else
+    {
+    }
+    rud->deleteLater();
 }

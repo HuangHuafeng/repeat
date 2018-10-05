@@ -96,7 +96,8 @@ SOURCES += \
     HaiBeiDanCi/logindialog.cpp \
     HaiBeiDanCi/serveruseragent.cpp \
     releaseappdialog.cpp \
-    HaiBeiDanCi/applicationversion.cpp
+    HaiBeiDanCi/applicationversion.cpp \
+    releaseupgraderdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -163,14 +164,16 @@ HEADERS += \
     HaiBeiDanCi/logindialog.h \
     HaiBeiDanCi/serveruseragent.h \
     releaseappdialog.h \
-    HaiBeiDanCi/applicationversion.h
+    HaiBeiDanCi/applicationversion.h \
+    releaseupgraderdialog.h
 
 FORMS += \
         mainwindow.ui \
     newbook.ui \
     preferencesdialog.ui \
     HaiBeiDanCi/logindialog.ui \
-    releaseappdialog.ui
+    releaseappdialog.ui \
+    releaseupgraderdialog.ui
 
 RESOURCES += \
     res.qrc

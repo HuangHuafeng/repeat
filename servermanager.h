@@ -36,6 +36,7 @@ public:
     QList<QString> getMissingMediaFilesOfBook(QString bookName);
     void uploadBookMissingMediaFiles(QString bookName);
     void releaseApp(ApplicationVersion version, QString platform, QString fileName, QString info);
+    void releaseUpgrader(ApplicationVersion version, QString platform, QString fileName);
 
 signals:
     void serverDataReloaded();
@@ -43,6 +44,7 @@ signals:
     void bookDownloaded(QString bookName);
     void fileUploaded(QString fileName);
     void appReleased(bool succeed);
+    void upgraderReleased(bool succeed);
 
 public slots:
     void OnBookListReady(const QList<QString> &books);
@@ -59,6 +61,7 @@ public slots:
     void onFileUploadingProgress(QString fileName, uint uploadedBytes, uint totalBytes);
     void onWordUploaded(QString spelling);
     void onAppReleased(bool succeed);
+    void onUpgraderReleased(bool succeed);
 
 private:
     ManagerAgent m_mgrAgt;

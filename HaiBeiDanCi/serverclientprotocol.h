@@ -33,6 +33,7 @@ public:
 
         RequestGetFile = RequestNoOperation + 5,    // Yes, n:1
         RequestGetApp = RequestGetFile + 2000,    // functions same as RequestGetFile, but server will not check the token
+        RequestGetUpgrader = RequestGetFile + 2001,    // functions same as RequestGetFile, but server will not check the token
 
         RequestGetWordsOfBookFinished = RequestNoOperation + 6, // Yes, 1:1 // used to echo to the client to let it aware that downloading words finished
         RequestBye = RequestNoOperation + 7,    // Yes, 1:0
@@ -42,6 +43,7 @@ public:
         RequestLogin = RequestNoOperation + 9,
         RequestRegister = RequestNoOperation + 10,
         RequestLogout = RequestNoOperation + 11,
+        RequestUpgraderVersion = RequestNoOperation + 12,
     } ClientToServerMessageCode;
 
     typedef enum {
@@ -61,6 +63,7 @@ public:
         ResponseLogin = ResponseNoOperation + 9,
         ResponseRegister = ResponseNoOperation + 10,
         ResponseLogout = ResponseNoOperation + 11,
+        ResponseUpgraderVersion = ResponseNoOperation + 12,
 
         // ResponseOK is useful when there's no data need to be sent, just to let the client know that the server got your message
         ResponseOK = ResponseNoOperation + 8888,
@@ -82,6 +85,7 @@ public:
         RequestUploadAFileFinished = RequestUploadAFile + 1000,
         RequestUploadAWord = ManagerToServerMessageCodeBase + 8,    // not used, uploading a word uses Response* messages
         RequestReleaseApp = ManagerToServerMessageCodeBase + 9,
+        RequestReleaseUpgrader = ManagerToServerMessageCodeBase + 10,
     } ManagerToServerMessageCode;
 
     typedef enum {
@@ -96,6 +100,7 @@ public:
         ResponseUploadAFileFinished = ResponseUploadAFile + 1000,
         ResponseUploadAWord = ServerToManagerMessageCodeBase + 8,
         ResponseReleaseApp = ServerToManagerMessageCodeBase + 9,
+        ResponseReleaseUpgrader = ServerToManagerMessageCodeBase + 10,
     } ServerToManagerMessageCode;
 };
 

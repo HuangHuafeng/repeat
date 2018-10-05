@@ -1,6 +1,7 @@
 #include "clienthandler.h"
 #include "tokenmanager.h"
 #include "appreleaser.h"
+#include "upgraderreleaser.h"
 
 ClientHandler::ClientHandler(ClientWaiter &clientWaiter) :
     m_clientWaiter(clientWaiter),
@@ -68,6 +69,10 @@ int ClientHandler::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::RequestAppVersion:
         handleResult = handleRequestAppVersion(msg);
+        break;
+
+    case ServerClientProtocol::RequestUpgraderVersion:
+        handleResult = handleRequestUpgraderVersion(msg);
         break;
 
     default:
@@ -265,6 +270,26 @@ bool ClientHandler::handleRequestAppVersion(const QByteArray &msg)
     return true;
 }
 
+bool ClientHandler::handleRequestUpgraderVersion(const QByteArray &msg)
+{
+    funcTracker ft("handleRequestAppVersion()");
+
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader(-1, -1, -1);
+    QString platform;
+    in.startTransaction();
+    in >> receivedMsgHeader >> platform;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to get platform in handleRequestUpgraderVersion()";
+        return false;
+    }
+
+    sendResponseUpgraderVersion(msg, platform);
+
+    return true;
+}
+
 bool ClientHandler::logoutUser(const QByteArray &msg, QString name)
 {
     MessageHeader receivedMsgHeader(msg);
@@ -380,6 +405,19 @@ void ClientHandler::sendResponseAppVersion(const QByteArray &msg, QString platfo
     sendMessage(block);
 }
 
+void ClientHandler::sendResponseUpgraderVersion(const QByteArray &msg, QString platform)
+{
+    MessageHeader receivedMsgHeader(msg);
+    MessageHeader responseHeader(ServerClientProtocol::ResponseUpgraderVersion, receivedMsgHeader.sequenceNumber());
+
+    UpgraderReleaser *ur = UpgraderReleaser::instance();
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    auto cv = ur->currentVersion(platform);
+    out << responseHeader << cv.version << cv.fileName << cv.info << cv.releaseTime;
+    sendMessage(block);
+}
+
 bool ClientHandler::validateMessage(const QByteArray &msg)
 {
     MessageHeader receivedMsgHeader(msg);
@@ -389,7 +427,9 @@ bool ClientHandler::validateMessage(const QByteArray &msg)
             && receivedMsgHeader.code() != ServerClientProtocol::RequestGetAllBooks
             && receivedMsgHeader.code() != ServerClientProtocol::RequestGetABook
             && receivedMsgHeader.code() != ServerClientProtocol::RequestAppVersion
-            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetApp)
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetApp
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestUpgraderVersion
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetUpgrader)
     {
         QString msgTokenId = receivedMsgHeader.tokenId();
         if (msgTokenId.isEmpty() == true)

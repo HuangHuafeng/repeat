@@ -13,20 +13,6 @@ UpgradeData::UpgradeData(QString target)
     setTarget(target);
 }
 
-bool UpgradeData::startUpgrader(const QStringList &arguments)
-{
-    QString ufp = upgraderFilePath();
-    QString workingDirectory = ufp.section('/', 0, -2);
-    bool result = QProcess::startDetached(ufp,
-                                          arguments,
-                                          workingDirectory);
-    if (result == false)
-    {
-        qCritical() << "failed to start the upgrader:" << ufp;
-    }
-    return result;
-}
-
 bool UpgradeData::startTarget()
 {
     QString tsc = targetStartCommand();
@@ -66,11 +52,11 @@ bool UpgradeData::hasUpgradeData()
     return QFile::exists(fileName);
 }
 
-void UpgradeData::saveUpgraderFilePath()
+void UpgradeData::saveUpgraderFilePath(QString ufp)
 {
     SETTING(settings);
     settings.beginGroup(m_target);
-    settings.setValue("upgraderFilePath", QCoreApplication::applicationFilePath());
+    settings.setValue("upgraderFilePath", ufp);
     settings.endGroup();
 }
 

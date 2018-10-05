@@ -25,6 +25,7 @@ ServerManager::ServerManager(QObject *parent) : QObject(parent),
     connect(&m_mgrAgt, SIGNAL(fileUploadingProgress(QString, uint, uint)), this, SLOT(onFileUploadingProgress(QString, uint, uint)));
     connect(&m_mgrAgt, SIGNAL(wordUploaded(QString)), this, SLOT(onWordUploaded(QString)));
     connect(&m_mgrAgt, SIGNAL(appReleased(bool)), this, SLOT(onAppReleased(bool)));
+    connect(&m_mgrAgt, SIGNAL(upgraderReleased(bool)), this, SLOT(onUpgraderReleased(bool)));
 
 
     //m_mgrAgt.connectToServer();
@@ -207,6 +208,10 @@ void ServerManager::onAppReleased(bool succeed)
     emit(appReleased(succeed));
 }
 
+void ServerManager::onUpgraderReleased(bool succeed)
+{
+    emit(upgraderReleased(succeed));
+}
 
 void ServerManager::onGotMissingMediaFilesOfBook(QString bookName, const QList<QString> &missingFiles)
 {
@@ -666,4 +671,9 @@ bool ServerManager::bookExistsInServer(QString bookName)
 void ServerManager::releaseApp(ApplicationVersion version, QString platform, QString fileName, QString info)
 {
     m_mgrAgt.sendRequestReleaseApp(version, platform, fileName, info);
+}
+
+void ServerManager::releaseUpgrader(ApplicationVersion version, QString platform, QString fileName)
+{
+    m_mgrAgt.sendRequestReleaseUpgrader(version, platform, fileName);
 }

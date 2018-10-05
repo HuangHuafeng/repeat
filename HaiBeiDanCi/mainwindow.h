@@ -31,6 +31,7 @@ class MainWindow : public QMainWindow
     void onWordStudied(QString spelling);
     void onBookDownloaded(QString /*bookName*/);
     void onAppVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime);
+    void onUpgraderVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime);
 
     void on_pushBrowseExpiredWords_clicked();
 
@@ -80,6 +81,10 @@ class MainWindow : public QMainWindow
 
     void on_actionCheck_for_Updates_triggered();
 
+    void on_actionUpdate_Upgrader_triggered();
+
+    void on_actionUpdate_App_triggered();
+
 private:
     Ui::MainWindow *ui;
     StudyWindow m_studyWindow;
@@ -107,6 +112,10 @@ private:
     void downloadLatestVersion(ApplicationVersion version, QString fileName);
     void onAppDownloaded(ApplicationVersion version, QString fileName);
 
+    void downloadLatestUpgrader(ApplicationVersion version, QString fileName);
+    void onUpgraderDownloaded(ApplicationVersion version, QString fileName);
+
+    QString getPlatform();
 };
 
 #endif // MAINWINDOW_H

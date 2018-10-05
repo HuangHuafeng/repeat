@@ -2,27 +2,29 @@
 #include "upgrader.h"
 #include <QApplication>
 #include <QtDebug>
+#include <QTextStream>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-
-    qDebug() << "argc:" << argc;
+    QTextStream out(stdout);
 
     if (argc < 2)
     {
-        qCritical() << "usage:" << argv[0] << "target";
-        qCritical() << "target is the name of the app to be upgraded.";
+        out << "usage: " << argv[0] << " target" << endl;
+        out << "target is the name of the app to be upgraded." << endl;
+        out << "usage: " << argv[0] << " --version to print version" << endl;
         return 0;
     }
 
-    UpgradeData ud(argv[1]);
-    if (ud.upgraderFilePath().isEmpty() == true)
+    if (QString::compare(argv[1], "--version") == 0)
     {
-        // save the upgrader info
-        ud.saveUpgraderFilePath();
+        out << APP_VERSION << endl;
+        return 0;
     }
 
+    // argv[1] is considered to be the target
+    UpgradeData ud(argv[1]);
     if (ud.hasUpgradeData() == false)
     {
         qDebug() << "No upgrade data. Start the target and exit.";

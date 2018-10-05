@@ -9,6 +9,10 @@ QT       += core gui widgets
 TARGET = Upgrader
 TEMPLATE = app
 
+# version, APP_VERSION is string "0.9.1"
+VERSION = 1.0.3
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+
 # quazip
 unix:!macx {
 }

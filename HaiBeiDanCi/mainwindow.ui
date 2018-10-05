@@ -534,6 +534,8 @@
     <addaction name="actionCheck_for_Updates"/>
     <addaction name="actionPreferences"/>
     <addaction name="actionexit"/>
+    <addaction name="actionUpdate_Upgrader"/>
+    <addaction name="actionUpdate_App"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuData"/>
@@ -595,6 +597,22 @@
   <action name="actionCheck_for_Updates">
    <property name="text">
     <string>Check for Updates</string>
+   </property>
+  </action>
+  <action name="actionUpdate_Upgrader">
+   <property name="text">
+    <string>Update Upgrader</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionUpdate_App">
+   <property name="text">
+    <string>Update App</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

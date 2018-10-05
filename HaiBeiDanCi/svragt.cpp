@@ -199,6 +199,10 @@ int SvrAgt::handleMessage(const QByteArray &msg)
         handleResult = handleResponseAppVersion(msg);
         break;
 
+    case ServerClientProtocol::ResponseUpgraderVersion:
+        handleResult = handleResponseUpgraderVersion(msg);
+        break;
+
     default:
         handleUnknownMessage(msg);
         unknowMessage = true;
@@ -706,6 +710,16 @@ void SvrAgt::sendRequestGetApp(QString fileName)
     sendMessage(block);
 }
 
+void SvrAgt::sendRequestGetUpgrader(QString fileName)
+{
+    MessageHeader msgHeader(ServerClientProtocol::RequestGetUpgrader);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader << fileName;
+    sendMessage(block);
+}
+
 /**
  * @brief SvrAgt::downloadFile
  * @param fileName
@@ -733,6 +747,20 @@ void SvrAgt::downloadApp(QString fileName)
     {
         m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
         sendRequestGetApp(fileName);
+    }
+
+    m_toDownload = m_filesToDownload.size();
+    m_downloaded = 0;
+}
+
+void SvrAgt::downloadUpgrader(QString fileName)
+{
+    Q_ASSERT(m_filesToDownload.isEmpty() == true);
+    Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
+    if (m_filesToDownload.contains(fileName) == false)
+    {
+        m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
+        sendRequestGetUpgrader(fileName);
     }
 
     m_toDownload = m_filesToDownload.size();
@@ -907,9 +935,40 @@ bool SvrAgt::handleResponseAppVersion(const QByteArray &msg)
     return true;
 }
 
+bool SvrAgt::handleResponseUpgraderVersion(const QByteArray &msg)
+{
+    QDataStream in(msg);
+    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
+    ApplicationVersion upgraderVer(0, 0, 0);
+    QString fileName;
+    QString info;
+    QDateTime releaseTime;
+    in.startTransaction();
+    in >> receivedMsgHeader >> upgraderVer >> fileName >> info >> releaseTime;
+    if (in.commitTransaction() == false)
+    {
+        qCritical() << "failed to read info in handleResponseUpgraderVersion()";
+        return false;
+    }
+
+    emit(upgraderVersion(upgraderVer, fileName, info, releaseTime));
+
+    return true;
+}
+
 void SvrAgt::sendRequestAppVersion(QString platform)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestAppVersion);
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << msgHeader << platform;
+    sendMessage(block);
+}
+
+void SvrAgt::sendRequestUpgraderVersion(QString platform)
+{
+    MessageHeader msgHeader(ServerClientProtocol::RequestUpgraderVersion);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);

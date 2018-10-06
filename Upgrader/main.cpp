@@ -9,17 +9,11 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     QTextStream out(stdout);
 
-    if (argc < 2)
+    if (argc != 2)
     {
-        out << "usage: " << argv[0] << " target" << endl;
+        QString appName = QCoreApplication::applicationName();
+        out << "usage: " << appName << " target" << endl;
         out << "target is the name of the app to be upgraded." << endl;
-        out << "usage: " << argv[0] << " --version to print version" << endl;
-        return 0;
-    }
-
-    if (QString::compare(argv[1], "--version") == 0)
-    {
-        out << APP_VERSION << endl;
         return 0;
     }
 
@@ -27,8 +21,7 @@ int main(int argc, char *argv[])
     UpgradeData ud(argv[1]);
     if (ud.hasUpgradeData() == false)
     {
-        qDebug() << "No upgrade data. Start the target and exit.";
-        ud.startTarget();
+        qDebug() << "No upgrade data. This should NOT happen!";
         return 0;
     }
 

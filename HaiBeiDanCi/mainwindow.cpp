@@ -593,7 +593,7 @@ void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QStr
 
 void MainWindow::downloadLatestVersion(ApplicationVersion version, QString fileName)
 {
-    QProgressDialog *pd = new QProgressDialog(QObject::tr("downloading %1 ...").arg(fileName),
+    QProgressDialog *pd = new QProgressDialog(QObject::tr("Downloading version %1 ...").arg(version.toString()),
                                               QObject::tr("Cancel"),
                                               0,
                                               100,
@@ -678,7 +678,7 @@ void MainWindow::onUpgraderVersion(ApplicationVersion version, QString fileName,
 
 void MainWindow::downloadLatestUpgrader(ApplicationVersion version, QString fileName)
 {
-    QProgressDialog *pd = new QProgressDialog(QObject::tr("downloading upgrader version %1 ...").arg(version.toString()),
+    QProgressDialog *pd = new QProgressDialog(QObject::tr("Downloading upgrader version %1 ...").arg(version.toString()),
                                               QString(),
                                               0,
                                               100,

@@ -13,7 +13,7 @@ AutoUpgrader::AutoUpgrader()
     createRunningFile();
 
     QString fileName = runningFile();
-    UpgradeData ud(MySettings::appName());
+    UpgradeData ud(QCoreApplication::applicationName());
     if (ud.targetRunningFile() != fileName)
     {
         ud.saveTargetRunningFile(fileName);
@@ -69,27 +69,16 @@ bool AutoUpgrader::startUpgrader(QStringList arguments)
 {
     if (arguments.isEmpty() == true)
     {
-        arguments << MySettings::appName();
+        arguments << QCoreApplication::applicationName();
     }
 
-    UpgradeData ud(MySettings::appName());
-    QString ufp = ud.upgraderFilePath();
-    Q_ASSERT(ufp.isEmpty() != true);
-    QString workingDirectory = ufp.section('/', 0, -2);
-    bool result = QProcess::startDetached(ufp,
-                                          arguments,
-                                          workingDirectory);
-    if (result == false)
-    {
-        qCritical() << "failed to start the upgrader:" << ufp;
-    }
-
-    return result;
+    UpgradeData ud(QCoreApplication::applicationName());
+    return ud.startUpgrader(arguments);
 }
 
 ApplicationVersion AutoUpgrader::upgraderVersion()
 {
-    UpgradeData ud(MySettings::appName());
+    UpgradeData ud(QCoreApplication::applicationName());
     QString ufp = ud.upgraderFilePath();
     if (ufp.isEmpty() == true)
     {
@@ -118,9 +107,13 @@ ApplicationVersion AutoUpgrader::upgraderVersion()
         return ApplicationVersion(0, 0, 0);
     }
 
-    qDebug() << "upgrader version:" << ApplicationVersion::fromString(version).toString();
+    QString versionInString(version);
+    versionInString.remove(QChar('\r'));
+    versionInString.remove(QChar('\n'));
 
-    return ApplicationVersion::fromString(version);
+    qDebug() << "upgrader version:" << ApplicationVersion::fromString(versionInString).toString();
+
+    return ApplicationVersion::fromString(versionInString);
 }
 
 /**
@@ -130,7 +123,7 @@ ApplicationVersion AutoUpgrader::upgraderVersion()
  */
 void AutoUpgrader::newVersionAvailable(ApplicationVersion version, QString fileName)
 {
-    UpgradeData ud(MySettings::appName());
+    UpgradeData ud(QCoreApplication::applicationName());
 
     if (ud.dataDirectory().isEmpty() == true)
     {
@@ -164,7 +157,12 @@ void AutoUpgrader::newUpgraderDownloaded(ApplicationVersion version, QString fil
 
     QString dd = MySettings::dataDirectory();
     QString extractDir;
-    UpgradeData ud(MySettings::appName());
+    UpgradeData ud(QCoreApplication::applicationName());
+    // ALWAYS store the upgrader to the data directory since we have a new version
+    ud.saveUpgraderFilePath(hardcodedUpgraderFilePath());
+    extractDir = MySettings::dataDirectory();
+
+    /*
     QString ufp = ud.upgraderFilePath();
     if (ufp.startsWith(dd) == true)
     {
@@ -185,6 +183,7 @@ void AutoUpgrader::newUpgraderDownloaded(ApplicationVersion version, QString fil
         // in this case, we want the upgrader to be in the data directory
         ud.saveUpgraderFilePath(hardcodedUpgraderFilePath());
     }
+    */
 
     qDebug() << "extracting upgrader to" << extractDir;
     auto extractedFiles = JlCompress::extractDir(fileName, extractDir);
@@ -202,9 +201,9 @@ QString AutoUpgrader::hardcodedUpgraderFilePath()
 {
     QString ufp;
 #ifdef Q_OS_WIN
-        ufp = MySettings::dataDirectory() + "/Upgrader/Upgrader.exe";
+        ufp = MySettings::dataDirectory() + "/Upgrader/ConsoleUpgrader.exe";
 #elif defined(Q_OS_MACOS)
-        ufp = MySettings::dataDirectory() + "/Upgrader.app/Contents/MacOS/Upgrader";
+        ufp = MySettings::dataDirectory() + "/ConsoleUpgrader.app/Contents/MacOS/ConsoleUpgrader";
 #elif defined(Q_OS_LINUX)
         ;
 #else

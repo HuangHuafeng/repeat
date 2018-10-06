@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string/>
+      <string>Waiting for the target to exit ...</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

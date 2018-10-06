@@ -27,8 +27,14 @@ void Upgrader::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
+    static bool started = false;
+    if (started == true)
+    {
+        return;
+    }
+
+    started = true;
     QTimer *ptrTimer = new QTimer(this);
-    //ptrTimer->setSingleShot(true);
     connect(ptrTimer, &QTimer::timeout, [ptrTimer, this] () {
         if (this->targetIsRunning() == false) {
             ptrTimer->stop();
@@ -40,7 +46,7 @@ void Upgrader::showEvent(QShowEvent *event)
             qDebug() << "waiting for target to exit.";
         }
     });
-    ptrTimer->start(500);
+    ptrTimer->start(200);
 }
 
 bool Upgrader::targetIsRunning()

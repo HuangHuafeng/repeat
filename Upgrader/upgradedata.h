@@ -8,6 +8,7 @@ class UpgradeData
 public:
     UpgradeData(QString target = "UpgraderTarget");
 
+    bool startUpgrader(const QStringList &arguments);
     bool startTarget();
 
     void setTarget(QString target);

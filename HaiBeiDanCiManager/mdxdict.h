@@ -1,10 +1,10 @@
 #ifndef MDXDICT_H
 #define MDXDICT_H
 
-#include "golddict/mdx.hh"
-#include "golddict/instances.hh"
-#include "golddict/article_maker.hh"
-#include "golddict/article_netmgr.hh"
+#include "../golddict/mdx.hh"
+#include "../golddict/instances.hh"
+#include "../golddict/article_maker.hh"
+#include "../golddict/article_netmgr.hh"
 
 class MdxLoader : public QThread, public Dictionary::Initializing
 {

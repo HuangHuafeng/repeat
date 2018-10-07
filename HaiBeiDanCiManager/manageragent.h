@@ -1,7 +1,7 @@
 #ifndef MANAGERAGENT_H
 #define MANAGERAGENT_H
 
-#include "HaiBeiDanCi/svragt.h"
+#include "../HaiBeiDanCi/svragt.h"
 
 class ManagerAgent : public SvrAgt
 {

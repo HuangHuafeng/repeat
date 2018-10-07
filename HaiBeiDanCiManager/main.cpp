@@ -1,6 +1,6 @@
 #include "mainwindow.h"
-#include "HaiBeiDanCi/worddb.h"
-#include "HaiBeiDanCi/mysettings.h"
+#include "../HaiBeiDanCi/worddb.h"
+#include "../HaiBeiDanCi/mysettings.h"
 
 #include <QApplication>
 #include <QTranslator>

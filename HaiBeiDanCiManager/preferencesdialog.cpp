@@ -1,6 +1,6 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
-#include "HaiBeiDanCi/mysettings.h"
+#include "../HaiBeiDanCi/mysettings.h"
 
 #include <QFileDialog>
 #include <QMessageBox>

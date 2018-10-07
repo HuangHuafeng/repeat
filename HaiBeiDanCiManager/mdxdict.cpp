@@ -1,6 +1,6 @@
 #include "mdxdict.h"
-#include "golddict/gddebug.hh"
-#include "HaiBeiDanCi/mysettings.h"
+#include "../golddict/gddebug.hh"
+#include "../HaiBeiDanCi/mysettings.h"
 
 #include <QMessageBox>
 

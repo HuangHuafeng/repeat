@@ -1,6 +1,6 @@
 #include "dictschemehandler.h"
-#include "golddict/gddebug.hh"
-#include "HaiBeiDanCi/mysettings.h"
+#include "../golddict/gddebug.hh"
+#include "../HaiBeiDanCi/mysettings.h"
 
 #include <QWebEngineUrlRequestJob>
 #include <QBuffer>

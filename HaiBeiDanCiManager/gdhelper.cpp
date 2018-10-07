@@ -1,7 +1,7 @@
 #include "gdhelper.h"
-#include "golddict/gddebug.hh"
-#include "HaiBeiDanCi/word.h"
-#include "HaiBeiDanCi/mysettings.h"
+#include "../golddict/gddebug.hh"
+#include "../HaiBeiDanCi/word.h"
+#include "../HaiBeiDanCi/mysettings.h"
 
 GDHelper::GDHelper(QObject *parent):
     QObject(parent),

@@ -1,7 +1,7 @@
 #include "servermanager.h"
-#include "HaiBeiDanCi/mysettings.h"
-#include "HaiBeiDanCi/serverdatadownloader.h"
-#include "HaiBeiDanCi/clienttoken.h"
+#include "../HaiBeiDanCi/mysettings.h"
+#include "../HaiBeiDanCi/serverdatadownloader.h"
+#include "../HaiBeiDanCi/clienttoken.h"
 
 ServerManager::ServerManager(QObject *parent) : QObject(parent),
     m_mgrAgt(MySettings::serverHostName(), MySettings::serverPort(), this),

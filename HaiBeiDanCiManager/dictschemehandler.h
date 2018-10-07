@@ -2,8 +2,8 @@
 #define DICTSCHEMEHANDLER_H
 
 #include "mdxdict.h"
-#include "HaiBeiDanCi/mediaplayer.h"
-#include "HaiBeiDanCi/temporaryfilemanager.h"
+#include "../HaiBeiDanCi/mediaplayer.h"
+#include "../HaiBeiDanCi/temporaryfilemanager.h"
 
 #include <QWebEngineUrlSchemeHandler>
 #include <QWebEngineView>

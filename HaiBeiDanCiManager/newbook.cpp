@@ -1,7 +1,7 @@
 #include "newbook.h"
 #include "ui_newbook.h"
-#include "golddict/gddebug.hh"
-#include "HaiBeiDanCi/mysettings.h"
+#include "../golddict/gddebug.hh"
+#include "../HaiBeiDanCi/mysettings.h"
 
 #include <QMessageBox>
 #include <QFileDialog>

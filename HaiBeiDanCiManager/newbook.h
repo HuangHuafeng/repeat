@@ -1,7 +1,7 @@
 #ifndef NEWBOOK_H
 #define NEWBOOK_H
 
-#include "HaiBeiDanCi/wordbook.h"
+#include "../HaiBeiDanCi/wordbook.h"
 #include "gdhelper.h"
 
 #include <QString>

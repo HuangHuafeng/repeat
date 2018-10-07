@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 #include "gdhelper.h"
-#include "HaiBeiDanCi/worddb.h"
-#include "HaiBeiDanCi/wordbook.h"
+#include "../HaiBeiDanCi/worddb.h"
+#include "../HaiBeiDanCi/wordbook.h"
 #include "servermanager.h"
 
 #include <QMainWindow>

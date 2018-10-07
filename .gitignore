@@ -6,6 +6,7 @@ build-*
 **/debug
 **/Release
 **/.qmake.stash
+packages
 
 # This file is used to ignore files which are generated
 # ----------------------------------------------------------------------------

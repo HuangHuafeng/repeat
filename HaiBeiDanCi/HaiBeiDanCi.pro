@@ -11,8 +11,8 @@ QT       += core gui webenginewidgets multimedia sql concurrent
 TARGET = HaiBeiDanCi
 TEMPLATE = app
 
-# version, APP_VERSION is string "0.9.1"
-VERSION = 0.9.1
+# version, APP_VERSION is string "major.minor.patch"
+VERSION = 2.0.2
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 # quazip
@@ -82,8 +82,8 @@ SOURCES += \
     token.cpp \
     clienttoken.cpp \
     applicationversion.cpp \
-    ../Upgrader/upgradedata.cpp \
-    autoupgrader.cpp
+    autoupgrader.cpp \
+    ../Upgrader/upgradedata.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -97,7 +97,6 @@ HEADERS += \
     worddb.h \
     wordview.h \
     dictschemehandler.h \
-    ../golddict/sptr.hh \
     temporaryfilemanager.h \
     browserwindow.h \
     mysettings.h \
@@ -117,8 +116,9 @@ HEADERS += \
     token.h \
     clienttoken.h \
     applicationversion.h \
+    autoupgrader.h \
     ../Upgrader/upgradedata.h \
-    autoupgrader.h
+    ../golddict/sptr.hh
 
 FORMS += \
     mainwindow.ui \
@@ -129,9 +129,6 @@ FORMS += \
     aboutdialog.ui \
     registerdialog.ui \
     logindialog.ui
-
-SUBDIRS += \
-    HaiBeiDanCi.pro
 
 RESOURCES += \
     haibeidanci.qrc

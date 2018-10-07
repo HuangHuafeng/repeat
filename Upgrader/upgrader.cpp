@@ -73,7 +73,7 @@ void Upgrader::extract()
         for (int i = 0;i < files.size();i ++)
         {
             auto fileName = files.at(i);
-            auto destFileName = extractDir + "/" + fileName;
+            auto destFileName = extractDir + "/" + fileName.section('/', 1);
             qDebug() << QString("extracting %1 to %2 ...").arg(fileName).arg(destFileName);
             JlCompress::extractFile(zipFile, fileName, destFileName);
             ui->pbExtracting->setValue(i);

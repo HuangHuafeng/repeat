@@ -5,6 +5,7 @@
 [ALMOST DONE]* reduce using sptr
 * about downloading progress, I don't think there's a perfect way
 to know the progress without sacrifice performance (reading all file info ahead)
+* don't initialize word definition when reading all words from database, read the definition when needed, to save memory
 
 
 PARTLY DONE * add security to the server, currently it exposes anything to the client!!!

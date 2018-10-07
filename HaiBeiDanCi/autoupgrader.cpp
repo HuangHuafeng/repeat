@@ -69,7 +69,7 @@ bool AutoUpgrader::startUpgrader(QStringList arguments)
 {
     if (arguments.isEmpty() == true)
     {
-        arguments << QCoreApplication::applicationName();
+        arguments << "--target" << QCoreApplication::applicationName();
     }
 
     UpgradeData ud(QCoreApplication::applicationName());
@@ -86,25 +86,30 @@ ApplicationVersion AutoUpgrader::upgraderVersion()
         return ApplicationVersion(0, 0, 0);
     }
 
+    QString versionFile = QCoreApplication::applicationDirPath() + "/UpgraderVersion.txt";
     QStringList arguments;
-    arguments << "--version";
+    arguments << "--version" << versionFile;
     QString workingDirectory = ufp.section('/', 0, -2);
     QProcess upgrader;
     upgrader.setWorkingDirectory(workingDirectory);
     upgrader.start(ufp, arguments);
-    if (upgrader.waitForReadyRead() == false)
+    if (upgrader.waitForFinished() == false)
     {
         qCritical() << "failed to run upgrader to get version information.";
-        upgrader.waitForFinished();
         return ApplicationVersion(0, 0, 0);
     }
-    upgrader.waitForFinished();
 
     char version[20];
-    if (upgrader.readLine(version, 20) <= 0)
+    QFile vf(versionFile);
+    if (vf.open(QIODevice::Text | QIODevice::ReadWrite) == false
+            || vf.readLine(version, 20) <= 0)
     {
-        qCritical() << "failed to read the output from the upgrader process.";
+        qCritical() << "failed to read version from" << versionFile;
         return ApplicationVersion(0, 0, 0);
+    }
+    if (vf.remove() == false)
+    {
+        qCritical() << "failed to remove file" << versionFile;
     }
 
     QString versionInString(version);
@@ -133,13 +138,15 @@ void AutoUpgrader::newVersionAvailable(ApplicationVersion version, QString fileN
     QString extractDir = QCoreApplication::applicationDirPath();
 
 #ifdef Q_OS_WIN
-    ;
+    // we should extract the files to QCoreApplication::applicationDirPath() directly
+    // becase we don't know if the user has changed the name of the directory or not
+    // this requires compressing the conents in "release" when releasing Windows version
+    // not the "release' folder
 #elif defined(Q_OS_MACOS)
-    if (extractDir.contains("Contents/MacOS") == true)
-    {
-        // should be the folder where HaiBeiDanCi.app locates
-        extractDir = extractDir.section('/', 0, -4);
-    }
+    // it's possible that user rename HaiBeiDanCi.app to a different name
+    // so we should exact the files to QCoreApplication::applicationDirPath()/../../
+    // which contains the folder "Contents"
+    extractDir = extractDir.section('/', 0, -3);
 #elif defined(Q_OS_LINUX)
     ;
 #else
@@ -201,9 +208,9 @@ QString AutoUpgrader::hardcodedUpgraderFilePath()
 {
     QString ufp;
 #ifdef Q_OS_WIN
-        ufp = MySettings::dataDirectory() + "/Upgrader/ConsoleUpgrader.exe";
+        ufp = MySettings::dataDirectory() + "/Upgrader/Upgrader.exe";
 #elif defined(Q_OS_MACOS)
-        ufp = MySettings::dataDirectory() + "/ConsoleUpgrader.app/Contents/MacOS/ConsoleUpgrader";
+        ufp = MySettings::dataDirectory() + "/Upgrader.app/Contents/MacOS/Upgrader";
 #elif defined(Q_OS_LINUX)
         ;
 #else

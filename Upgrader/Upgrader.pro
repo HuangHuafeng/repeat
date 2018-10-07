@@ -10,7 +10,7 @@ TARGET = Upgrader
 TEMPLATE = app
 
 # version, APP_VERSION is string "0.9.1"
-VERSION = 1.8.0
+VERSION = 1.8.1
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 # quazip

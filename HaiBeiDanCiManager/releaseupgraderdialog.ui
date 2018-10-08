@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>159</height>
+    <height>161</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,9 +65,6 @@
        </item>
       </widget>
      </item>
-     <item row="0" column="1" colspan="3">
-      <widget class="QLineEdit" name="leVersion"/>
-     </item>
      <item row="2" column="3">
       <widget class="QPushButton" name="pbBrowse">
        <property name="text">
@@ -92,6 +89,16 @@
        </property>
        <property name="text">
         <string>Release</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" colspan="2">
+      <widget class="QLineEdit" name="leVersion"/>
+     </item>
+     <item row="0" column="3">
+      <widget class="QCheckBox" name="cbIsLibPart">
+       <property name="text">
+        <string>Library</string>
        </property>
       </widget>
      </item>

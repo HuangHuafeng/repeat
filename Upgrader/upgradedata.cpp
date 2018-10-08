@@ -86,7 +86,7 @@ QString UpgradeData::upgraderFilePath()
     return ufp;
 }
 
-bool UpgradeData::saveUpgradeData(const ApplicationVersion &version, QString zipFile, QString extractDir)
+bool UpgradeData::saveUpgradeData(const ApplicationVersion &version, QStringList zipFiles, QString extractDir)
 {
     QString fileName = dataFile();
     QFile dataFile(fileName);
@@ -97,14 +97,14 @@ bool UpgradeData::saveUpgradeData(const ApplicationVersion &version, QString zip
     }
 
     QDataStream ds(&dataFile);
-    ds << version << zipFile << extractDir;
+    ds << version << zipFiles << extractDir;
 
     dataFile.close();
 
     return true;
 }
 
-bool UpgradeData::getUpgradeData(ApplicationVersion &version, QString &zipFile, QString &extractDir)
+bool UpgradeData::getUpgradeData(ApplicationVersion &version, QStringList &zipFiles, QString &extractDir)
 {
     QString fileName = dataFile();
     Q_ASSERT(QFile::exists(fileName) == true);
@@ -117,7 +117,7 @@ bool UpgradeData::getUpgradeData(ApplicationVersion &version, QString &zipFile, 
     }
 
     QDataStream ds(&dataFile);
-    ds >> version >> zipFile >> extractDir;
+    ds >> version >> zipFiles >> extractDir;
 
     dataFile.close();
 

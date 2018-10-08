@@ -18,8 +18,8 @@ public:
     void saveUpgraderFilePath(QString ufp);
     QString upgraderFilePath();
 
-    bool saveUpgradeData(const ApplicationVersion &version, QString zipFile, QString extractDir);
-    bool getUpgradeData(ApplicationVersion &version, QString &zipFile, QString &extractDir);
+    bool saveUpgradeData(const ApplicationVersion &version, QStringList zipFiles, QString extractDir);
+    bool getUpgradeData(ApplicationVersion &version, QStringList &zipFiles, QString &extractDir);
 
     void saveTargetStartCommand(QString command);
     QString targetStartCommand();

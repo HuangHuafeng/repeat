@@ -5,6 +5,7 @@
 
 #include <QString>
 #include <QDataStream>
+#include <QDateTime>
 
 /**
  * a message between the server and the client should:
@@ -151,5 +152,22 @@ public:
 
 QDataStream &operator<<(QDataStream &ds, const MessageHeader &msgHead);
 QDataStream &operator>>(QDataStream &ds, MessageHeader &msgHead);
+
+class ReleaseInfo {
+public:
+    QString object;
+    ApplicationVersion version;
+    QString platform;
+    QString fileName;
+    QString info;
+    QDateTime releaseTime;
+
+    ReleaseInfo() : version(0, 0, 0)
+    {
+    }
+};
+
+QDataStream &operator<<(QDataStream &ds, const ReleaseInfo &ri);
+QDataStream &operator>>(QDataStream &ds, ReleaseInfo &ri);
 
 #endif // SERVERCLIENTPROTOCOL_H

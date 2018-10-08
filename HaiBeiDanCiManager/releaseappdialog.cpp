@@ -102,7 +102,8 @@ void ReleaseAppDialog::onFileUploaded(QString fileName)
     ApplicationVersion appVer = ApplicationVersion::fromString(ui->leVersion->text());
     QString platform = ui->comboBox->currentText();
     QString info = ui->teInfo->toHtml();
-    m_sm.releaseApp(appVer, platform, fileName, info);
+    bool isLibPart = ui->cbIsLibPart->isChecked();
+    m_sm.releaseApp(appVer, platform, fileName, info, isLibPart);
 }
 
 void ReleaseAppDialog::onAppReleased(bool succeed)

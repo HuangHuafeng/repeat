@@ -30,8 +30,8 @@ class MainWindow : public QMainWindow
     void onItemSelectionChanged();
     void onWordStudied(QString spelling);
     void onBookDownloaded(QString /*bookName*/);
-    void onAppVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime);
-    void onUpgraderVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime);
+    void onAppVersion(ReleaseInfo appReleaseInfo, ReleaseInfo appLibReleaseInfo);
+    void onUpgraderVersion(ReleaseInfo upgraderReleaseInfo, ReleaseInfo upgraderLibReleaseInfo);
 
     void on_pushBrowseExpiredWords_clicked();
 
@@ -109,11 +109,11 @@ private:
     sptr<StudyList> newWordsFromCurrentBook();
     sptr<StudyList> allWordsFromCurrentBook();
     void showCurrentBookIntroduction();
-    void downloadLatestVersion(ApplicationVersion version, QString fileName);
-    void onAppDownloaded(ApplicationVersion version, QString fileName);
+    void downloadLatestApp(ApplicationVersion version, QStringList files);
+    void onAppDownloaded(ApplicationVersion version, QStringList files);
 
-    void downloadLatestUpgrader(ApplicationVersion version, QString fileName);
-    void onUpgraderDownloaded(ApplicationVersion version, QString fileName);
+    void downloadLatestUpgrader(ApplicationVersion version, QStringList files);
+    void onUpgraderDownloaded(ApplicationVersion version, QStringList files);
 
     QString getPlatform();
 };

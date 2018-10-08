@@ -741,16 +741,17 @@ void SvrAgt::downloadFile(QString fileName)
 
 void SvrAgt::downloadApp(QString fileName)
 {
-    Q_ASSERT(m_filesToDownload.isEmpty() == true);
-    Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
+    //Q_ASSERT(m_filesToDownload.isEmpty() == true);
+    //Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
     if (m_filesToDownload.contains(fileName) == false)
     {
         m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
         sendRequestGetApp(fileName);
+        m_toDownload ++;
     }
 
-    m_toDownload = m_filesToDownload.size();
-    m_downloaded = 0;
+    //m_toDownload = m_filesToDownload.size();
+    //m_downloaded = 0;
 }
 
 void SvrAgt::downloadUpgrader(QString fileName)
@@ -918,19 +919,16 @@ bool SvrAgt::handleResponseAppVersion(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
-    ApplicationVersion appVer(0, 0, 0);
-    QString fileName;
-    QString info;
-    QDateTime releaseTime;
+    ReleaseInfo appRelaseInfo, appLibRelaseInfo;
     in.startTransaction();
-    in >> receivedMsgHeader >> appVer >> fileName >> info >> releaseTime;
+    in >> receivedMsgHeader >> appRelaseInfo >> appLibRelaseInfo;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read info in handleResponseAppVersion()";
         return false;
     }
 
-    emit(appVersion(appVer, fileName, info, releaseTime));
+    emit(appVersion(appRelaseInfo, appLibRelaseInfo));
 
     return true;
 }
@@ -939,19 +937,16 @@ bool SvrAgt::handleResponseUpgraderVersion(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
-    ApplicationVersion upgraderVer(0, 0, 0);
-    QString fileName;
-    QString info;
-    QDateTime releaseTime;
+    ReleaseInfo upgraderRelaseInfo, upgraderLibRelaseInfo;
     in.startTransaction();
-    in >> receivedMsgHeader >> upgraderVer >> fileName >> info >> releaseTime;
+    in >> receivedMsgHeader >> upgraderRelaseInfo >> upgraderLibRelaseInfo;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read info in handleResponseUpgraderVersion()";
         return false;
     }
 
-    emit(upgraderVersion(upgraderVer, fileName, info, releaseTime));
+    emit(upgraderVersion(upgraderRelaseInfo, upgraderLibRelaseInfo));
 
     return true;
 }

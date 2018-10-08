@@ -126,7 +126,7 @@ ApplicationVersion AutoUpgrader::upgraderVersion()
  * @param version
  * @param fileName  full path to the zip file that contains the new version
  */
-void AutoUpgrader::newVersionAvailable(ApplicationVersion version, QString fileName)
+void AutoUpgrader::newAppDownloaded(ApplicationVersion version, QStringList zipFiles)
 {
     UpgradeData ud(QCoreApplication::applicationName());
 
@@ -154,8 +154,8 @@ void AutoUpgrader::newVersionAvailable(ApplicationVersion version, QString fileN
 #endif
 
     // tell the upgrader where is the zip file and where to extract to
-    ud.saveUpgradeData(version, fileName, extractDir);
-    qDebug() << version.toString() << fileName << extractDir;
+    ud.saveUpgradeData(version, zipFiles, extractDir);
+    qDebug() << version.toString() << zipFiles << extractDir;
 }
 
 void AutoUpgrader::newUpgraderDownloaded(ApplicationVersion version, QString fileName)

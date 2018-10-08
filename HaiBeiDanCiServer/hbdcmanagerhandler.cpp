@@ -1,8 +1,7 @@
 #include "hbdcmanagerhandler.h"
 #include "../HaiBeiDanCi/mediafilemanager.h"
 #include "../HaiBeiDanCi/mysettings.h"
-#include "appreleaser.h"
-#include "upgraderreleaser.h"
+#include "releasemanager.h"
 
 #include <QDir>
 #include <QFile>
@@ -507,16 +506,18 @@ bool HBDCManagerHandler::handleRequestReleaseApp(const QByteArray &msg)
     MessageHeader receivedMsgHeader(-1, -1, -1);
     ApplicationVersion appVer(0, 0, 0);
     QString platform, fileName, info;
+    bool isLibPart;
     in.startTransaction();
-    in >> receivedMsgHeader >> appVer >> platform >> fileName >> info;
+    in >> receivedMsgHeader >> appVer >> platform >> fileName >> info >> isLibPart;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read words of the book in handleRequestReleaseApp()";
         return false;
     }
 
-    AppReleaser *ar = AppReleaser::instance();
-    bool succeed = ar->releaseNewVersion(appVer, platform, fileName, info);
+    ReleaseManager *rm = ReleaseManager::instance();
+    QString object = isLibPart ? AppLib : App;
+    bool succeed = rm->releaseObject(object, appVer, platform, fileName, info);
 
     sendResponseReleaseApp(msg, succeed);
 
@@ -540,16 +541,18 @@ bool HBDCManagerHandler::handleRequestReleaseUpgrader(const QByteArray &msg)
     MessageHeader receivedMsgHeader(-1, -1, -1);
     ApplicationVersion appVer(0, 0, 0);
     QString platform, fileName;
+    bool isLibPart;
     in.startTransaction();
-    in >> receivedMsgHeader >> appVer >> platform >> fileName;
+    in >> receivedMsgHeader >> appVer >> platform >> fileName >> isLibPart;
     if (in.commitTransaction() == false)
     {
         qCritical() << "failed to read words of the book in handleRequestReleaseApp()";
         return false;
     }
 
-    UpgraderReleaser *ur = UpgraderReleaser::instance();
-    bool succeed = ur->releaseNewVersion(appVer, platform, fileName, "NOT USED");
+    ReleaseManager *rm = ReleaseManager::instance();
+    QString object = isLibPart ? UpgraderLib : Upgrader;
+    bool succeed = rm->releaseObject(object, appVer, platform, fileName, "");
 
     sendResponseReleaseUpgrader(msg, succeed);
 

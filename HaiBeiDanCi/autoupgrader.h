@@ -12,7 +12,7 @@ public:
     ~AutoUpgrader();
 
     bool startUpgrader(QStringList arguments = QStringList());
-    void newVersionAvailable(ApplicationVersion version, QString fileName);
+    void newAppDownloaded(ApplicationVersion version, QStringList zipFiles);
     void newUpgraderDownloaded(ApplicationVersion version, QString fileName);
     ApplicationVersion upgraderVersion();
     QString hardcodedUpgraderFilePath();

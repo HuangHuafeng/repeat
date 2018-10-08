@@ -1,7 +1,11 @@
 #include "clienthandler.h"
 #include "tokenmanager.h"
-#include "appreleaser.h"
-#include "upgraderreleaser.h"
+#include "releasemanager.h"
+
+const QString ClientHandler::App = "HaiBeiDanCi";
+const QString ClientHandler::AppLib = "HaiBeiDanCi_Library";
+const QString ClientHandler::Upgrader = "Upgrader";
+const QString ClientHandler::UpgraderLib = "Upgrader_Library";
 
 ClientHandler::ClientHandler(ClientWaiter &clientWaiter) :
     m_clientWaiter(clientWaiter),
@@ -397,11 +401,12 @@ void ClientHandler::sendResponseAppVersion(const QByteArray &msg, QString platfo
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseAppVersion, receivedMsgHeader.sequenceNumber());
 
-    AppReleaser *ar = AppReleaser::instance();
+    ReleaseManager *rm = ReleaseManager::instance();
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    auto cv = ar->currentVersion(platform);
-    out << responseHeader << cv.version << cv.fileName << cv.info << cv.releaseTime;
+    auto appVerion = rm->currentVersion(App, platform);
+    auto appLibVerion = rm->currentVersion(AppLib, platform);
+    out << responseHeader << appVerion << appLibVerion;
     sendMessage(block);
 }
 
@@ -410,11 +415,12 @@ void ClientHandler::sendResponseUpgraderVersion(const QByteArray &msg, QString p
     MessageHeader receivedMsgHeader(msg);
     MessageHeader responseHeader(ServerClientProtocol::ResponseUpgraderVersion, receivedMsgHeader.sequenceNumber());
 
-    UpgraderReleaser *ur = UpgraderReleaser::instance();
+    ReleaseManager *rm = ReleaseManager::instance();
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    auto cv = ur->currentVersion(platform);
-    out << responseHeader << cv.version << cv.fileName << cv.info << cv.releaseTime;
+    auto upgraderVer = rm->currentVersion(Upgrader, platform);
+    auto upgraderLibVer = rm->currentVersion(UpgraderLib, platform);
+    out << responseHeader << upgraderVer << upgraderLibVer;
     sendMessage(block);
 }
 

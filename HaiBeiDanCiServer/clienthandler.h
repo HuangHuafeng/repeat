@@ -52,6 +52,11 @@ public:
 
     int processMessage(const QByteArray &msg);
     void handleUnknownMessage(const QByteArray &msg);
+
+    static const QString App;
+    static const QString AppLib;
+    static const QString Upgrader;
+    static const QString UpgraderLib;
 };
 
 #endif // CLIENTHANDLER_H

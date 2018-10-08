@@ -82,8 +82,8 @@ signals:
     void loginResult(qint32 result, const ApplicationUser &user, const Token &token);
     void logoutResult(qint32 result, QString name);
 
-    void appVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime);
-    void upgraderVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime);
+    void appVersion(ReleaseInfo appReleaseInfo, ReleaseInfo appLibReleaseInfo);
+    void upgraderVersion(ReleaseInfo upgraderReleaseInfo, ReleaseInfo upgraderLibReleaseInfo);
 
 private slots:
     void onConnected();

@@ -105,3 +105,27 @@ QDataStream &operator>>(QDataStream &ds, MessageHeader &msgHead)
     msgHead.setTokenId(tokenId);
     return ds;
 }
+
+QDataStream &operator<<(QDataStream &ds, const ReleaseInfo &ri)
+{
+    ds << ri.object << ri.version << ri.platform << ri.fileName << ri.info << ri.releaseTime;
+    return ds;
+}
+
+QDataStream &operator>>(QDataStream &ds, ReleaseInfo &ri)
+{
+    QString object;
+    ApplicationVersion version(0, 0, 0);
+    QString platform;
+    QString fileName;
+    QString info;
+    QDateTime dt;
+    ds >> object >> version >> platform >> fileName >> info >> dt;
+    ri.object = object;
+    ri.version = version;
+    ri.platform = platform;
+    ri.fileName = fileName;
+    ri.info = info;
+    ri.releaseTime = dt;
+    return ds;
+}

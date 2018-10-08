@@ -10,9 +10,10 @@ QT       += core gui webenginewidgets multimedia sql concurrent
 
 TARGET = HaiBeiDanCi
 TEMPLATE = app
+CONFIG += no_batch
 
 # version, APP_VERSION is string "major.minor.patch"
-VERSION = 2.0.2
+VERSION = 3.0.1
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 # quazip

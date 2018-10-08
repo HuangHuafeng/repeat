@@ -93,7 +93,8 @@ void ReleaseUpgraderDialog::onFileUploaded(QString fileName)
     // step 2: update the released app info in server
     ApplicationVersion appVer = ApplicationVersion::fromString(ui->leVersion->text());
     QString platform = ui->cbPlatform->currentText();
-    m_sm.releaseUpgrader(appVer, platform, fileName);
+    bool isLibPart = ui->cbIsLibPart->isChecked();
+    m_sm.releaseUpgrader(appVer, platform, fileName, isLibPart);
 }
 
 void ReleaseUpgraderDialog::onUpgraderReleased(bool succeed)

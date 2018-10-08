@@ -338,13 +338,13 @@ void ManagerAgent::sendRequestUploadAFileFinished(QString fileName, bool succeed
     sendMessage(block);
 }
 
-void ManagerAgent::sendRequestReleaseApp(ApplicationVersion version, QString platform, QString fileName, QString info)
+void ManagerAgent::sendRequestReleaseApp(ApplicationVersion version, QString platform, QString fileName, QString info, bool isLibPart)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestReleaseApp);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader << version << platform << fileName << info;
+    out << msgHeader << version << platform << fileName << info << isLibPart;
     sendMessage(block);
 }
 
@@ -366,13 +366,13 @@ bool ManagerAgent::handleResponseReleaseApp(const QByteArray &msg)
     return true;
 }
 
-void ManagerAgent::sendRequestReleaseUpgrader(ApplicationVersion version, QString platform, QString fileName)
+void ManagerAgent::sendRequestReleaseUpgrader(ApplicationVersion version, QString platform, QString fileName, bool isLibPart)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestReleaseUpgrader);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader << version << platform << fileName;
+    out << msgHeader << version << platform << fileName << isLibPart;
     sendMessage(block);
 }
 

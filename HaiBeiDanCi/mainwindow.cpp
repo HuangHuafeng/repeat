@@ -563,15 +563,28 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     ui->actionUpdate_Upgrader->trigger();
 }
 
-void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime)
+void MainWindow::onAppVersion(ReleaseInfo appReleaseInfo, ReleaseInfo appLibReleaseInfo)
 {
     ApplicationVersion myVer = ApplicationVersion::fromString(APP_VERSION);
-    if (version.toInt() > myVer.toInt())
+    qDebug() << "HaiBeiDanCi: server version" << appReleaseInfo.version.toString() << "vs local version" << myVer.toString();
+    QStringList filesToDownload;
+
+    if (appLibReleaseInfo.version.toInt() > myVer.toInt())
+    {
+        filesToDownload.append(appLibReleaseInfo.fileName);
+    }
+
+    if (appReleaseInfo.version.toInt() > myVer.toInt())
+    {
+        filesToDownload.append(appReleaseInfo.fileName);
+    }
+
+    if (filesToDownload.isEmpty() == false)
     {
         QMessageBox msgBox(this);
         msgBox.setIcon(QMessageBox::Information);
-        msgBox.setText(QObject::tr("Version %1 is available!").arg(version.toString()));
-        QString infoText = info.arg(releaseTime.toString())
+        msgBox.setText(QObject::tr("Version %1 is available!").arg(appReleaseInfo.version.toString()));
+        QString infoText = appReleaseInfo.info.arg(appReleaseInfo.releaseTime.toString())
                 + "<br></br>"
                 + QObject::tr("Would you like to download it now?");
         msgBox.setInformativeText(infoText);
@@ -580,7 +593,7 @@ void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QStr
         int ret = msgBox.exec();
         if (ret == QMessageBox::Yes)
         {
-            downloadLatestVersion(version, fileName);
+            downloadLatestApp(appReleaseInfo.version, filesToDownload);
         }
     }
     else
@@ -591,7 +604,7 @@ void MainWindow::onAppVersion(ApplicationVersion version, QString fileName, QStr
     }
 }
 
-void MainWindow::downloadLatestVersion(ApplicationVersion version, QString fileName)
+void MainWindow::downloadLatestApp(ApplicationVersion version, QStringList files)
 {
     QProgressDialog *pd = new QProgressDialog(QObject::tr("Downloading version %1 ...").arg(version.toString()),
                                               QObject::tr("Cancel"),
@@ -601,36 +614,61 @@ void MainWindow::downloadLatestVersion(ApplicationVersion version, QString fileN
     pd->setModal(true);
     pd->setValue(0);
     ServerDataDownloader *sdd = new ServerDataDownloader(this);
+    QStringList *filesToDownload = new QStringList;
+    *filesToDownload = files;
 
     // update the downloading progress
-    connect(sdd, &ServerDataDownloader::downloadProgress, [pd] (float percentage) {
+    connect(sdd, &ServerDataDownloader::downloadProgress, [pd, filesToDownload] (float percentage) {
         int progress = static_cast<int>(100 * percentage);
+        if (filesToDownload->isEmpty() == false)
+        {
+            progress /= filesToDownload->size();
+        }
         pd->setValue(progress);
     });
 
     // delete pd and sdd when downloading finishes
-    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, version, fileName] () {
-        pd->deleteLater();
-        sdd->deleteLater();
-        qDebug() << "sdd, pd deleted as the downloading finished!";
-        this->onAppDownloaded(version, fileName);
+    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, version, files, filesToDownload] (QString fileName, bool succeeded) {
+        Q_ASSERT(filesToDownload->contains(fileName) == true);
+        if (succeeded == false)
+        {
+            qCritical() << "downloading" << fileName << "failed";
+        }
+        filesToDownload->removeOne(fileName);
+        if (filesToDownload->isEmpty() == true)
+        {
+            // we have downloaded all the files
+            pd->deleteLater();
+            sdd->deleteLater();
+            delete filesToDownload;
+            qDebug() << "sdd, pd deleted as the downloading finished!";
+            this->onAppDownloaded(version, files);
+        }
     });
 
     // delete pd and sdd when downloading is cancelled
-    connect(pd, &QProgressDialog::canceled, [pd, sdd] () {
+    connect(pd, &QProgressDialog::canceled, [pd, sdd, filesToDownload] () {
         sdd->cancelDownloading();
         sdd->deleteLater();
         pd->deleteLater();
+        delete filesToDownload;
         qDebug() << "sdd, pd deleted as the downloading is cancelled!";
     });
 
-    sdd->downloadApp(fileName);
+    for (int i = 0;i < files.size();i ++)
+    {
+        sdd->downloadApp(files.at(i));
+    }
 }
 
-void MainWindow::onAppDownloaded(ApplicationVersion version, QString fileName)
+void MainWindow::onAppDownloaded(ApplicationVersion version, QStringList files)
 {
-    QString zipFile = MySettings::dataDirectory() + "/" + fileName;
-    m_au.newVersionAvailable(version, zipFile);
+    QStringList zipFiles;
+    for (int i = 0;i < files.size();i ++)
+    {
+        zipFiles.append(MySettings::dataDirectory() + "/" + files.at(i));
+    }
+    m_au.newAppDownloaded(version, zipFiles);
 
     QMessageBox msgBox(this);
     msgBox.setIcon(QMessageBox::Information);
@@ -652,7 +690,7 @@ void MainWindow::on_actionUpdate_Upgrader_triggered()
 {
     QString platform = getPlatform();
     SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
-    connect(sa, SIGNAL(upgraderVersion(ApplicationVersion, QString, QString, QDateTime)), this, SLOT(onUpgraderVersion(ApplicationVersion, QString, QString, QDateTime)));
+    connect(sa, SIGNAL(upgraderVersion(ReleaseInfo, ReleaseInfo)), this, SLOT(onUpgraderVersion(ReleaseInfo, ReleaseInfo)));
     connect(sa, &SvrAgt::upgraderVersion, [sa] () {
         sa->deleteLater();
         qDebug() << "sa->deleteLater() called!";
@@ -660,15 +698,25 @@ void MainWindow::on_actionUpdate_Upgrader_triggered()
     sa->sendRequestUpgraderVersion(platform);
 }
 
-void MainWindow::onUpgraderVersion(ApplicationVersion version, QString fileName, QString info, QDateTime releaseTime)
+void MainWindow::onUpgraderVersion(ReleaseInfo upgraderReleaseInfo, ReleaseInfo upgraderLibReleaseInfo)
 {
-    qDebug() << "info" << info << "release time:" << releaseTime;
-
     ApplicationVersion upgraderVer = m_au.upgraderVersion();
-    qDebug() << "Upgrader: server version" << version.toString() << "vs local version" << upgraderVer.toString();
-    if (version.toInt() > upgraderVer.toInt())
+    qDebug() << "Upgrader: server version" << upgraderReleaseInfo.version.toString() << "vs local version" << upgraderVer.toString();
+    QStringList filesToDownload;
+
+    if (upgraderLibReleaseInfo.version.toInt() > upgraderVer.toInt())
     {
-        downloadLatestUpgrader(version, fileName);
+        filesToDownload.append(upgraderLibReleaseInfo.fileName);
+    }
+
+    if (upgraderReleaseInfo.version.toInt() > upgraderVer.toInt())
+    {
+        filesToDownload.append(upgraderReleaseInfo.fileName);
+    }
+
+    if (filesToDownload.isEmpty() == false)
+    {
+        downloadLatestUpgrader(upgraderReleaseInfo.version, filesToDownload);
     }
     else
     {
@@ -676,7 +724,7 @@ void MainWindow::onUpgraderVersion(ApplicationVersion version, QString fileName,
     }
 }
 
-void MainWindow::downloadLatestUpgrader(ApplicationVersion version, QString fileName)
+void MainWindow::downloadLatestUpgrader(ApplicationVersion version, QStringList files)
 {
     QProgressDialog *pd = new QProgressDialog(QObject::tr("Downloading upgrader version %1 ...").arg(version.toString()),
                                               QString(),
@@ -686,28 +734,55 @@ void MainWindow::downloadLatestUpgrader(ApplicationVersion version, QString file
     pd->setModal(true);
     pd->setValue(0);
     ServerDataDownloader *sdd = new ServerDataDownloader(this);
+    // here we use a pointer, as capture by-reference seems not work and I don't know why
+    QStringList *filesToDownload = new QStringList;
+    *filesToDownload = files;
+    qDebug() << "filesToDownload.size() is" << filesToDownload->size();
 
     // update the downloading progress
-    connect(sdd, &ServerDataDownloader::downloadProgress, [pd] (float percentage) {
+    connect(sdd, &ServerDataDownloader::downloadProgress, [pd, filesToDownload] (float percentage) {
         int progress = static_cast<int>(100 * percentage);
+        if(filesToDownload->isEmpty() == false)
+        {
+            progress /= filesToDownload->size();
+        }
+        qDebug() << "progress is" << progress << "and filesToDownload->size() is" << filesToDownload->size();
         pd->setValue(progress);
     });
 
     // delete pd and sdd when downloading finishes
-    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, version, fileName] () {
-        pd->deleteLater();
-        sdd->deleteLater();
-        qDebug() << "sdd, pd deleted as the downloading finished!";
-        this->onUpgraderDownloaded(version, fileName);
+    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, version, files, filesToDownload] (QString fileName, bool succeeded) {
+        Q_ASSERT(filesToDownload->contains(fileName) == true);
+        if (succeeded == false)
+        {
+            qCritical() << "downloading" << fileName << "failed";
+        }
+        filesToDownload->removeOne(fileName);
+        qDebug() << "filesToDownload.size() is" << filesToDownload->size();
+        if (filesToDownload->isEmpty() == true)
+        {
+            // we have downloaded all the files
+            pd->deleteLater();
+            sdd->deleteLater();
+            delete filesToDownload;
+            qDebug() << "sdd, pd deleted as the downloading finished!";
+            this->onUpgraderDownloaded(version, files);
+        }
     });
 
-    sdd->downloadApp(fileName);
+    for (int i = 0;i < files.size();i ++)
+    {
+        sdd->downloadApp(files.at(i));
+    }
 }
 
-void MainWindow::onUpgraderDownloaded(ApplicationVersion version, QString fileName)
+void MainWindow::onUpgraderDownloaded(ApplicationVersion version, QStringList files)
 {
-    QString zipFile = MySettings::dataDirectory() + "/" + fileName;
-    m_au.newUpgraderDownloaded(version, zipFile);
+    for (int i = 0;i < files.size();i ++)
+    {
+        QString zipFile = MySettings::dataDirectory() + "/" + files.at(i);
+        m_au.newUpgraderDownloaded(version, zipFile);
+    }
     ui->actionUpdate_App->trigger();
 }
 
@@ -716,7 +791,7 @@ void MainWindow::on_actionUpdate_App_triggered()
     // check the app
     QString platform = getPlatform();
     SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
-    connect(sa, SIGNAL(appVersion(ApplicationVersion, QString, QString, QDateTime)), this, SLOT(onAppVersion(ApplicationVersion, QString, QString, QDateTime)));
+    connect(sa, SIGNAL(appVersion(ReleaseInfo, ReleaseInfo)), this, SLOT(onAppVersion(ReleaseInfo, ReleaseInfo)));
     connect(sa, &SvrAgt::appVersion, [sa] () {
         sa->deleteLater();
         qDebug() << "sa->deleteLater() called!";

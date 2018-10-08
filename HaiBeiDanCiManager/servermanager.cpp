@@ -668,12 +668,12 @@ bool ServerManager::bookExistsInServer(QString bookName)
     return m_mapBooks.value(bookName).get() != nullptr;
 }
 
-void ServerManager::releaseApp(ApplicationVersion version, QString platform, QString fileName, QString info)
+void ServerManager::releaseApp(ApplicationVersion version, QString platform, QString fileName, QString info, bool isLibPart)
 {
-    m_mgrAgt.sendRequestReleaseApp(version, platform, fileName, info);
+    m_mgrAgt.sendRequestReleaseApp(version, platform, fileName, info, isLibPart);
 }
 
-void ServerManager::releaseUpgrader(ApplicationVersion version, QString platform, QString fileName)
+void ServerManager::releaseUpgrader(ApplicationVersion version, QString platform, QString fileName, bool isLibPart)
 {
-    m_mgrAgt.sendRequestReleaseUpgrader(version, platform, fileName);
+    m_mgrAgt.sendRequestReleaseUpgrader(version, platform, fileName, isLibPart);
 }

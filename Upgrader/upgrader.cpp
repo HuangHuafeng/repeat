@@ -61,24 +61,37 @@ void Upgrader::extract()
     UpgradeData ud(m_target);
     Q_ASSERT(ud.hasUpgradeData() == true);
     ApplicationVersion version(0, 0, 0);
-    QString zipFile, extractDir;
-    if (ud.getUpgradeData(version, zipFile, extractDir) == true)
+    QString extractDir;
+    QStringList zipFiles;
+    if (ud.getUpgradeData(version, zipFiles, extractDir) == true)
     {
         ui->label->setText(QObject::tr("Decompressing version %1 ...").arg(version.toString()));
-        qDebug() << "extracting" << zipFile << "to" << extractDir;
+        qDebug() << "extracting" << zipFiles << "to" << extractDir;
         //JlCompress::extractDir(zipFile, extractDir);
 
-        auto files = JlCompress::getFileList(zipFile);
-        ui->pbExtracting->setMaximum(files.size() - 1);
-        for (int i = 0;i < files.size();i ++)
+        QStringList files;
+        for (int i = 0;i < zipFiles.size();i ++)
         {
-            auto fileName = files.at(i);
-            auto destFileName = extractDir + "/" + fileName.section('/', 1);
-            qDebug() << QString("extracting %1 to %2 ...").arg(fileName).arg(destFileName);
-            JlCompress::extractFile(zipFile, fileName, destFileName);
-            ui->pbExtracting->setValue(i);
-            QCoreApplication::processEvents();
+            files += JlCompress::getFileList(zipFiles.at(i));
         }
+        ui->pbExtracting->setMaximum(files.size() - 1);
+        int progress = 0;
+        for (int i = 0;i < zipFiles.size();i ++)
+        {
+            QString zf = zipFiles.at(i);
+            auto filesInOneZip = JlCompress::getFileList(zf);
+            for (int j = 0;j < filesInOneZip.size();j ++)
+            {
+                auto fileName = filesInOneZip.at(i);
+                auto destFileName = extractDir + "/" + fileName.section('/', 1);
+                qDebug() << QString("extracting %1 from %2 to %3 ...").arg(fileName).arg(zf).arg(destFileName);
+                JlCompress::extractFile(zf, fileName, destFileName);
+                progress ++;
+                ui->pbExtracting->setValue(progress);
+                QCoreApplication::processEvents();
+            }
+        }
+        //////
 
         QMessageBox::information(this,
                                  QObject::tr("Upgrader"),

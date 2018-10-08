@@ -35,8 +35,8 @@ public:
     QVector<QString> getWordListOfBook(QString bookName);
     QList<QString> getMissingMediaFilesOfBook(QString bookName);
     void uploadBookMissingMediaFiles(QString bookName);
-    void releaseApp(ApplicationVersion version, QString platform, QString fileName, QString info);
-    void releaseUpgrader(ApplicationVersion version, QString platform, QString fileName);
+    void releaseApp(ApplicationVersion version, QString platform, QString fileName, QString info, bool isLibPart = false);
+    void releaseUpgrader(ApplicationVersion version, QString platform, QString fileName, bool isLibPart = false);
 
 signals:
     void serverDataReloaded();

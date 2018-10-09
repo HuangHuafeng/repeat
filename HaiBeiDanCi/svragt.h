@@ -39,7 +39,7 @@ public:
     void cancelDownloading();
 
     void downloadFile(QString fileName);
-    void downloadApp(QString fileName);
+    void downloadAppFile(QString fileName);
     void downloadUpgrader(QString fileName);
 
     void sendRequestNoOperation();

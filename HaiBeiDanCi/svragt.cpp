@@ -700,9 +700,9 @@ void SvrAgt::sendRequestGetFile(QString fileName)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestGetApp(QString fileName)
+void SvrAgt::sendRequestGetAppFile(QString fileName)
 {
-    MessageHeader msgHeader(ServerClientProtocol::RequestGetApp);
+    MessageHeader msgHeader(ServerClientProtocol::RequestGetAppFile);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -739,14 +739,14 @@ void SvrAgt::downloadFile(QString fileName)
     m_downloaded = 0;
 }
 
-void SvrAgt::downloadApp(QString fileName)
+void SvrAgt::downloadAppFile(QString fileName)
 {
     //Q_ASSERT(m_filesToDownload.isEmpty() == true);
     //Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
     if (m_filesToDownload.contains(fileName) == false)
     {
         m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
-        sendRequestGetApp(fileName);
+        sendRequestGetAppFile(fileName);
         m_toDownload ++;
     }
 

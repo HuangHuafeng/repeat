@@ -31,7 +31,7 @@ int HBDCAppHandler::handleMessage(const QByteArray &msg)
         break;
 
     case ServerClientProtocol::RequestGetFile:
-    case ServerClientProtocol::RequestGetApp:   // same as RequestGetFile
+    case ServerClientProtocol::RequestGetAppFile:   // same as RequestGetFile
         handleResult = handleRequestGetFile(msg);
         break;
 

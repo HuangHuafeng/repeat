@@ -657,7 +657,7 @@ void MainWindow::downloadLatestApp(ApplicationVersion version, QStringList files
 
     for (int i = 0;i < files.size();i ++)
     {
-        sdd->downloadApp(files.at(i));
+        sdd->downloadAppFile(files.at(i));
     }
 }
 
@@ -772,7 +772,7 @@ void MainWindow::downloadLatestUpgrader(ApplicationVersion version, QStringList 
 
     for (int i = 0;i < files.size();i ++)
     {
-        sdd->downloadApp(files.at(i));
+        sdd->downloadAppFile(files.at(i));
     }
 }
 

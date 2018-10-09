@@ -33,7 +33,7 @@ public:
         RequestGetBookWordList = RequestNoOperation + 4, // Yes, n:1
 
         RequestGetFile = RequestNoOperation + 5,    // Yes, n:1
-        RequestGetApp = RequestGetFile + 2000,    // functions same as RequestGetFile, but server will not check the token
+        RequestGetAppFile = RequestGetFile + 2000,    // functions same as RequestGetFile, but server will not check the token
         RequestGetUpgrader = RequestGetFile + 2001,    // functions same as RequestGetFile, but server will not check the token
 
         RequestGetWordsOfBookFinished = RequestNoOperation + 6, // Yes, 1:1 // used to echo to the client to let it aware that downloading words finished

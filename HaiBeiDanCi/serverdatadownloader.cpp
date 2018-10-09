@@ -161,9 +161,9 @@ void ServerDataDownloader::downloadFile(QString fileName)
     m_svrAgt.downloadFile(fileName);
 }
 
-void ServerDataDownloader::downloadApp(QString fileName)
+void ServerDataDownloader::downloadAppFile(QString fileName)
 {
-    m_svrAgt.downloadApp(fileName);
+    m_svrAgt.downloadAppFile(fileName);
 }
 
 void ServerDataDownloader::downloadUpgrader(QString fileName)

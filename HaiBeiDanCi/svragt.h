@@ -49,7 +49,7 @@ public:
     void sendRequestGetAWord(QString spelling);
     void sendRequestGetABook(QString bookName);
     void sendRequestGetFile(QString fileName);
-    void sendRequestGetApp(QString fileName);
+    void sendRequestGetAppFile(QString fileName);
     void sendRequestGetUpgrader(QString fileName);
     void sendRequestBye();
 

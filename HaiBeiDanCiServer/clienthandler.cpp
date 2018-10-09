@@ -433,7 +433,7 @@ bool ClientHandler::validateMessage(const QByteArray &msg)
             && receivedMsgHeader.code() != ServerClientProtocol::RequestGetAllBooks
             && receivedMsgHeader.code() != ServerClientProtocol::RequestGetABook
             && receivedMsgHeader.code() != ServerClientProtocol::RequestAppVersion
-            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetApp
+            && receivedMsgHeader.code() != ServerClientProtocol::RequestGetAppFile
             && receivedMsgHeader.code() != ServerClientProtocol::RequestUpgraderVersion
             && receivedMsgHeader.code() != ServerClientProtocol::RequestGetUpgrader)
     {

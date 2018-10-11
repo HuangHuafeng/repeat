@@ -36,7 +36,6 @@ private slots:
 
     void onServerDataReloaded();
     void onUploadProgress(float percentage);
-    void onBookDownloaded(QString bookName);
 
     void on_actionPreferences_triggered();
 
@@ -95,6 +94,9 @@ private:
     void selectFirstItem(QTreeWidget *tw);
     void listServerBooks(const QList<QString> books);
     bool okToPerformServerRelatedOperation();
+
+    void downloadBook(QString bookName, bool showProgress, QString labelText, QString cancelButtonText);
+    void onBookDownloaded(QString bookName);
 
 #ifndef QT_NO_DEBUG
     void test();

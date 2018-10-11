@@ -20,7 +20,7 @@ void ServerUserAgent::onRegisterResult(qint32 result, const ApplicationUser &use
     // emit signal here may cause problem?!
     // as there might be message box displayed in the slot connect to signal registerSucceeded/registerFailed
     // and it's possible that the user don't close the message box for 1 miutes or longer
-    // in such case, it's possilbe to stop the svrAgt to send heartbeat?!
+    // in such case, it's possilbe to stop the connection to send heartbeat?!
     // NO! IT DOES NOT STOP sending the heartbeat
     // But it does not process the reply unless this function returns.
     // Looks like this is OK!!!

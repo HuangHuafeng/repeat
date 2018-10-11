@@ -1,6 +1,5 @@
 #include "servermanager.h"
 #include "../HaiBeiDanCi/mysettings.h"
-#include "../HaiBeiDanCi/serverdatadownloader.h"
 #include "../HaiBeiDanCi/clienttoken.h"
 
 ServerManager::ServerManager(QObject *parent) : QObject(parent),
@@ -471,25 +470,6 @@ bool ServerManager::okToSyncWords(QString *errorString)
     }
 
     return ok;
-}
-
-void ServerManager::downloadBook(QString bookName)
-{
-    Q_ASSERT(okToSync() == true);
-
-    auto localBook = WordBook::getBook(bookName);
-    if (localBook.get() != nullptr)
-    {
-        // the book already exists locally
-        return;
-    }
-
-    auto sdd = new ServerDataDownloader(this);
-    connect(sdd, &ServerDataDownloader::bookStored, [sdd, this] (QString bookName) {
-        emit(bookDownloaded(bookName));
-        sdd->deleteLater();
-    });
-    sdd->downloadBook(bookName);
 }
 
 void ServerManager::deleteBook(QString bookName)

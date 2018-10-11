@@ -78,7 +78,6 @@ SOURCES += \
     ../HaiBeiDanCi/downloadmanager.cpp \
     ../HaiBeiDanCi/serverclientprotocol.cpp \
     ../HaiBeiDanCi/svragt.cpp \
-    ../HaiBeiDanCi/serverdatadownloader.cpp \
     ../HaiBeiDanCi/helpfunc.cpp \
     ../HaiBeiDanCi/mediafilemanager.cpp \
     ../HaiBeiDanCi/applicationuser.cpp \
@@ -97,7 +96,9 @@ SOURCES += \
     manageragent.cpp \
     preferencesdialog.cpp \
     releaseappdialog.cpp \
-    releaseupgraderdialog.cpp
+    releaseupgraderdialog.cpp \
+    ../HaiBeiDanCi/servercommunicator.cpp \
+    ../HaiBeiDanCi/bookdownloader.cpp
 
 HEADERS += \
     ../golddict/atomic_rename.hh \
@@ -147,7 +148,6 @@ HEADERS += \
     ../HaiBeiDanCi/downloadmanager.h \
     ../HaiBeiDanCi/serverclientprotocol.h \
     ../HaiBeiDanCi/svragt.h \
-    ../HaiBeiDanCi/serverdatadownloader.h \
     ../HaiBeiDanCi/helpfunc.h \
     ../HaiBeiDanCi/mediafilemanager.h \
     ../HaiBeiDanCi/applicationuser.h \
@@ -165,7 +165,9 @@ HEADERS += \
     manageragent.h \
     preferencesdialog.h \
     releaseappdialog.h \
-    releaseupgraderdialog.h
+    releaseupgraderdialog.h \
+    ../HaiBeiDanCi/servercommunicator.h \
+    ../HaiBeiDanCi/bookdownloader.h
 
 FORMS += \
     ../HaiBeiDanCi/logindialog.ui \

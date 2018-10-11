@@ -7,12 +7,12 @@
 #include "../HaiBeiDanCi/svragt.h"
 #include "../HaiBeiDanCi/mediafilemanager.h"
 #include "newbook.h"
-#include "../HaiBeiDanCi/serverdatadownloader.h"
 #include "preferencesdialog.h"
 #include "../HaiBeiDanCi/logindialog.h"
 #include "../HaiBeiDanCi/clienttoken.h"
 #include "releaseappdialog.h"
 #include "releaseupgraderdialog.h"
+#include "../HaiBeiDanCi/bookdownloader.h"
 
 #include <QString>
 #include <QFileDialog>
@@ -53,7 +53,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&m_sm, SIGNAL(serverDataReloaded()), this, SLOT(onServerDataReloaded()));
     connect(&m_sm, SIGNAL(uploadProgress(float)), this, SLOT(onUploadProgress(float)));
-    connect(&m_sm, SIGNAL(bookDownloaded(QString)), this, SLOT(onBookDownloaded(QString)));
 
     // call MediaFileManager::instance() to get the existing file list ready
     MediaFileManager::instance();
@@ -343,7 +342,8 @@ void MainWindow::on_actionDownload_Book_triggered()
         return;
     }
 
-    m_sm.downloadBook(bookName);
+    //m_sm.downloadBook(bookName);
+    downloadBook(bookName, true, QObject::tr("Downloading \"%1\" ...").arg(bookName), QString());
 }
 
 void MainWindow::on_pbDownloadServerBook_clicked()
@@ -532,8 +532,11 @@ void MainWindow::on_actionLogout_triggered()
     if (ct->hasAliveToken() == true
             && ct->hasValidUser() == true)
     {
-        ServerUserAgent *sua = new ServerUserAgent(this);
-        connect(sua, &ServerUserAgent::logoutSucceeded, [sua] (QString name) { sua->deleteLater(); qDebug() << "sua->deleteLater() called for" << name; });
+        ServerUserAgent *sua = new ServerUserAgent();
+        connect(sua, &ServerUserAgent::logoutSucceeded, [sua] (QString name) {
+            sua->deleteLater();
+            qDebug() << "sua->deleteLater() called for" << name;
+        });
         sua->logoutUser(ct->user().name());
         ct->setToken(Token::invalidToken);
         ct->setUser(ApplicationUser::invalidUser);
@@ -603,4 +606,20 @@ void MainWindow::on_actionRelease_Upgrader_triggered()
     {
     }
     rud->deleteLater();
+}
+
+void MainWindow::downloadBook(QString bookName, bool showProgress, QString labelText, QString cancelButtonText)
+{
+    BookDownloader *bd = new BookDownloader();
+    connect(bd, &BookDownloader::downloadFinished, [bd, this] (QString bookName, ServerCommunicator::DownloadStatus result) {
+        if (result == ServerCommunicator::DownloadSucceeded)
+        {
+            this->reloadLocalData();
+            this->onBookDownloaded(bookName);
+        }
+        bd->deleteLater();
+        qDebug() << "bd->deleteLater() called";
+    });
+    bd->setShowProgress(showProgress, labelText, cancelButtonText, this);
+    bd->downloadBook(bookName);
 }

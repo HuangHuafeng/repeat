@@ -30,7 +30,6 @@ public:
     bool bookExistsInServer(QString bookName);
     void uploadBook(QString bookName);
     void uploadfile(QString fileName);
-    void downloadBook(QString bookName);
     void deleteBook(QString bookName);
     QVector<QString> getWordListOfBook(QString bookName);
     QList<QString> getMissingMediaFilesOfBook(QString bookName);

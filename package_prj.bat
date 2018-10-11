@@ -6,18 +6,12 @@ SET APPNAME=%1
 
 MKDIR packages
 CD packages
+
+ECHO delete the old directory
+RMDIR /S /Q %APPNAME%
+
 MKDIR %APPNAME%
 CD %APPNAME%
-
-ECHO remove all the files
-DEL /Q .\*
-
-ECHO remove the old package directory
-RMDIR /S /Q .\%APPNAME%
-
-ECHO remove the old release directory
-RMDIR /S /Q .\release
-RMDIR /S /Q .\debug
 
 ECHO config and build release
 qmake.exe Z:\GitHub\TextFinder\Repeat\%APPNAME%\%APPNAME%.pro -spec win32-msvc && jom.exe qmake_all

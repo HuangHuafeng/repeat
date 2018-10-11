@@ -4,31 +4,25 @@
 #include "mysettings.h"
 #include "mediafilemanager.h"
 #include "clienttoken.h"
+#include "filedownloader.h"
+#include "bookdownloader.h"
 
 #include <QMessageBox>
 
 ServerDataDialog::ServerDataDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::ServerDataDialog),
-    m_progressDialog(this),
-    m_pdMaximum(100000),
-    m_sdd(this)
+    ui(new Ui::ServerDataDialog)
 {
     ui->setupUi(this);
 
     connect(ui->twBooks, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
-
-    initializeProgressDialog();
 
     QStringList header;
     header.append(QObject::tr("Book Name"));
     header.append(QObject::tr("Status"));
     ui->twBooks->setHeaderLabels(header);
 
-    connect(&m_sdd, SIGNAL(bookStored(QString)), this, SLOT(onBookDownloaded(QString)));
-    connect(&m_sdd, SIGNAL(downloadProgress(float)), this, SLOT(onDownloadProgress(float)));
-    connect(&m_sdd, SIGNAL(bookListReady(const QList<QString>)), this, SLOT(onBookListReady(const QList<QString>)));
-    m_sdd.getBookList();
+    downloadBookList();
 }
 
 ServerDataDialog::~ServerDataDialog()
@@ -66,7 +60,7 @@ void ServerDataDialog::onItemSelectionChanged()
                                              && mfm->bookMissingPronounceAudioFiles(bookName)->isEmpty() == false);
 }
 
-void ServerDataDialog::onBookListReady(const QList<QString> books)
+void ServerDataDialog::onBookListReady(const QList<QString> &books)
 {
     ui->twBooks->clear();
 
@@ -107,24 +101,35 @@ void ServerDataDialog::on_pbDownloadBook_clicked()
     }
 
     auto bookName = ci->text(0);
-
-    createProgressDialog(QObject::tr("Downloading ") + "\"" + bookName + "\"", QObject::tr("Cancel"));
-
-    m_sdd.downloadBook(bookName);
+    downloadBook(bookName, true, QObject::tr("Downloading \"%1\" ...").arg(bookName), QObject::tr("Cancel"));
 }
 
-void ServerDataDialog::onDownloadProgress(float percentage)
+void ServerDataDialog::onFilesDownloadFinished(const QMap<QString, ServerCommunicator::DownloadStatus> &downloadResult)
 {
-    if (m_progressDialog.wasCanceled() == true)
+    auto succeededFiles = downloadResult.keys(ServerCommunicator::DownloadSucceeded);
+    auto mfm = MediaFileManager::instance();
+    mfm->fileDownloaded(succeededFiles);
+
+    qDebug() << "total files:" << downloadResult.size();
+    qDebug() << "DownloadSucceeded:" << downloadResult.keys(ServerCommunicator::DownloadSucceeded).size();
+    qDebug() << "DownloadFailed:" << downloadResult.keys(ServerCommunicator::DownloadFailed).size();
+    qDebug() << "WaitingDataFromServer:" << downloadResult.keys(ServerCommunicator::WaitingDataFromServer).size();
+    qDebug() << "DownloadCancelled:" << downloadResult.keys(ServerCommunicator::DownloadCancelled).size();
+}
+
+void ServerDataDialog::onBookDownloadFinished(QString bookName, ServerCommunicator::DownloadStatus result)
+{
+    if (result == ServerCommunicator::DownloadSucceeded)
     {
-        destroyProgressDialog();
-        m_sdd.cancelDownloading();
+        onBookDownloaded(bookName);
+    }
+    else if (result == ServerCommunicator::DownloadFailed)
+    {
+        QMessageBox::critical(this, MySettings::appName(), QObject::tr("Downloading %1 failed!").arg(bookName));
     }
     else
     {
-        int value = static_cast<int>(m_pdMaximum * percentage);
-        // Warning: If the progress dialog is modal (see QProgressDialog::QProgressDialog()), setValue() calls QApplication::processEvents(), so take care that this does not cause undesirable re-entrancy in your code. For example, don't use a QProgressDialog inside a paintEvent()!
-        m_progressDialog.setValue(value);
+        // cancelled, do nothing
     }
 }
 
@@ -192,25 +197,6 @@ void ServerDataDialog::on_pbDownloadPronounceFiles_clicked()
     downloadBookPronounceFiles(bookName);
 }
 
-void ServerDataDialog::initializeProgressDialog()
-{
-    m_progressDialog.setModal(true);
-    m_progressDialog.setRange(0, m_pdMaximum);
-    m_progressDialog.cancel();
-}
-
-void ServerDataDialog::createProgressDialog(const QString &labelText, const QString &cancelButtonText)
-{
-    m_progressDialog.reset();
-    m_progressDialog.setLabelText("    " + labelText + "    ");
-    m_progressDialog.setCancelButtonText(cancelButtonText);
-    m_progressDialog.setValue(0);;
-}
-
-void ServerDataDialog::destroyProgressDialog()
-{
-}
-
 void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
 {
     // removing the progress dialog, we should NOT have very big word book (10000+ words), so this should be fast
@@ -219,9 +205,8 @@ void ServerDataDialog::downloadBookPronounceFiles(QString bookName)
     Q_ASSERT(filesToDownload.get() != nullptr);
     if (filesToDownload->isEmpty() == false)
     {
-        // show the progress dialog
-        createProgressDialog(QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
-        m_sdd.downloadMultipleFiles(*filesToDownload);
+        downloadFiles(*filesToDownload, true, QObject::tr("Downloading pronounce files ..."), QObject::tr("Cancel"));
+
     }
     else
     {
@@ -237,9 +222,7 @@ void ServerDataDialog::downloadBookExampleAudioFiles(QString bookName)
     Q_ASSERT(filesToDownload.get() != nullptr);
     if (filesToDownload->isEmpty() == false)
     {
-        // show the progress dialog
-        createProgressDialog(QObject::tr("Downloading meida files ..."), QObject::tr("Cancel"));
-        m_sdd.downloadMultipleFiles(*filesToDownload);
+        downloadFiles(*filesToDownload, true, QObject::tr("Downloading meida files ..."), QObject::tr("Cancel"));
     }
     else
     {
@@ -251,4 +234,44 @@ bool ServerDataDialog::fileExistsLocally(QString fileName)
 {
     QString dd = MySettings::dataDirectory() + "/";
     return QFile::exists(dd + fileName);
+}
+
+
+void ServerDataDialog::downloadFiles(const QSet<QString> &setFiles, bool showProgress, QString labelText, QString cancelButtonText)
+{
+    auto sc = ServerCommunicator::instance();
+    FileDownloader *fd = new FileDownloader(sc);
+    connect(fd, SIGNAL(downloadFinished(const QMap<QString, ServerCommunicator::DownloadStatus> &)), this, SLOT(onFilesDownloadFinished(const QMap<QString, ServerCommunicator::DownloadStatus> &)));
+    connect(fd, &FileDownloader::downloadFinished, [fd] () {
+        fd->deleteLater();
+        qDebug() << "fd->deleteLater() called";
+    });
+    fd->setShowProgress(showProgress, labelText, cancelButtonText, this);
+    QStringList ftdList = setFiles.toList();
+    fd->downloadFiles(ftdList);
+}
+
+void ServerDataDialog::downloadBook(QString bookName, bool showProgress, QString labelText, QString cancelButtonText)
+{
+    auto sc = ServerCommunicator::instance();
+    BookDownloader *bd = new BookDownloader(sc);
+    connect(bd, SIGNAL(downloadFinished(QString, ServerCommunicator::DownloadStatus)), this, SLOT(onBookDownloadFinished(QString, ServerCommunicator::DownloadStatus)));
+    connect(bd, &BookDownloader::downloadFinished, [bd] () {
+        bd->deleteLater();
+        qDebug() << "bd->deleteLater() called";
+    });
+    bd->setShowProgress(showProgress, labelText, cancelButtonText, this);
+    bd->downloadBook(bookName);
+}
+
+void ServerDataDialog::downloadBookList()
+{
+    auto sc = ServerCommunicator::instance();
+    BookDownloader *bd = new BookDownloader(sc);
+    connect(bd, SIGNAL(bookListDownloaded(const QList<QString> &)), this, SLOT(onBookListReady(const QList<QString> &)));
+    connect(bd, &BookDownloader::bookListDownloaded, [bd] () {
+        bd->deleteLater();
+        qDebug() << "bd->deleteLater() called";
+    });
+    bd->downloadBookList();
 }

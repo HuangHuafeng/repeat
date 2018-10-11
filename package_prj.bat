@@ -41,9 +41,9 @@ ECHO zip executable files
 "C:\Program Files\7-Zip\7z.exe" a ..\%APPNAME%_exe.zip %APPNAME%\%APPNAME%.exe
 
 ECHO calculate hash for all the files
-"C:\Program Files\7-Zip\7z.exe" h %APPNAME%\* > ..\%APPNAME%_hash.txt
+"C:\Program Files\7-Zip\7z.exe" h %APPNAME%\* > ..\_%APPNAME%_hash.txt
 ECHO please check the differences in BeyondCompare
-"c:\Program Files (x86)\Beyond Compare 2\BC2.exe" ..\%APPNAME%_hash.txt ..\%APPNAME%_hash_base.txt
+"c:\Program Files (x86)\Beyond Compare 2\BC2.exe" ..\_%APPNAME%_hash.txt ..\_%APPNAME%_hash_base.txt
 
 cd ..\..
 

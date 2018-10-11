@@ -1,6 +1,6 @@
 #include "dictschemehandler.h"
 #include "mysettings.h"
-#include "serverdatadownloader.h"
+#include "filedownloader.h"
 
 #include <QWebEngineUrlRequestJob>
 #include <QCoreApplication>
@@ -65,25 +65,29 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
 
 void DictSchemeHandler::downloadFile(QString fileName)
 {
-    ServerDataDownloader *sdd = new ServerDataDownloader(this);
+    auto sc = ServerCommunicator::instance();
+    FileDownloader *fd = new FileDownloader(sc);
     // create a timer, we consider the downloading failed if it times out
     QTimer *t = new QTimer(this);
 
-    connect(sdd, &ServerDataDownloader::fileDownloaded, [sdd, t, this] (QString fileName, bool succeeded) {
+    connect(fd, &FileDownloader::downloadFinished, [fd, t, this] (const QMap<QString, ServerCommunicator::DownloadStatus> &downloadResult) {
+        // we should have and ONLY have one file
+        QString fileName = downloadResult.keys().at(0);
+        bool succeeded = downloadResult.value(fileName, ServerCommunicator::DownloadFailed) == ServerCommunicator::DownloadSucceeded;
         this->onFileDownloaded(fileName, succeeded);
-        sdd->deleteLater();
+        fd->deleteLater();
         t->deleteLater();
-        qDebug() << "sdd->deleteLater() called because file downloaded!";
+        qDebug() << "fd->deleteLater() called because file downloaded!";
     });
 
-    connect(t, &QTimer::timeout, [sdd, t] () {
-        sdd->deleteLater();
+    connect(t, &QTimer::timeout, [fd, t] () {
+        fd->deleteLater();
         t->deleteLater();
-        qDebug() << "sdd->deleteLater() called because timer timed out!";
+        qDebug() << "fd->deleteLater() called because timer timed out!";
     });
 
     t->start(MySettings::audioDownloadTimeoutInSeconds() * 1000);
-    sdd->downloadFile(fileName);
+    fd->downloadFile(fileName);
 }
 
 void DictSchemeHandler::onFileDownloaded(QString fileName, bool succeeded)

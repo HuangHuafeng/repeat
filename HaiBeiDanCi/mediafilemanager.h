@@ -15,6 +15,7 @@ public:
     sptr<QSet<QString>> bookMissingPronounceAudioFiles(QString bookName);
     sptr<QSet<QString>> bookMissingExampleAudioFiles(QString bookName);
 
+    void fileDownloaded(QStringList files);
     void fileDownloaded(QString fileName);
     void bookDownloaded(QString bookName);
     void bookDeleted(QString bookName);

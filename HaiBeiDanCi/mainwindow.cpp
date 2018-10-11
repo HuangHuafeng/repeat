@@ -8,11 +8,11 @@
 #include "preferencesdialog.h"
 #include "serverdatadialog.h"
 #include "aboutdialog.h"
-#include "serverdatadownloader.h"
 #include "mediafilemanager.h"
 #include "registerdialog.h"
 #include "logindialog.h"
 #include "clienttoken.h"
+#include "filedownloader.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -606,59 +606,29 @@ void MainWindow::onAppVersion(ReleaseInfo appReleaseInfo, ReleaseInfo appLibRele
 
 void MainWindow::downloadLatestApp(ApplicationVersion version, QStringList files)
 {
-    QProgressDialog *pd = new QProgressDialog(QObject::tr("Downloading version %1 ...").arg(version.toString()),
-                                              QObject::tr("Cancel"),
-                                              0,
-                                              100,
-                                              this);
-    pd->setModal(true);
-    pd->setValue(0);
-    ServerDataDownloader *sdd = new ServerDataDownloader(this);
-    QStringList *filesToDownload = new QStringList;
-    *filesToDownload = files;
+    auto sc = ServerCommunicator::instance();
+    FileDownloader *fd = new FileDownloader(sc);
 
-    // update the downloading progress
-    connect(sdd, &ServerDataDownloader::downloadProgress, [pd, filesToDownload] (float percentage) {
-        int progress = static_cast<int>(100 * percentage);
-        if (filesToDownload->isEmpty() == false)
+    connect(fd, &FileDownloader::downloadFinished, [fd, files, version, this] (const QMap<QString, ServerCommunicator::DownloadStatus> &downloadResult) {
+        QStringList successfullyDownloadedFiles = downloadResult.keys(ServerCommunicator::DownloadSucceeded);
+        if (successfullyDownloadedFiles.size() == files.size())
         {
-            progress /= filesToDownload->size();
-        }
-        pd->setValue(progress);
-    });
-
-    // delete pd and sdd when downloading finishes
-    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, version, files, filesToDownload] (QString fileName, bool succeeded) {
-        Q_ASSERT(filesToDownload->contains(fileName) == true);
-        if (succeeded == false)
-        {
-            qCritical() << "downloading" << fileName << "failed";
-        }
-        filesToDownload->removeOne(fileName);
-        if (filesToDownload->isEmpty() == true)
-        {
-            // we have downloaded all the files
-            pd->deleteLater();
-            sdd->deleteLater();
-            delete filesToDownload;
-            qDebug() << "sdd, pd deleted as the downloading finished!";
+            // successfully downloaded the app
             this->onAppDownloaded(version, files);
         }
+        else
+        {
+            // something wrong,
+        }
+        fd->deleteLater();
+        qDebug() << "fd->deleteLater() called because file downloading finished!";
     });
 
-    // delete pd and sdd when downloading is cancelled
-    connect(pd, &QProgressDialog::canceled, [pd, sdd, filesToDownload] () {
-        sdd->cancelDownloading();
-        sdd->deleteLater();
-        pd->deleteLater();
-        delete filesToDownload;
-        qDebug() << "sdd, pd deleted as the downloading is cancelled!";
-    });
-
-    for (int i = 0;i < files.size();i ++)
-    {
-        sdd->downloadAppFile(files.at(i));
-    }
+    fd->setShowProgress(true,
+                        QObject::tr("Downloading version %1 ...").arg(version.toString()),
+                        QObject::tr("Cancel"),
+                        this);
+    fd->downloadFiles(files, true);
 }
 
 void MainWindow::onAppDownloaded(ApplicationVersion version, QStringList files)
@@ -726,54 +696,29 @@ void MainWindow::onUpgraderVersion(ReleaseInfo upgraderReleaseInfo, ReleaseInfo 
 
 void MainWindow::downloadLatestUpgrader(ApplicationVersion version, QStringList files)
 {
-    QProgressDialog *pd = new QProgressDialog(QObject::tr("Downloading upgrader version %1 ...").arg(version.toString()),
-                                              QString(),
-                                              0,
-                                              100,
-                                              this);
-    pd->setModal(true);
-    pd->setValue(0);
-    ServerDataDownloader *sdd = new ServerDataDownloader(this);
-    // here we use a pointer, as capture by-reference seems not work and I don't know why
-    QStringList *filesToDownload = new QStringList;
-    *filesToDownload = files;
-    qDebug() << "filesToDownload.size() is" << filesToDownload->size();
+    auto sc = ServerCommunicator::instance();
+    FileDownloader *fd = new FileDownloader(sc);
 
-    // update the downloading progress
-    connect(sdd, &ServerDataDownloader::downloadProgress, [pd, filesToDownload] (float percentage) {
-        int progress = static_cast<int>(100 * percentage);
-        if(filesToDownload->isEmpty() == false)
+    connect(fd, &FileDownloader::downloadFinished, [fd, files, version, this] (const QMap<QString, ServerCommunicator::DownloadStatus> &downloadResult) {
+        QStringList successfullyDownloadedFiles = downloadResult.keys(ServerCommunicator::DownloadSucceeded);
+        if (successfullyDownloadedFiles.size() == files.size())
         {
-            progress /= filesToDownload->size();
-        }
-        qDebug() << "progress is" << progress << "and filesToDownload->size() is" << filesToDownload->size();
-        pd->setValue(progress);
-    });
-
-    // delete pd and sdd when downloading finishes
-    connect(sdd, &ServerDataDownloader::fileDownloaded, [pd, sdd, this, version, files, filesToDownload] (QString fileName, bool succeeded) {
-        Q_ASSERT(filesToDownload->contains(fileName) == true);
-        if (succeeded == false)
-        {
-            qCritical() << "downloading" << fileName << "failed";
-        }
-        filesToDownload->removeOne(fileName);
-        qDebug() << "filesToDownload.size() is" << filesToDownload->size();
-        if (filesToDownload->isEmpty() == true)
-        {
-            // we have downloaded all the files
-            pd->deleteLater();
-            sdd->deleteLater();
-            delete filesToDownload;
-            qDebug() << "sdd, pd deleted as the downloading finished!";
+            // successfully downloaded the app
             this->onUpgraderDownloaded(version, files);
         }
+        else
+        {
+            // something wrong,
+        }
+        fd->deleteLater();
+        qDebug() << "fd->deleteLater() called because file downloading finished!";
     });
 
-    for (int i = 0;i < files.size();i ++)
-    {
-        sdd->downloadAppFile(files.at(i));
-    }
+    fd->setShowProgress(true,
+                        QObject::tr("Downloading upgrader version %1 ...").arg(version.toString()),
+                        QObject::tr("Cancel"),
+                        this);
+    fd->downloadFiles(files, true);
 }
 
 void MainWindow::onUpgraderDownloaded(ApplicationVersion version, QStringList files)

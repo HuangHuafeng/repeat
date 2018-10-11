@@ -1,7 +1,7 @@
 #ifndef SERVERDATADIALOG_H
 #define SERVERDATADIALOG_H
 
-#include "serverdatadownloader.h"
+#include "servercommunicator.h"
 
 #include <QDialog>
 #include <QProgressDialog>
@@ -21,9 +21,11 @@ public:
 
 private slots:
     void onItemSelectionChanged();
-    void onBookListReady(const QList<QString> books);
+    void onBookListReady(const QList<QString> &books);
     void onBookDownloaded(QString bookName);
-    void onDownloadProgress(float percentage);
+
+    void onFilesDownloadFinished(const QMap<QString, ServerCommunicator::DownloadStatus> &downloadResult);
+    void onBookDownloadFinished(QString bookName, ServerCommunicator::DownloadStatus result);
 
     void on_pbDownloadBook_clicked();
 
@@ -39,21 +41,17 @@ signals:
 private:
     Ui::ServerDataDialog *ui;
 
-    QProgressDialog m_progressDialog;
-    int m_pdMaximum;
-
     QDateTime m_downloadStartTime;
-    ServerDataDownloader m_sdd;
 
     void updateBookStatus(QString bookName);
-
-    void initializeProgressDialog();
-    void createProgressDialog(const QString &labelText, const QString &cancelButtonText);
-    void destroyProgressDialog();
 
     void downloadBookPronounceFiles(QString bookName);
     void downloadBookExampleAudioFiles(QString bookName);
     bool fileExistsLocally(QString fileName);
+
+    void downloadFiles(const QSet<QString> &setFiles, bool showProgress = true, QString labelText = QObject::tr("Downloading ..."), QString cancelButtonText = QString());
+    void downloadBook(QString bookName, bool showProgress = true, QString labelText = QObject::tr("Downloading ..."), QString cancelButtonText = QString());
+    void downloadBookList();
 };
 
 #endif // SERVERDATADIALOG_H

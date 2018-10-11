@@ -82,7 +82,7 @@ void Upgrader::extract()
             auto filesInOneZip = JlCompress::getFileList(zf);
             for (int j = 0;j < filesInOneZip.size();j ++)
             {
-                auto fileName = filesInOneZip.at(i);
+                auto fileName = filesInOneZip.at(j);
                 auto destFileName = extractDir + "/" + fileName.section('/', 1);
                 qDebug() << QString("extracting %1 from %2 to %3 ...").arg(fileName).arg(zf).arg(destFileName);
                 JlCompress::extractFile(zf, fileName, destFileName);

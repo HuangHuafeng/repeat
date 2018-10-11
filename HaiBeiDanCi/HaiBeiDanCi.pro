@@ -13,7 +13,7 @@ TEMPLATE = app
 CONFIG += no_batch
 
 # version, APP_VERSION is string "major.minor.patch"
-VERSION = 3.0.1
+VERSION = 0.9.3
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 # quazip
@@ -73,7 +73,6 @@ SOURCES += \
     serverclientprotocol.cpp \
     aboutdialog.cpp \
     svragt.cpp \
-    serverdatadownloader.cpp \
     helpfunc.cpp \
     mediafilemanager.cpp \
     applicationuser.cpp \
@@ -84,7 +83,10 @@ SOURCES += \
     clienttoken.cpp \
     applicationversion.cpp \
     autoupgrader.cpp \
-    ../Upgrader/upgradedata.cpp
+    ../Upgrader/upgradedata.cpp \
+    servercommunicator.cpp \
+    filedownloader.cpp \
+    bookdownloader.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -107,7 +109,6 @@ HEADERS += \
     serverclientprotocol.h \
     aboutdialog.h \
     svragt.h \
-    serverdatadownloader.h \
     helpfunc.h \
     mediafilemanager.h \
     applicationuser.h \
@@ -119,7 +120,10 @@ HEADERS += \
     applicationversion.h \
     autoupgrader.h \
     ../Upgrader/upgradedata.h \
-    ../golddict/sptr.hh
+    ../golddict/sptr.hh \
+    servercommunicator.h \
+    filedownloader.h \
+    bookdownloader.h
 
 FORMS += \
     mainwindow.ui \

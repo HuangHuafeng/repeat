@@ -10,7 +10,7 @@ TARGET = Upgrader
 TEMPLATE = app
 
 # version, APP_VERSION is string "major.minor.patch"
-VERSION = 2.0.0
+VERSION = 0.9.1
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 # quazip

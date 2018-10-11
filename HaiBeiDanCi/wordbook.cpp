@@ -2,6 +2,7 @@
 #include "worddb.h"
 #include "word.h"
 
+const WordBook WordBook::invalidBook("__INVALID__", "__INVALID__", -1);
 QMap<QString, sptr<WordBook>> WordBook::m_allBooks;
 QMutex WordBook::m_allBooksMutex;
 
@@ -9,6 +10,25 @@ WordBook::WordBook(QString name, QString introduction, int id) : m_name(name),
                                                                  m_introduction(introduction),
                                                                  m_id(id)
 {
+}
+
+bool WordBook::isValid() const
+{
+    return m_id != invalidBook.m_id
+            && m_introduction != invalidBook.m_introduction
+            && m_id != invalidBook.m_id;
+}
+
+bool WordBook::operator==(const WordBook book) const
+{
+    return m_id == book.m_id
+            && m_name == book.m_name
+            && m_introduction == book.m_introduction;
+}
+
+bool WordBook::operator!=(const WordBook book) const
+{
+    return !(*this == book);
 }
 
 int WordBook::getId() const

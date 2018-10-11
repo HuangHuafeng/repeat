@@ -1,24 +1,45 @@
-#include "svragt.h"
-#include "serverclientprotocol.h"
-#include "mysettings.h"
+#include "servercommunicator.h"
 
-SvrAgt::SvrAgt(const QString &hostName, quint16 port, QObject *parent) : QObject(parent),
+ServerCommunicator * ServerCommunicator::m_sc = nullptr;
+
+ServerCommunicator * ServerCommunicator::instance()
+{
+    if (m_sc == nullptr)
+    {
+        m_sc = new ServerCommunicator();
+    }
+
+    return m_sc;
+}
+
+ServerCommunicator::ServerCommunicator(QString hostName, quint16 port, QObject *parent) :
+    QObject(parent),
     m_serverHostName(hostName),
     m_serverPort(port),
     m_tcpSocket(nullptr),
     m_messageTimer(this),
     m_timerServerHeartBeat(this)
 {
+    if (m_serverHostName.isEmpty() == true)
+    {
+        m_serverHostName = MySettings::serverHostName();
+    }
+
+    if (m_serverPort == 0)
+    {
+        m_serverPort = 61027;
+    }
+
     connect(&m_timerServerHeartBeat, SIGNAL(timeout()), this, SLOT(onServerHeartBeat()));
-    //connect(&m_timerServerHeartBeat, &QTimer::timeout, [] () {qDebug() << "lambda called";});
     connect(&m_messageTimer, SIGNAL(timeout()), this, SLOT(onSendMessageSmart()));
 }
 
-SvrAgt::~SvrAgt()
+ServerCommunicator::~ServerCommunicator()
 {
+    qDebug() << "ServerCommunicator::~ServerCommunicator() called";
 }
 
-void SvrAgt::onReadyRead()
+void ServerCommunicator::onReadyRead()
 {
     // we should have a loop here because multiple messages may arrive at the same time
     do {
@@ -62,10 +83,8 @@ void SvrAgt::onReadyRead()
     } while (1);
 }
 
-void SvrAgt::onConnected()
+void ServerCommunicator::onConnected()
 {
-    qDebug() << "onConnected()";
-
     // renew the counters by a temporary message
     MessageHeader toBeDiscarded;
     m_messagesSent = toBeDiscarded.sequenceNumber();
@@ -79,7 +98,7 @@ void SvrAgt::onConnected()
     emit(serverConnected());
 }
 
-void SvrAgt::onDisconnected()
+void ServerCommunicator::onDisconnected()
 {
     m_messageTimer.stop();
     m_timerServerHeartBeat.stop();
@@ -88,19 +107,19 @@ void SvrAgt::onDisconnected()
     m_tcpSocket = nullptr;
 }
 
-void SvrAgt::onError(QAbstractSocket::SocketError socketError)
+void ServerCommunicator::onError(QAbstractSocket::SocketError socketError)
 {
     qDebug() << "onError()" << socketError;
     m_tcpSocket->deleteLater();
     m_tcpSocket = nullptr;
 }
 
-void SvrAgt::onStateChanged(QAbstractSocket::SocketState socketState)
+void ServerCommunicator::onStateChanged(QAbstractSocket::SocketState socketState)
 {
     qDebug() << "onStateChanged()" << socketState;
 }
 
-QByteArray SvrAgt::readMessage()
+QByteArray ServerCommunicator::readMessage()
 {
     Q_ASSERT(m_tcpSocket != nullptr);
 
@@ -128,12 +147,12 @@ QByteArray SvrAgt::readMessage()
     }
 }
 
-void SvrAgt::onServerHeartBeat()
+void ServerCommunicator::onServerHeartBeat()
 {
     sendRequestNoOperation();
 }
 
-int SvrAgt::handleMessage(const QByteArray &msg)
+int ServerCommunicator::handleMessage(const QByteArray &msg)
 {
     MessageHeader receivedMsgHeader(msg);
     bool handleResult = false;
@@ -169,10 +188,6 @@ int SvrAgt::handleMessage(const QByteArray &msg)
 
     case ServerClientProtocol::ResponseGetFileFinished:
         handleResult = handleResponseGetFileFinished(msg);
-        break;
-
-    case ServerClientProtocol::ResponseGetWordsOfBookFinished:
-        handleResult = handleResponseGetWordsOfBookFinished(msg);
         break;
 
     case ServerClientProtocol::ResponseUnknownRequest:
@@ -230,35 +245,35 @@ int SvrAgt::handleMessage(const QByteArray &msg)
     return retVal;
 }
 
-bool SvrAgt::handleResponseOK(const QByteArray &msg)
+bool ServerCommunicator::handleResponseOK(const QByteArray &msg)
 {
     Q_ASSERT(msg.size() >= 0);
 
     return true;
 }
 
-bool SvrAgt::handleResponseInvalidTokenId(const QByteArray &msg)
+bool ServerCommunicator::handleResponseInvalidTokenId(const QByteArray &msg)
 {
     Q_ASSERT(msg.size() >= 0);
 
     return true;
 }
 
-bool SvrAgt::handleResponseNoOperation(const QByteArray &msg)
+bool ServerCommunicator::handleResponseNoOperation(const QByteArray &msg)
 {
     Q_ASSERT(msg.size() >= 0);
 
     return true;
 }
 
-bool SvrAgt::handleUnknownMessage(const QByteArray &msg)
+bool ServerCommunicator::handleUnknownMessage(const QByteArray &msg)
 {
     Q_ASSERT(msg.size() >= 0);
 
     return true;
 }
 
-bool SvrAgt::handleResponseGetAllBooks(const QByteArray &msg)
+bool ServerCommunicator::handleResponseGetAllBooks(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -271,12 +286,12 @@ bool SvrAgt::handleResponseGetAllBooks(const QByteArray &msg)
         return false;
     }
 
-    emit(bookListReady(books));
+    emit(bookListDownloaded(books));
 
     return true;
 }
 
-bool SvrAgt::handleResponseGetBookWordList(const QByteArray &msg)
+bool ServerCommunicator::handleResponseGetBookWordList(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -292,20 +307,25 @@ bool SvrAgt::handleResponseGetBookWordList(const QByteArray &msg)
     }
 
     auto currentList = m_mapBooksWordList.value(bookName);
-    auto newList = currentList + wordList;
-    m_mapBooksWordList.insert(bookName, newList);
+    if (currentList == nullptr)
+    {
+        currentList = new QVector<QString>;
+        m_mapBooksWordList.insert(bookName, currentList);
+    }
+    currentList->append(wordList);
 
     if (listComplete == true)
     {
         // we've got the full list
-        emit(bookWordListReceived(bookName, m_mapBooksWordList.value(bookName)));
+        emit(bookWordListReceived(bookName, *currentList));
+        delete currentList;
         m_mapBooksWordList.remove(bookName);
     }
 
     return true;
 }
 
-bool SvrAgt::handleResponseGetAWord(const QByteArray &msg)
+bool ServerCommunicator::handleResponseGetAWord(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -318,47 +338,22 @@ bool SvrAgt::handleResponseGetAWord(const QByteArray &msg)
         return false;
     }
 
-    // store the word
-    QString spelling = word.getSpelling();
-    sptr<Word> newWord = new Word(word);
-
-    if (m_wordsToDownload.value(spelling) == WaitingDataFromServer)
+    if (m_wordsInDownloading.value(word.getSpelling(), DownloadCancelled) == WaitingDataFromServer)
     {
-        m_wordsToDownload.insert(spelling, DownloadSucceeded);
-        emit(wordDownloaded(newWord));
+        emit(wordDownloaded(word));
+    }
+    else
+    {
+        // word download is cancelled
+        qDebug() << "downloaing" << word.getSpelling() << "canceled in ServerCommunicator::handleResponseGetAWord()";
     }
 
-    updateAndEmitProgress();
+    m_wordsInDownloading.remove(word.getSpelling());
 
     return true;
 }
 
-bool SvrAgt::handleResponseGetWordsOfBookFinished(const QByteArray &msg)
-{
-    QDataStream in(msg);
-    MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
-    QString bookName;
-    in.startTransaction();
-    in >> receivedMsgHeader >> bookName;
-    if (in.commitTransaction() == false)
-    {
-        qCritical() << "failed to read the book name in handleResponseGetWordsOfBookFinished()";
-        return false;
-    }
-
-    // it's possible that the user cancel the downloading, but we still got this message
-    // so we check if there's cancel from the user
-    int numberOfCancelledWords = m_wordsToDownload.keys(DownloadCancelled).size();
-    if (numberOfCancelledWords == 0)
-    {
-        // downloading the words finished, the book data is ready
-        emit(getWordsOfBookFinished(bookName));
-    }
-
-    return true;
-}
-
-bool SvrAgt::handleResponseRegister(const QByteArray &msg)
+bool ServerCommunicator::handleResponseRegister(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -377,7 +372,7 @@ bool SvrAgt::handleResponseRegister(const QByteArray &msg)
     return true;
 }
 
-bool SvrAgt::handleResponseLogin(const QByteArray &msg)
+bool ServerCommunicator::handleResponseLogin(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -397,7 +392,7 @@ bool SvrAgt::handleResponseLogin(const QByteArray &msg)
     return true;
 }
 
-bool SvrAgt::handleResponseLogout(const QByteArray &msg)
+bool ServerCommunicator::handleResponseLogout(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -416,7 +411,7 @@ bool SvrAgt::handleResponseLogout(const QByteArray &msg)
     return true;
 }
 
-bool SvrAgt::handleResponseGetABook(const QByteArray &msg)
+bool ServerCommunicator::handleResponseGetABook(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -429,13 +424,12 @@ bool SvrAgt::handleResponseGetABook(const QByteArray &msg)
         return false;
     }
 
-    sptr<WordBook> newBook = new WordBook(book);
-    emit(bookDownloaded(newBook));
+    emit(bookDownloaded(book));
 
     return true;
 }
 
-bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
+bool ServerCommunicator::handleResponseGetFile(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -452,10 +446,9 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
         return false;
     }
 
-    if (m_filesToDownload.contains(fileName) == true
-            && m_filesToDownload.value(fileName) == WaitingDataFromServer)
+    if (m_filesInDownloading.value(fileName, DownloadCancelled) == WaitingDataFromServer)
     {
-        // the downloading is not cancelled
+        // the downloading is NOT cancelled
         QMap<const char *, uint> newBlock;
         newBlock.insert(data, len);
         auto contentBlocks = m_mapFileContentBlocks.value(fileName);
@@ -466,10 +459,8 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
         }
         contentBlocks->append(newBlock);
 
-        if (sentBytes <= totalBytes)
-        {
-            emit(downloadProgress((m_downloaded + sentBytes * 1.0f / totalBytes) / m_toDownload));
-        }
+        // signal the progress of the current file
+        emit(fileDownloadProgress(fileName, sentBytes * 1.0f / totalBytes));
     }
     else
     {
@@ -480,7 +471,7 @@ bool SvrAgt::handleResponseGetFile(const QByteArray &msg)
     return true;
 }
 
-bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
+bool ServerCommunicator::handleResponseGetFileFinished(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -494,37 +485,24 @@ bool SvrAgt::handleResponseGetFileFinished(const QByteArray &msg)
         return false;
     }
 
-    if (m_filesToDownload.contains(fileName) == true
-            && m_filesToDownload.value(fileName) == WaitingDataFromServer)
+    if (m_filesInDownloading.value(fileName, DownloadCancelled) == WaitingDataFromServer)
     {
-        if (succeeded == true)
-        {
-            m_filesToDownload.insert(fileName, DownloadSucceeded);
-        }
-        else
-        {
-            m_filesToDownload.insert(fileName, DownloadFailed);
-        }
-        emit(fileDownloaded(fileName, m_filesToDownload.value(fileName), m_mapFileContentBlocks.value(fileName)));
+        DownloadStatus result = succeeded ? DownloadSucceeded : DownloadFailed;
+        emit(fileDownloaded(fileName, result, m_mapFileContentBlocks.value(fileName)));
     }
     else
     {
-        // file download is cancelled when (m_filesToDownload.contains(fileName) == false)
+        // file download is cancelled
+        qDebug() << "downloaing" << fileName << "canceled in ServerCommunicator::handleResponseGetFileFinished()";
     }
 
     discardFileContent(fileName);
-
-    // don't remove the file from m_filesToDownload
-    // we may need some statistics later
-    // we should remove it!!! Otherwise a failed file cannot be downloaded again!
-    m_filesToDownload.remove(fileName);
-
-    updateAndEmitProgress();
+    m_filesInDownloading.remove(fileName);
 
     return true;
 }
 
-void SvrAgt::discardFileContent(QString fileName)
+void ServerCommunicator::discardFileContent(QString fileName)
 {
     QVector<QMap<const char *, uint>> *fileContentBlocks = m_mapFileContentBlocks.value(fileName);
     if (fileContentBlocks != nullptr)
@@ -544,7 +522,7 @@ void SvrAgt::discardFileContent(QString fileName)
     m_mapFileContentBlocks.remove(fileName);
 }
 
-bool SvrAgt::handleResponseUnknownRequest(const QByteArray &msg)
+bool ServerCommunicator::handleResponseUnknownRequest(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -562,7 +540,7 @@ bool SvrAgt::handleResponseUnknownRequest(const QByteArray &msg)
     return true;
 }
 
-void SvrAgt::connectToServer()
+void ServerCommunicator::connectToServer()
 {
     if (m_tcpSocket != nullptr)
     {
@@ -585,7 +563,7 @@ void SvrAgt::connectToServer()
     }
 }
 
-void SvrAgt::sendSimpleMessage(qint32 msgCode, bool now)
+void ServerCommunicator::sendSimpleMessage(qint32 msgCode, bool now)
 {
     MessageHeader msgHeader(msgCode);
 
@@ -595,7 +573,7 @@ void SvrAgt::sendSimpleMessage(qint32 msgCode, bool now)
     sendMessage(block, false, now);
 }
 
-void SvrAgt::sendRequestRegister(const ApplicationUser &user)
+void ServerCommunicator::sendRequestRegister(const ApplicationUser &user)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestRegister);
 
@@ -605,7 +583,7 @@ void SvrAgt::sendRequestRegister(const ApplicationUser &user)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestLogin(const ApplicationUser &user)
+void ServerCommunicator::sendRequestLogin(const ApplicationUser &user)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestLogin);
 
@@ -615,7 +593,7 @@ void SvrAgt::sendRequestLogin(const ApplicationUser &user)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestLogout(QString name)
+void ServerCommunicator::sendRequestLogout(QString name)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestLogout);
 
@@ -626,15 +604,15 @@ void SvrAgt::sendRequestLogout(QString name)
 }
 
 /**
- * @brief SvrAgt::sendRequestNoOperation
+ * @brief ServerCommunicator::sendRequestNoOperation
  * this is used as heartbeat at this moment, so it sends the message directly
  */
-void SvrAgt::sendRequestNoOperation()
+void ServerCommunicator::sendRequestNoOperation()
 {
     sendSimpleMessage(ServerClientProtocol::RequestNoOperation, true);
 }
 
-void SvrAgt::sendRequestBye()
+void ServerCommunicator::sendRequestBye()
 {
     if (m_tcpSocket == nullptr)
     {
@@ -645,12 +623,12 @@ void SvrAgt::sendRequestBye()
     sendSimpleMessage(ServerClientProtocol::RequestBye, true);
 }
 
-void SvrAgt::sendRequestGetAllBooks()
+void ServerCommunicator::sendRequestGetAllBooks()
 {
     sendSimpleMessage(ServerClientProtocol::RequestGetAllBooks);
 }
 
-void SvrAgt::sendRequestGetBookWordList(QString bookName)
+void ServerCommunicator::sendRequestGetBookWordList(QString bookName)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestGetBookWordList);
 
@@ -660,17 +638,13 @@ void SvrAgt::sendRequestGetBookWordList(QString bookName)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestGetWordsOfBookFinished(QString bookName)
+void ServerCommunicator::downloadWord(QString spelling)
 {
-    MessageHeader msgHeader(ServerClientProtocol::RequestGetWordsOfBookFinished);
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader << bookName;
-    sendMessage(block);
+    m_wordsInDownloading.insert(spelling, WaitingDataFromServer);
+    sendRequestGetAWord(spelling);
 }
 
-void SvrAgt::sendRequestGetAWord(QString spelling)
+void ServerCommunicator::sendRequestGetAWord(QString spelling)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestGetAWord);
 
@@ -680,7 +654,7 @@ void SvrAgt::sendRequestGetAWord(QString spelling)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestGetABook(QString bookName)
+void ServerCommunicator::sendRequestGetABook(QString bookName)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestGetABook);
 
@@ -690,7 +664,32 @@ void SvrAgt::sendRequestGetABook(QString bookName)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestGetFile(QString fileName)
+void ServerCommunicator::downloadFile(QString fileName, bool appFile)
+{
+    m_filesInDownloading.insert(fileName, WaitingDataFromServer);
+    if (appFile == true)
+    {
+        sendRequestGetAppFile(fileName);
+    }
+    else
+    {
+        sendRequestGetFile(fileName);
+    }
+}
+
+void ServerCommunicator::cancelDownloading()
+{
+    // clear the messages, so no downloading request will be sent to the server
+    // it is OK to clear all messages, as normally downloading requests are waiting in the queue
+    m_messages.clear();
+
+    // clear the current downloading files/words, so when data of these files/words are received
+    // from the server, the data will be discarded
+    m_filesInDownloading.clear();
+    m_wordsInDownloading.clear();
+}
+
+void ServerCommunicator::sendRequestGetFile(QString fileName)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestGetFile);
 
@@ -700,7 +699,7 @@ void SvrAgt::sendRequestGetFile(QString fileName)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestGetAppFile(QString fileName)
+void ServerCommunicator::sendRequestGetAppFile(QString fileName)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestGetAppFile);
 
@@ -710,108 +709,12 @@ void SvrAgt::sendRequestGetAppFile(QString fileName)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestGetUpgrader(QString fileName)
-{
-    MessageHeader msgHeader(ServerClientProtocol::RequestGetUpgrader);
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << msgHeader << fileName;
-    sendMessage(block);
-}
-
-/**
- * @brief SvrAgt::downloadFile
- * @param fileName
- * assumes the file does not exist, overwrite it if it exists!
- */
-void SvrAgt::downloadFile(QString fileName)
-{
-    Q_ASSERT(m_filesToDownload.isEmpty() == true);
-    Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
-    if (m_filesToDownload.contains(fileName) == false)
-    {
-        m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
-        sendRequestGetFile(fileName);
-    }
-
-    m_toDownload = m_filesToDownload.size();
-    m_downloaded = 0;
-}
-
-void SvrAgt::downloadAppFile(QString fileName)
-{
-    //Q_ASSERT(m_filesToDownload.isEmpty() == true);
-    //Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
-    if (m_filesToDownload.contains(fileName) == false)
-    {
-        m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
-        sendRequestGetAppFile(fileName);
-        m_toDownload ++;
-    }
-
-    //m_toDownload = m_filesToDownload.size();
-    //m_downloaded = 0;
-}
-
-void SvrAgt::downloadUpgrader(QString fileName)
-{
-    Q_ASSERT(m_filesToDownload.isEmpty() == true);
-    Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
-    if (m_filesToDownload.contains(fileName) == false)
-    {
-        m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
-        sendRequestGetUpgrader(fileName);
-    }
-
-    m_toDownload = m_filesToDownload.size();
-    m_downloaded = 0;
-}
-
-void SvrAgt::downloadMultipleFiles(QSet<QString> files)
-{
-    Q_ASSERT(m_filesToDownload.isEmpty() == true);
-    Q_ASSERT(m_mapFileContentBlocks.isEmpty() == true);
-
-    int counter = 0;
-    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
-    QSet<QString>::const_iterator it = files.constBegin();
-    while (it != files.constEnd())
-    {
-        QString fileName = *it;
-        if (m_filesToDownload.contains(fileName) == false)
-        {
-            m_filesToDownload.insert(fileName, WaitingDataFromServer);  // mark it as request has been sent
-            sendRequestGetFile(fileName);
-        }
-        it ++;
-
-        if (counter ++ % requestsForARound == 0)
-        {
-            // process events so we don't make the app unresponsive
-            QCoreApplication::processEvents(QEventLoop::ExcludeSocketNotifiers);
-        }
-    }
-
-    m_toDownload = m_filesToDownload.size();
-    m_downloaded = 0;
-}
-
-void SvrAgt::cancelDownloading()
-{
-    cancelDownloadingFiles();
-    cancelDownloadingWords();
-
-    // just discard the messages!
-    m_messages.clear();
-}
-
-void SvrAgt::disconnectServer()
+void ServerCommunicator::disconnectServer()
 {
     sendRequestBye();
 }
 
-void SvrAgt::sendMessage(const QByteArray &msg, bool needCompress, bool now)
+void ServerCommunicator::sendMessage(const QByteArray &msg, bool needCompress, bool now)
 {
     connectToServer();
     QByteArray block;
@@ -836,30 +739,7 @@ void SvrAgt::sendMessage(const QByteArray &msg, bool needCompress, bool now)
     }
 }
 
-void SvrAgt::updateAndEmitProgress()
-{
-    Q_ASSERT(m_toDownload != 0);
-    m_downloaded ++;
-    emit(downloadProgress(m_downloaded * 1.0f / m_toDownload));
-}
-
-void SvrAgt::cancelDownloadingWords()
-{
-    m_wordsToDownload.clear();
-}
-
-void SvrAgt::cancelDownloadingFiles()
-{
-    m_filesToDownload.clear();
-    auto fileList = m_mapFileContentBlocks.keys();
-    for (int i = 0;i < fileList.size();i ++)
-    {
-        discardFileContent(fileList.at(i));
-    }
-    m_mapFileContentBlocks.clear();
-}
-
-void SvrAgt::onSendMessageSmart()
+void ServerCommunicator::onSendMessageSmart()
 {
     int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
     Q_ASSERT(m_messagesSent - m_lastResponded < requestsForARound * 2);
@@ -878,7 +758,7 @@ void SvrAgt::onSendMessageSmart()
     }
 }
 
-void SvrAgt::sendTheFirstMessage()
+void ServerCommunicator::sendTheFirstMessage()
 {
     Q_ASSERT(m_messages.isEmpty() == false);
     m_tcpSocket->write(m_messages.at(0));
@@ -886,36 +766,7 @@ void SvrAgt::sendTheFirstMessage()
     m_messagesSent ++;
 }
 
-void SvrAgt::downloadWords(const QVector<QString> &wordList)
-{
-    // clear m_wordsToDownload as previous download must finished, NO!!!!
-    //m_wordsToDownload.clear();
-    // don't clear this as it breaks multiple downloading. In other words,
-    // it's possible that there are books in downloading at this moment!
-
-    int requestsForARound = MySettings::numberOfRequestInEveryDownloadRound();
-    // send message to download the words
-    for (int i = 0;i < wordList.size();i ++)
-    {
-        auto spelling = wordList.at(i);
-        if (m_wordsToDownload.contains(spelling) == false)
-        {
-            m_wordsToDownload.insert(spelling, WaitingDataFromServer);  // mark it as request has been sent
-            sendRequestGetAWord(spelling);
-        }
-
-        if (i % requestsForARound == 0)
-        {
-            // process events so we don't make the app unresponsive
-            QCoreApplication::processEvents(QEventLoop::ExcludeSocketNotifiers);
-        }
-    }
-
-    m_toDownload = m_wordsToDownload.size();
-    m_downloaded = 0;
-}
-
-bool SvrAgt::handleResponseAppVersion(const QByteArray &msg)
+bool ServerCommunicator::handleResponseAppVersion(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -933,7 +784,7 @@ bool SvrAgt::handleResponseAppVersion(const QByteArray &msg)
     return true;
 }
 
-bool SvrAgt::handleResponseUpgraderVersion(const QByteArray &msg)
+bool ServerCommunicator::handleResponseUpgraderVersion(const QByteArray &msg)
 {
     QDataStream in(msg);
     MessageHeader receivedMsgHeader = MessageHeader::invalidMessageHeader;
@@ -951,7 +802,7 @@ bool SvrAgt::handleResponseUpgraderVersion(const QByteArray &msg)
     return true;
 }
 
-void SvrAgt::sendRequestAppVersion(QString platform)
+void ServerCommunicator::sendRequestAppVersion(QString platform)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestAppVersion);
 
@@ -961,7 +812,7 @@ void SvrAgt::sendRequestAppVersion(QString platform)
     sendMessage(block);
 }
 
-void SvrAgt::sendRequestUpgraderVersion(QString platform)
+void ServerCommunicator::sendRequestUpgraderVersion(QString platform)
 {
     MessageHeader msgHeader(ServerClientProtocol::RequestUpgraderVersion);
 
@@ -970,3 +821,4 @@ void SvrAgt::sendRequestUpgraderVersion(QString platform)
     out << msgHeader << platform;
     sendMessage(block);
 }
+

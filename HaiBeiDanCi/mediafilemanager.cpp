@@ -24,6 +24,38 @@ MediaFileManager * MediaFileManager::instance()
     return m_mfm;
 }
 
+void MediaFileManager::fileDownloaded(QStringList files)
+{
+    auto allBooks = WordBook::getAllBooks();
+    for (int i = 0;i < allBooks.size();i ++)
+    {
+        auto bookName = allBooks.at(i);
+        m_efMutex.lock();
+
+        auto missingProunceAudioFiles = m_mapBookMissingPronounceAudioFiles.value(bookName);
+        if (missingProunceAudioFiles.get() != nullptr)
+        {
+            // it's possible that a file (not media file) is downloaded while m_mapBookMissingPronounceAudioFiles is NOT fully initialized
+            for (int j = 0;j < files.size();j ++)
+            {
+                missingProunceAudioFiles->remove(files.at(j));
+            }
+        }
+
+        auto missingExampleAudioFiles = m_mapBookMissingExampleAudioFiles.value(bookName);
+        if (missingExampleAudioFiles.get() != nullptr)
+        {
+            // it's possible that a file (not media file) is downloaded while m_mapBookMissingPronounceAudioFiles is NOT fully initialized
+            for (int j = 0;j < files.size();j ++)
+            {
+                missingExampleAudioFiles->remove(files.at(j));
+            }
+        }
+
+        m_efMutex.unlock();
+    }
+}
+
 void MediaFileManager::fileDownloaded(QString fileName)
 {
     auto allBooks = WordBook::getAllBooks();

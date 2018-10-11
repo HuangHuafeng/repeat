@@ -13,8 +13,12 @@
 class WordBook
 {
   public:
+    static const WordBook invalidBook;
     WordBook(QString name = QObject::tr("new book"), QString introduction = QObject::tr("no introduction"), int id = 0);
 
+    bool isValid() const;
+    bool operator==(const WordBook book) const;
+    bool operator!=(const WordBook book) const;
     int getId() const;
     void setId(int id);
     QString getName() const;

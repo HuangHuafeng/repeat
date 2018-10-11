@@ -12,9 +12,6 @@ LoginDialog::LoginDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(&m_sua, SIGNAL(loginSucceeded(const ApplicationUser &, const Token &)), this, SLOT(onLoginSucceeded(const ApplicationUser &, const Token &)));
-    connect(&m_sua, SIGNAL(loginFailed(QString)), this, SLOT(onLoginFailed(QString)));
-
     loadNameAndPassword();
 }
 
@@ -121,7 +118,20 @@ void LoginDialog::loadNameAndPassword()
 void LoginDialog::on_pbLogin_clicked()
 {
     saveNameAndPassword();
-    m_sua.loginUser(ui->leName->text(), ui->lePassword->text());
+
+    ServerUserAgent *sua = new ServerUserAgent();
+    connect(sua, &ServerUserAgent::loginResult, [sua, this] (bool succeeded, const ApplicationUser &user, const Token &token, QString errorText) {
+        if (succeeded == true)
+        {
+            this->onLoginSucceeded(user, token);
+        }
+        else
+        {
+            this->onLoginFailed(errorText);
+        }
+        sua->deleteLater();
+    });
+    sua->loginUser(ui->leName->text(), ui->lePassword->text());
 }
 
 void LoginDialog::onLoginSucceeded(const ApplicationUser &user, const Token &token)

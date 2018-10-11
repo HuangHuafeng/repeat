@@ -239,8 +239,7 @@ bool ServerDataDialog::fileExistsLocally(QString fileName)
 
 void ServerDataDialog::downloadFiles(const QSet<QString> &setFiles, bool showProgress, QString labelText, QString cancelButtonText)
 {
-    auto sc = ServerCommunicator::instance();
-    FileDownloader *fd = new FileDownloader(sc);
+    FileDownloader *fd = new FileDownloader();
     connect(fd, SIGNAL(downloadFinished(const QMap<QString, ServerCommunicator::DownloadStatus> &)), this, SLOT(onFilesDownloadFinished(const QMap<QString, ServerCommunicator::DownloadStatus> &)));
     connect(fd, &FileDownloader::downloadFinished, [fd] () {
         fd->deleteLater();
@@ -253,8 +252,7 @@ void ServerDataDialog::downloadFiles(const QSet<QString> &setFiles, bool showPro
 
 void ServerDataDialog::downloadBook(QString bookName, bool showProgress, QString labelText, QString cancelButtonText)
 {
-    auto sc = ServerCommunicator::instance();
-    BookDownloader *bd = new BookDownloader(sc);
+    BookDownloader *bd = new BookDownloader();
     connect(bd, SIGNAL(downloadFinished(QString, ServerCommunicator::DownloadStatus)), this, SLOT(onBookDownloadFinished(QString, ServerCommunicator::DownloadStatus)));
     connect(bd, &BookDownloader::downloadFinished, [bd] () {
         bd->deleteLater();
@@ -266,8 +264,7 @@ void ServerDataDialog::downloadBook(QString bookName, bool showProgress, QString
 
 void ServerDataDialog::downloadBookList()
 {
-    auto sc = ServerCommunicator::instance();
-    BookDownloader *bd = new BookDownloader(sc);
+    BookDownloader *bd = new BookDownloader();
     connect(bd, SIGNAL(bookListDownloaded(const QList<QString> &)), this, SLOT(onBookListReady(const QList<QString> &)));
     connect(bd, &BookDownloader::bookListDownloaded, [bd] () {
         bd->deleteLater();

@@ -13,6 +13,7 @@
 #include "logindialog.h"
 #include "clienttoken.h"
 #include "filedownloader.h"
+#include "versionchecker.h"
 
 #include <QTreeWidgetItem>
 #include <QMessageBox>
@@ -532,8 +533,11 @@ void MainWindow::on_actionLogout_triggered()
     if (ct->hasAliveToken() == true
             && ct->hasValidUser() == true)
     {
-        ServerUserAgent *sua = new ServerUserAgent(this);
-        connect(sua, &ServerUserAgent::logoutSucceeded, [sua] (QString name) { sua->deleteLater(); qDebug() << "sua->deleteLater() called for" << name; });
+        ServerUserAgent *sua = new ServerUserAgent();
+        connect(sua, &ServerUserAgent::logoutSucceeded, [sua] (QString name) {
+            sua->deleteLater();
+            qDebug() << "sua->deleteLater() called for" << name;
+        });
         sua->logoutUser(ct->user().name());
         ct->setToken(Token::invalidToken);
         ct->setUser(ApplicationUser::invalidUser);
@@ -606,8 +610,7 @@ void MainWindow::onAppVersion(ReleaseInfo appReleaseInfo, ReleaseInfo appLibRele
 
 void MainWindow::downloadLatestApp(ApplicationVersion version, QStringList files)
 {
-    auto sc = ServerCommunicator::instance();
-    FileDownloader *fd = new FileDownloader(sc);
+    FileDownloader *fd = new FileDownloader();
 
     connect(fd, &FileDownloader::downloadFinished, [fd, files, version, this] (const QMap<QString, ServerCommunicator::DownloadStatus> &downloadResult) {
         QStringList successfullyDownloadedFiles = downloadResult.keys(ServerCommunicator::DownloadSucceeded);
@@ -659,13 +662,13 @@ void MainWindow::onAppDownloaded(ApplicationVersion version, QStringList files)
 void MainWindow::on_actionUpdate_Upgrader_triggered()
 {
     QString platform = getPlatform();
-    SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
-    connect(sa, SIGNAL(upgraderVersion(ReleaseInfo, ReleaseInfo)), this, SLOT(onUpgraderVersion(ReleaseInfo, ReleaseInfo)));
-    connect(sa, &SvrAgt::upgraderVersion, [sa] () {
-        sa->deleteLater();
-        qDebug() << "sa->deleteLater() called!";
+    VersionChecker *vc = new VersionChecker();
+    connect(vc, &VersionChecker::upgraderVersion, [vc, this] (ReleaseInfo upgraderReleaseInfo, ReleaseInfo upgraderLibReleaseInfo) {
+        this->onUpgraderVersion(upgraderReleaseInfo, upgraderLibReleaseInfo);
+        vc->deleteLater();
+        qDebug() << "vc->deleteLater() called!";
     });
-    sa->sendRequestUpgraderVersion(platform);
+    vc->checkUpgrader(platform);
 }
 
 void MainWindow::onUpgraderVersion(ReleaseInfo upgraderReleaseInfo, ReleaseInfo upgraderLibReleaseInfo)
@@ -696,8 +699,7 @@ void MainWindow::onUpgraderVersion(ReleaseInfo upgraderReleaseInfo, ReleaseInfo 
 
 void MainWindow::downloadLatestUpgrader(ApplicationVersion version, QStringList files)
 {
-    auto sc = ServerCommunicator::instance();
-    FileDownloader *fd = new FileDownloader(sc);
+    FileDownloader *fd = new FileDownloader();
 
     connect(fd, &FileDownloader::downloadFinished, [fd, files, version, this] (const QMap<QString, ServerCommunicator::DownloadStatus> &downloadResult) {
         QStringList successfullyDownloadedFiles = downloadResult.keys(ServerCommunicator::DownloadSucceeded);
@@ -733,13 +735,12 @@ void MainWindow::onUpgraderDownloaded(ApplicationVersion version, QStringList fi
 
 void MainWindow::on_actionUpdate_App_triggered()
 {
-    // check the app
     QString platform = getPlatform();
-    SvrAgt *sa = new SvrAgt(MySettings::serverHostName(), MySettings::serverPort(), this);
-    connect(sa, SIGNAL(appVersion(ReleaseInfo, ReleaseInfo)), this, SLOT(onAppVersion(ReleaseInfo, ReleaseInfo)));
-    connect(sa, &SvrAgt::appVersion, [sa] () {
-        sa->deleteLater();
-        qDebug() << "sa->deleteLater() called!";
+    VersionChecker *vc = new VersionChecker();
+    connect(vc, &VersionChecker::appVersion, [vc, this] (ReleaseInfo appReleaseInfo, ReleaseInfo appLibReleaseInfo) {
+        this->onAppVersion(appReleaseInfo, appLibReleaseInfo);
+        vc->deleteLater();
+        qDebug() << "vc->deleteLater() called!";
     });
-    sa->sendRequestAppVersion(platform);
+    vc->checkApp(platform);
 }

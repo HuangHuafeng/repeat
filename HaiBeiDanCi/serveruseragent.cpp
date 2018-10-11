@@ -1,12 +1,18 @@
 #include "serveruseragent.h"
 #include "mysettings.h"
 
-ServerUserAgent::ServerUserAgent(QObject *parent) : QObject(parent),
-    m_svrAgt(MySettings::serverHostName(), MySettings::serverPort(), this)
+ServerUserAgent::ServerUserAgent(ServerCommunicator *sc, QObject *parent) :
+    QObject(parent),
+    m_sc(sc)
 {
-    connect(&m_svrAgt, SIGNAL(registerResult(qint32, const ApplicationUser &)), this, SLOT(onRegisterResult(qint32, const ApplicationUser &)));
-    connect(&m_svrAgt, SIGNAL(loginResult(qint32, const ApplicationUser &, const Token &)), this, SLOT(onLoginResult(qint32, const ApplicationUser &, const Token &)));
-    connect(&m_svrAgt, SIGNAL(logoutResult(qint32, QString)), this, SLOT(onLogoutResult(qint32, QString)));
+    if (m_sc == nullptr)
+    {
+        m_sc = ServerCommunicator::instance();
+    }
+
+    connect(m_sc, SIGNAL(registerResult(qint32, const ApplicationUser &)), this, SLOT(onRegisterResult(qint32, const ApplicationUser &)));
+    connect(m_sc, SIGNAL(loginResult(qint32, const ApplicationUser &, const Token &)), this, SLOT(onLoginResult(qint32, const ApplicationUser &, const Token &)));
+    connect(m_sc, SIGNAL(logoutResult(qint32, QString)), this, SLOT(onLogoutResult(qint32, QString)));
 }
 
 void ServerUserAgent::onRegisterResult(qint32 result, const ApplicationUser &user)
@@ -21,7 +27,7 @@ void ServerUserAgent::onRegisterResult(qint32 result, const ApplicationUser &use
 
     if (result == ApplicationUser::ResultRegisterOK)
     {
-        emit(registerSucceeded(user));
+        emit(registerResult(true, user, QString()));
     }
     else
     {
@@ -45,7 +51,7 @@ void ServerUserAgent::onRegisterResult(qint32 result, const ApplicationUser &use
             break;
         }
 
-        emit(registerFailed(why));
+        emit(registerResult(false, user, why));
     }
 }
 
@@ -53,7 +59,7 @@ void ServerUserAgent::onLoginResult(qint32 result, const ApplicationUser &user, 
 {
     if (result == ApplicationUser::ResultLoginOK)
     {
-        emit(loginSucceeded(user, token));
+        emit(loginResult(true, user, token, QString()));
     }
     else
     {
@@ -75,21 +81,14 @@ void ServerUserAgent::onLoginResult(qint32 result, const ApplicationUser &user, 
             break;
         }
 
-        emit(loginFailed(why));
+        emit(loginResult(false, user, token, why));
     }
 }
 
 void ServerUserAgent::registerUser(QString name, QString password, QString email)
 {
-    auto user = ApplicationUser::getUser(name);
-    if (user.get() != nullptr)
-    {
-        emit(registerFailed(QObject::tr("user already exists locally")));
-        return;
-    }
-
     ApplicationUser userToRegister(name, password, email);
-    m_svrAgt.sendRequestRegister(userToRegister);
+    m_sc->sendRequestRegister(userToRegister);
 }
 
 void ServerUserAgent::loginUser(QString name, QString password)
@@ -109,12 +108,12 @@ void ServerUserAgent::loginUser(QString name, QString password)
         }
     }
 
-    m_svrAgt.sendRequestLogin(tempUser);
+    m_sc->sendRequestLogin(tempUser);
 }
 
 void ServerUserAgent::logoutUser(QString name)
 {
-    m_svrAgt.sendRequestLogout(name);
+    m_sc->sendRequestLogout(name);
 }
 
 void ServerUserAgent::onLogoutResult(qint32 result, QString name)

@@ -11,7 +11,7 @@ class BookDownloader : public QObject
     Q_OBJECT
 
 public:
-    explicit BookDownloader(ServerCommunicator *sc, QObject *parent = nullptr);
+    explicit BookDownloader(ServerCommunicator *sc = nullptr, QObject *parent = nullptr);
     ~BookDownloader();
 
     void setShowProgress(bool showProgress = true, QString labelText = QObject::tr("Downloading ..."), QString cancelButtonText = QString(), QWidget *parent = nullptr);

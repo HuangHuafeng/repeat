@@ -20,8 +20,6 @@ public:
     ~RegisterDialog();
 
 private slots:
-    void onRegisterSucceeded(const ApplicationUser &user);
-    void onRegisterFailed(QString why);
     void on_pbCancel_clicked();
 
     void on_pbRegister_clicked();
@@ -31,7 +29,8 @@ private slots:
 private:
     Ui::RegisterDialog *ui;
 
-    ServerUserAgent m_sua;
+    void onRegisterSucceeded(const ApplicationUser &user);
+    void onRegisterFailed(QString why);
 };
 
 #endif // REGISTERDIALOG_H

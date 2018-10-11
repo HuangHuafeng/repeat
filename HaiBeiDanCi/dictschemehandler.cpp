@@ -65,8 +65,7 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
 
 void DictSchemeHandler::downloadFile(QString fileName)
 {
-    auto sc = ServerCommunicator::instance();
-    FileDownloader *fd = new FileDownloader(sc);
+    FileDownloader *fd = new FileDownloader();
     // create a timer, we consider the downloading failed if it times out
     QTimer *t = new QTimer(this);
 

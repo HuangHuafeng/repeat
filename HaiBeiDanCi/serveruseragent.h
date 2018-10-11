@@ -1,7 +1,7 @@
 #ifndef SERVERUSERAGENT_H
 #define SERVERUSERAGENT_H
 
-#include "svragt.h"
+#include "servercommunicator.h"
 
 #include <QObject>
 
@@ -9,21 +9,16 @@ class ServerUserAgent : public QObject
 {
     Q_OBJECT
 
-    SvrAgt m_svrAgt;
 public:
-    explicit ServerUserAgent(QObject *parent = nullptr);
+    explicit ServerUserAgent(ServerCommunicator *sc = nullptr, QObject *parent = nullptr);
 
     void registerUser(QString name, QString password, QString email);
     void loginUser(QString name, QString password);
     void logoutUser(QString name);
 
 signals:
-    void registerSucceeded(const ApplicationUser &user);
-    void registerFailed(QString why);
-
-    void loginSucceeded(const ApplicationUser &user, const Token &token);
-    void loginFailed(QString why);
-
+    void registerResult(bool succeeded, const ApplicationUser &user, QString errorText);
+    void loginResult(bool succeeded, const ApplicationUser &user, const Token &token, QString errorText);
     void logoutSucceeded(QString name);
 
 private slots:
@@ -31,7 +26,9 @@ private slots:
     void onLoginResult(qint32 result, const ApplicationUser &user, const Token &token);
     void onLogoutResult(qint32 result, QString name);
 
-public slots:
+private:
+    ServerCommunicator *m_sc;
+
 };
 
 #endif // SERVERUSERAGENT_H

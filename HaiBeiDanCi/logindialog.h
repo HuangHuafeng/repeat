@@ -18,9 +18,6 @@ public:
     ~LoginDialog();
 
 private slots:
-    void onLoginSucceeded(const ApplicationUser &user, const Token &token);
-    void onLoginFailed(QString why);
-
     void on_actionCheckInput_triggered();
 
     void on_pbCancel_clicked();
@@ -32,10 +29,11 @@ private slots:
 private:
     Ui::LoginDialog *ui;
 
-    ServerUserAgent m_sua;
-
     void saveNameAndPassword();
     void loadNameAndPassword();
+
+    void onLoginSucceeded(const ApplicationUser &user, const Token &token);
+    void onLoginFailed(QString why);
 };
 
 #endif // LOGINDIALOG_H

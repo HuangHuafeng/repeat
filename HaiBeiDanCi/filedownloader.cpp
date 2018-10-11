@@ -6,6 +6,11 @@ FileDownloader::FileDownloader(ServerCommunicator *sc, QObject *parent) :
     m_showProgress(false),
     m_pd(nullptr)
 {
+    if (m_sc == nullptr)
+    {
+        m_sc = ServerCommunicator::instance();
+    }
+
     connect(m_sc, SIGNAL(fileDownloadProgress(QString, float)), this, SLOT(onFileDownloadProgress(QString, float)));
     connect(m_sc,
             SIGNAL(fileDownloaded(QString, ServerCommunicator::DownloadStatus, const QVector<QMap<const char *, uint>> *)),

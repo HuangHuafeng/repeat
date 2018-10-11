@@ -1,19 +1,14 @@
 #include "registerdialog.h"
 #include "ui_registerdialog.h"
-#include "serverdatadownloader.h"
 #include "mysettings.h"
 
 #include <QMessageBox>
 
 RegisterDialog::RegisterDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::RegisterDialog),
-    m_sua(this)
+    ui(new Ui::RegisterDialog)
 {
     ui->setupUi(this);
-
-    connect(&m_sua, SIGNAL(registerSucceeded(const ApplicationUser &)), this, SLOT(onRegisterSucceeded(const ApplicationUser &)));
-    connect(&m_sua, SIGNAL(registerFailed(QString)), this, SLOT(onRegisterFailed(QString)));
 }
 
 RegisterDialog::~RegisterDialog()
@@ -32,7 +27,19 @@ void RegisterDialog::on_pbRegister_clicked()
     QString password = ui->lePassword->text();
     QString email = ui->leEmail->text();
 
-    m_sua.registerUser(name, password, email);
+    ServerUserAgent *sua = new ServerUserAgent();
+    connect(sua, &ServerUserAgent::registerResult, [sua, this] (bool succeeded, const ApplicationUser &user, QString errorText) {
+        if (succeeded == true)
+        {
+            this->onRegisterSucceeded(user);
+        }
+        else
+        {
+            this->onRegisterFailed(errorText);
+        }
+        sua->deleteLater();
+    });
+    sua->registerUser(name, password, email);
 }
 
 void RegisterDialog::onRegisterSucceeded(const ApplicationUser &user)

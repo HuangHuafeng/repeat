@@ -86,7 +86,8 @@ SOURCES += \
     ../Upgrader/upgradedata.cpp \
     servercommunicator.cpp \
     filedownloader.cpp \
-    bookdownloader.cpp
+    bookdownloader.cpp \
+    versionchecker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -123,7 +124,8 @@ HEADERS += \
     ../golddict/sptr.hh \
     servercommunicator.h \
     filedownloader.h \
-    bookdownloader.h
+    bookdownloader.h \
+    versionchecker.h
 
 FORMS += \
     mainwindow.ui \

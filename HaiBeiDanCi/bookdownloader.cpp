@@ -9,7 +9,10 @@ BookDownloader::BookDownloader(ServerCommunicator *sc, QObject *parent) :
     m_pd(nullptr),
     m_book(WordBook::invalidBook)
 {
-    Q_ASSERT(m_sc != nullptr);
+    if (m_sc == nullptr)
+    {
+        m_sc = ServerCommunicator::instance();
+    }
 
     connect(m_sc, SIGNAL(bookListDownloaded(const QList<QString> &)), this, SLOT(onBookListDownloaded(const QList<QString> &)));
     connect(m_sc, SIGNAL(bookDownloaded(const WordBook &)), this, SLOT(onBookDownloaded(const WordBook &)));

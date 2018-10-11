@@ -72,7 +72,6 @@ SOURCES += \
     serverdatadialog.cpp \
     serverclientprotocol.cpp \
     aboutdialog.cpp \
-    svragt.cpp \
     helpfunc.cpp \
     mediafilemanager.cpp \
     applicationuser.cpp \
@@ -109,7 +108,6 @@ HEADERS += \
     serverdatadialog.h \
     serverclientprotocol.h \
     aboutdialog.h \
-    svragt.h \
     helpfunc.h \
     mediafilemanager.h \
     applicationuser.h \

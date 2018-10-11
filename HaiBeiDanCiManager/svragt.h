@@ -1,11 +1,11 @@
 #ifndef SVRAGT_H
 #define SVRAGT_H
 
-#include "wordbook.h"
+#include "../HaiBeiDanCi/wordbook.h"
 #include "../golddict/sptr.hh"
-#include "serverclientprotocol.h"
-#include "applicationuser.h"
-#include "token.h"
+#include "../HaiBeiDanCi/serverclientprotocol.h"
+#include "../HaiBeiDanCi/applicationuser.h"
+#include "../HaiBeiDanCi/token.h"
 
 #include <QObject>
 #include <QtNetwork>

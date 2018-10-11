@@ -4,7 +4,7 @@
 #include "../HaiBeiDanCi/word.h"
 #include "../HaiBeiDanCi/wordbook.h"
 #include "../HaiBeiDanCi/mysettings.h"
-#include "../HaiBeiDanCi/svragt.h"
+#include "svragt.h"
 #include "../HaiBeiDanCi/mediafilemanager.h"
 #include "newbook.h"
 #include "preferencesdialog.h"

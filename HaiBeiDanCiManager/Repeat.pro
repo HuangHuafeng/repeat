@@ -77,7 +77,6 @@ SOURCES += \
     ../HaiBeiDanCi/mysettings.cpp \
     ../HaiBeiDanCi/downloadmanager.cpp \
     ../HaiBeiDanCi/serverclientprotocol.cpp \
-    ../HaiBeiDanCi/svragt.cpp \
     ../HaiBeiDanCi/helpfunc.cpp \
     ../HaiBeiDanCi/mediafilemanager.cpp \
     ../HaiBeiDanCi/applicationuser.cpp \
@@ -97,6 +96,7 @@ SOURCES += \
     preferencesdialog.cpp \
     releaseappdialog.cpp \
     releaseupgraderdialog.cpp \
+    svragt.cpp \
     ../HaiBeiDanCi/servercommunicator.cpp \
     ../HaiBeiDanCi/bookdownloader.cpp
 
@@ -147,7 +147,6 @@ HEADERS += \
     ../HaiBeiDanCi/mysettings.h \
     ../HaiBeiDanCi/downloadmanager.h \
     ../HaiBeiDanCi/serverclientprotocol.h \
-    ../HaiBeiDanCi/svragt.h \
     ../HaiBeiDanCi/helpfunc.h \
     ../HaiBeiDanCi/mediafilemanager.h \
     ../HaiBeiDanCi/applicationuser.h \
@@ -166,6 +165,7 @@ HEADERS += \
     preferencesdialog.h \
     releaseappdialog.h \
     releaseupgraderdialog.h \
+    svragt.h \
     ../HaiBeiDanCi/servercommunicator.h \
     ../HaiBeiDanCi/bookdownloader.h
 

@@ -1,6 +1,6 @@
 #include "svragt.h"
-#include "serverclientprotocol.h"
-#include "mysettings.h"
+#include "../HaiBeiDanCi/serverclientprotocol.h"
+#include "../HaiBeiDanCi/mysettings.h"
 
 SvrAgt::SvrAgt(const QString &hostName, quint16 port, QObject *parent) : QObject(parent),
     m_serverHostName(hostName),

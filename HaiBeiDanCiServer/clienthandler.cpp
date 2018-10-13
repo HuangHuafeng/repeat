@@ -276,7 +276,7 @@ bool ClientHandler::handleRequestAppVersion(const QByteArray &msg)
 
 bool ClientHandler::handleRequestUpgraderVersion(const QByteArray &msg)
 {
-    funcTracker ft("handleRequestAppVersion()");
+    funcTracker ft("handleRequestUpgraderVersion()");
 
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);

@@ -196,7 +196,7 @@ void HBDCAppHandler::sendResponseGetABook(const QByteArray &msg, const WordBook 
 
 bool HBDCAppHandler::handleRequestGetBookWordList(const QByteArray &msg)
 {
-    funcTracker ft("handleRequestGetWordsOfBook()");
+    funcTracker ft("handleRequestGetBookWordList()");
 
     // read the name of the book
     QDataStream in(msg);
@@ -217,7 +217,7 @@ bool HBDCAppHandler::handleRequestGetBookWordList(const QByteArray &msg)
 
 bool HBDCAppHandler::handleRequestGetWordsOfBookFinished(const QByteArray &msg)
 {
-    funcTracker ft("handleRequestGetWordsOfBook()");
+    funcTracker ft("handleRequestGetWordsOfBookFinished()");
 
     // read the name of the book
     QDataStream in(msg);

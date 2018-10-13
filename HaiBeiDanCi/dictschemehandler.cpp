@@ -1,6 +1,7 @@
 #include "dictschemehandler.h"
 #include "mysettings.h"
 #include "filedownloader.h"
+#include "clienttoken.h"
 
 #include <QWebEngineUrlRequestJob>
 #include <QCoreApplication>
@@ -65,6 +66,11 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
 
 void DictSchemeHandler::downloadFile(QString fileName)
 {
+    if (ClientToken::instance()->userAlreadyLogin() == false)
+    {
+        return;
+    }
+
     FileDownloader *fd = new FileDownloader();
     // create a timer, we consider the downloading failed if it times out
     QTimer *t = new QTimer(this);

@@ -81,14 +81,15 @@ int HBDCManagerHandler::handleMessage(const QByteArray &msg)
 
 bool HBDCManagerHandler::handleRequestGetAllWordsWithoutDefinition(const QByteArray &msg)
 {
+    funcTracker ft("handleRequestGetAllWordsWithoutDefinition()");
     sendAllWordsWithoutDefinition(msg);
     return true;
 }
 
 bool HBDCManagerHandler::handleRequestGetServerDataFinished(const QByteArray &msg)
 {
+    funcTracker ft("handleRequestGetServerDataFinished()");
     sendResponseGetServerDataFinished(msg);
-
     return true;
 }
 
@@ -152,6 +153,7 @@ void HBDCManagerHandler::sendResponseGetAllWordsWithoutDefinition(const QByteArr
 
 bool HBDCManagerHandler::handleResponseGetABook(const QByteArray &msg)
 {
+    funcTracker ft("handleResponseGetABook()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     WordBook book;
@@ -174,6 +176,7 @@ bool HBDCManagerHandler::handleResponseGetABook(const QByteArray &msg)
 
 bool HBDCManagerHandler::handleResponseGetBookWordList(const QByteArray &msg)
 {
+    funcTracker ft("handleResponseGetBookWordList()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
@@ -203,6 +206,7 @@ bool HBDCManagerHandler::handleResponseGetBookWordList(const QByteArray &msg)
 
 bool HBDCManagerHandler::handleResponseGetAWord(const QByteArray &msg)
 {
+    funcTracker ft("handleResponseGetAWord()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     Word word;
@@ -225,6 +229,7 @@ bool HBDCManagerHandler::handleResponseGetAWord(const QByteArray &msg)
 
 bool HBDCManagerHandler::handleResponseGetWordsOfBookFinished(const QByteArray &msg)
 {
+    funcTracker ft("handleResponseGetWordsOfBookFinished()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
@@ -268,6 +273,7 @@ bool HBDCManagerHandler::handleResponseGetWordsOfBookFinished(const QByteArray &
 
 bool HBDCManagerHandler::handleRequestDeleteABook(const QByteArray &msg)
 {
+    funcTracker ft("handleRequestDeleteABook()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
@@ -291,6 +297,7 @@ bool HBDCManagerHandler::handleRequestDeleteABook(const QByteArray &msg)
 
 bool HBDCManagerHandler::handleRequestMissingMediaFiles(const QByteArray &msg)
 {
+    funcTracker ft("handleRequestMissingMediaFiles()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString bookName;
@@ -298,7 +305,7 @@ bool HBDCManagerHandler::handleRequestMissingMediaFiles(const QByteArray &msg)
     in >> receivedMsgHeader >> bookName;
     if (in.commitTransaction() == false)
     {
-        qCritical() << "failed to read the book name in handleRequestDeleteABook()";
+        qCritical() << "failed to read the book name in handleRequestMissingMediaFiles()";
         return false;
     }
 
@@ -362,6 +369,7 @@ void HBDCManagerHandler::sendResponseMissingMediaFiles(const QByteArray &msg, QS
 
 bool HBDCManagerHandler::handleRequestUploadAFile(const QByteArray &msg)
 {
+    funcTracker ft("handleRequestUploadAFile()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString fileName;
@@ -405,6 +413,7 @@ void HBDCManagerHandler::sendResponseUploadAFile(const QByteArray &msg, QString 
 
 bool HBDCManagerHandler::handleRequestUploadAFileFinished(const QByteArray &msg)
 {
+    funcTracker ft("handleRequestUploadAFileFinished()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     QString fileName;
@@ -413,7 +422,7 @@ bool HBDCManagerHandler::handleRequestUploadAFileFinished(const QByteArray &msg)
     in >> receivedMsgHeader >> fileName >> succeeded;
     if (in.commitTransaction() == false)
     {
-        qCritical() << "failed to read books in handleResponseAllDataSentForRequestGetFile()";
+        qCritical() << "failed to read books in handleRequestUploadAFileFinished()";
         return false;
     }
 
@@ -502,6 +511,7 @@ void HBDCManagerHandler::saveFileFromServer(QString fileName)
 
 bool HBDCManagerHandler::handleRequestReleaseApp(const QByteArray &msg)
 {
+    funcTracker ft("handleRequestReleaseApp()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     ApplicationVersion appVer(0, 0, 0);
@@ -537,6 +547,7 @@ void HBDCManagerHandler::sendResponseReleaseApp(const QByteArray &msg, bool succ
 
 bool HBDCManagerHandler::handleRequestReleaseUpgrader(const QByteArray &msg)
 {
+    funcTracker ft("handleRequestReleaseUpgrader()");
     QDataStream in(msg);
     MessageHeader receivedMsgHeader(-1, -1, -1);
     ApplicationVersion appVer(0, 0, 0);
@@ -546,7 +557,7 @@ bool HBDCManagerHandler::handleRequestReleaseUpgrader(const QByteArray &msg)
     in >> receivedMsgHeader >> appVer >> platform >> fileName >> isLibPart;
     if (in.commitTransaction() == false)
     {
-        qCritical() << "failed to read words of the book in handleRequestReleaseApp()";
+        qCritical() << "failed to read words of the book in handleRequestReleaseUpgrader()";
         return false;
     }
 

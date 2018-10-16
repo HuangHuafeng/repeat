@@ -451,7 +451,14 @@ void MainWindow::on_pushGlobalBrowseExpiredWords_clicked()
 
 void MainWindow::setMyTitle()
 {
-    QString title = MySettings::appName();
+    QString username = QObject::tr("No user");
+    ClientToken *ct = ClientToken::instance();
+    if (ct->isUserLoggedIn() == true)
+    {
+        username = ct->user().name();
+    }
+
+    QString title = MySettings::appName() + " - " + username;
     setWindowTitle(title);
 }
 
@@ -520,6 +527,7 @@ void MainWindow::on_actionLogin_triggered()
     if (result == QDialog::Accepted)
     {
         // a new user is registered, here we can conintue logging in with the newly created user
+        setMyTitle();
     }
     else
     {
@@ -530,17 +538,17 @@ void MainWindow::on_actionLogin_triggered()
 void MainWindow::on_actionLogout_triggered()
 {
     auto ct = ClientToken::instance();
-    if (ct->hasAliveToken() == true
-            && ct->hasValidUser() == true)
+    if (ct->isUserLoggedIn() == true)
     {
         ServerUserAgent *sua = new ServerUserAgent();
-        connect(sua, &ServerUserAgent::logoutSucceeded, [sua] (QString name) {
+        connect(sua, &ServerUserAgent::logoutSucceeded, [sua, ct, this] (QString name) {
             sua->deleteLater();
+            ct->setToken(Token::invalidToken);
+            ct->setUser(ApplicationUser::invalidUser);
+            this->setMyTitle();
             qDebug() << "sua->deleteLater() called for" << name;
         });
         sua->logoutUser(ct->user().name());
-        ct->setToken(Token::invalidToken);
-        ct->setUser(ApplicationUser::invalidUser);
     }
 }
 

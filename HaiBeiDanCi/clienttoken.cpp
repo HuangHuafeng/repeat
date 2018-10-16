@@ -57,10 +57,14 @@ void ClientToken::setLoginAction(QAction *loginAction)
     m_loginAction = loginAction;
 }
 
-bool ClientToken::userAlreadyLogin(QWidget *parent)
+bool ClientToken::isUserLoggedIn()
 {
-    if (hasAliveToken() == true
-            && hasValidUser() == true)
+    return hasAliveToken() == true && hasValidUser() == true;
+}
+
+bool ClientToken::promptUserToLogin(QWidget *parent, QString text, QString informativeText)
+{
+    if (isUserLoggedIn() == true)
     {
         return true;
     }
@@ -68,10 +72,10 @@ bool ClientToken::userAlreadyLogin(QWidget *parent)
     {
         QMessageBox msgBox(parent);
         msgBox.setIcon(QMessageBox::Critical);
-        msgBox.setText("This requires a user to login first!");
+        msgBox.setText(text);
         if (m_loginAction != nullptr)
         {
-            msgBox.setInformativeText("Would you like to login now?");
+            msgBox.setInformativeText(informativeText);
             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             msgBox.setDefaultButton(QMessageBox::Yes);
             int ret = msgBox.exec();

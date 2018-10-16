@@ -13,7 +13,8 @@ class ClientToken : public QObject
 
 public:
     static ClientToken * instance();
-    bool userAlreadyLogin(QWidget *parent = nullptr);
+    bool isUserLoggedIn();
+    bool promptUserToLogin(QWidget *parent = nullptr, QString text = QObject::tr("This requires a user to login first!"), QString informativeText= QObject::tr("Would you like to login now?"));
 
     void setLoginAction(QAction *loginAction);
 

@@ -66,7 +66,11 @@ void DictSchemeHandler::handleSchemeHhfaudio(QWebEngineUrlRequestJob *request)
 
 void DictSchemeHandler::downloadFile(QString fileName)
 {
-    if (ClientToken::instance()->userAlreadyLogin() == false)
+    if (ClientToken::instance()->promptUserToLogin(nullptr,
+                                                  QObject::tr("No local media file!"),
+                                                  QObject::tr("Please download media files first from menu (Server->Books).\n"
+                                                              "Alternatively, you can login to play the file from the server (this might be slow).\n"
+                                                              "Would you like to login now?")) == false)
     {
         return;
     }

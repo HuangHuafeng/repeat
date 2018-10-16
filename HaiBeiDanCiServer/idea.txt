@@ -1,5 +1,9 @@
+* improve the message to ask login
+* add the translation qm file in the package batch file
+* check adding ssl to Qt to download https file
 * deploy HaiBeiDanCi server
-* auto update
+* add timeout in FileDownloader?
+DONE * auto update
 * release app
 * token->user
 [ALMOST DONE]* reduce using sptr

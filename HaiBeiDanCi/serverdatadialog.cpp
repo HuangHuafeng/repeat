@@ -89,7 +89,8 @@ void ServerDataDialog::onBookListReady(const QList<QString> &books)
 
 void ServerDataDialog::on_pbDownloadBook_clicked()
 {
-    if (ClientToken::instance()->userAlreadyLogin(this) == false)
+    if (ClientToken::instance()->promptUserToLogin(this,
+                                                  QObject::tr("Downloading book requires a user to login first!")) == false)
     {
         return;
     }
@@ -165,7 +166,8 @@ void ServerDataDialog::on_pbClose_clicked()
 
 void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
 {
-    if (ClientToken::instance()->userAlreadyLogin(this) == false)
+    if (ClientToken::instance()->promptUserToLogin(this,
+                                                  QObject::tr("Downloading media files requires a user to login first!")) == false)
     {
         return;
     }
@@ -182,7 +184,8 @@ void ServerDataDialog::on_pbDownloadMediaFiles_clicked()
 
 void ServerDataDialog::on_pbDownloadPronounceFiles_clicked()
 {
-    if (ClientToken::instance()->userAlreadyLogin(this) == false)
+    if (ClientToken::instance()->promptUserToLogin(this,
+                                                  QObject::tr("Downloading pronounce files requires a user to login first!")) == false)
     {
         return;
     }

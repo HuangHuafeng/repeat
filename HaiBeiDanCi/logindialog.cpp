@@ -136,7 +136,7 @@ void LoginDialog::on_pbLogin_clicked()
 
 void LoginDialog::onLoginSucceeded(const ApplicationUser &user, const Token &token)
 {
-    QMessageBox::information(this, MySettings::appName(), "\"" + user.name() +"\"" + QObject::tr(" logged in successfully!"));
+    //QMessageBox::information(this, MySettings::appName(), "\"" + user.name() +"\"" + QObject::tr(" logged in successfully!"));
     //[THIS IS NOT ALWAYS TRUE, as it's possilbe the client don't have full info of the user!!]
     //Q_ASSERT(ApplicationUser::userExist(user.name()) != false);
     if (ApplicationUser::userExist(user.name()) == false)

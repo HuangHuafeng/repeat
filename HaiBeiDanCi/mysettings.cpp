@@ -89,7 +89,8 @@ QString MySettings::serverHostName()
         }
         else
         {
-            hostName = "localhost";
+            // default to www.huafeng.ga
+            hostName = "www.huafeng.ga";
         }
     }
 

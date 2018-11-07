@@ -510,7 +510,8 @@ QString MySettings::infoFileHttpUrl()
     QString infoHttp = MySettings::getSettingString("infoFileHttpUrl");
     if (infoHttp.isEmpty() == true)
     {
-        infoHttp = "http://www.huafeng.ga/wp-content/uploads/info.json";
+        //infoHttp = "http://www.huafeng.ga/wp-content/uploads/info.json";
+        infoHttp = "https://raw.githubusercontent.com/HuangHuafeng/repeat/master/HaiBeiDanCi/info.json";
     }
 
     return infoHttp;

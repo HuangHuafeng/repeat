@@ -75,6 +75,8 @@ private slots:
 
     void on_actionRelease_Upgrader_triggered();
 
+    void on_pbTest_clicked();
+
 private:
     Ui::MainWindow *ui;
     GDHelper m_gdhelper;

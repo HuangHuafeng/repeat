@@ -1,9 +1,5 @@
-* improve the message to ask login
-* add the translation qm file in the package batch file
-* check adding ssl to Qt to download https file
 * deploy HaiBeiDanCi server
 * add timeout in FileDownloader?
-DONE * auto update
 * release app
 * token->user
 [ALMOST DONE]* reduce using sptr
@@ -22,8 +18,11 @@ LOW PRIORITY
 * MediaFileManager should inherit QObject and emit signals
 * saving files to disk is slow, maybe good to use a separate thread.(This should have low priority!)
 
-
 // DONE
+DONE * auto update
+DONE * improve the message to ask login
+DONE * add the translation qm file in the package batch file
+NOT NEEDED * check adding ssl to Qt to download https file ("qt.network.ssl: Error receiving trust for a CA certificate" is benign)
 [DONE]* log in / register / etc
 DONE * improve the server agent, it should not have any specific logic. Add new class to handle logic (like saving file/word/book)
 DONE * add server manager.

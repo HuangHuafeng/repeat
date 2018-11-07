@@ -13,6 +13,7 @@
 #include "releaseappdialog.h"
 #include "releaseupgraderdialog.h"
 #include "../HaiBeiDanCi/bookdownloader.h"
+#include "../HaiBeiDanCi/downloadmanager.h"
 
 #include <QString>
 #include <QFileDialog>
@@ -622,4 +623,31 @@ void MainWindow::downloadBook(QString bookName, bool showProgress, QString label
     });
     bd->setShowProgress(showProgress, labelText, cancelButtonText, this);
     bd->downloadBook(bookName);
+}
+
+void MainWindow::on_pbTest_clicked()
+{
+    QString link = ui->lineEdit->text();
+    DownloadManager *dm = new DownloadManager();
+    connect(dm, &DownloadManager::fileDownloadFailed, [dm, this] () {
+        dm->deleteLater();
+
+        QString msg = "<html>failed!</html>";
+        this->m_definitionView.setHtml(msg);
+    });
+    connect(dm, &DownloadManager::fileDownloaded, [dm, this] (QString fileName) {
+        dm->deleteLater();
+
+        QString msg = "<html>Downloading succeeded! Saved to " + fileName + "</html>";
+        this->m_definitionView.setHtml(msg);
+    });
+
+    qint64 extra = QDateTime::currentMSecsSinceEpoch();
+    QString saveTo = MySettings::dataDirectory() + "/test/" + link.section('/', -1) + "." + QString::number(extra);
+    m_definitionView.setHtml("<html>downloading " + link + " ..." + "</html>");
+    dm->download(link, saveTo);
+
+
+    QString html = "<html>" + saveTo + "</html>";
+
 }

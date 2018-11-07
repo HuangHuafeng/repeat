@@ -309,6 +309,13 @@
        <widget class="QLineEdit" name="lineEdit"/>
       </item>
       <item>
+       <widget class="QPushButton" name="pbTest">
+        <property name="text">
+         <string>Test</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="pushButton">
         <property name="text">
          <string>Query</string>

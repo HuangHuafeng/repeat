@@ -21,7 +21,7 @@ private slots:
 private:
     Ui::AboutDialog *ui;
 
-    QString aboutText();
+    QString aboutRichText();
     void setMyTitle();
 };
 

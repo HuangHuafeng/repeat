@@ -22,6 +22,7 @@ ServerDataDialog::ServerDataDialog(QWidget *parent) :
     header.append(QObject::tr("Status"));
     ui->twBooks->setHeaderLabels(header);
 
+    onItemSelectionChanged();
     downloadBookList();
 }
 
@@ -35,6 +36,9 @@ void ServerDataDialog::onItemSelectionChanged()
     auto ci = ui->twBooks->currentItem();
     if (ci == nullptr)
     {
+        ui->pbDownloadBook->setEnabled(false);
+        ui->pbDownloadMediaFiles->setEnabled(false);
+        ui->pbDownloadPronounceFiles->setEnabled(false);
         return;
     }
 
